@@ -1,0 +1,14 @@
+# GGnet
+
+[official page](https://github.com/briatte/ggnet)
+
+```{r}
+install.packages("GGally", type = "source")
+library(GGally)
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
