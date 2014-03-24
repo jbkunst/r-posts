@@ -1,8 +1,14 @@
-# GGnet
+```{r}
+opts_chunk$set(warning=FALSE)
+```
+
+
+
+# GGally
 
 [official page](https://github.com/briatte/ggnet)
 
-```{r}
+```{r, }
 install.packages("GGally", type = "source")
 library(GGally)
 ```

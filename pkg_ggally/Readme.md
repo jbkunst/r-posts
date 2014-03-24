@@ -1,4 +1,12 @@
-# GGnet
+
+```r
+opts_chunk$set(warning = FALSE)
+```
+
+
+
+
+# GGally
 
 [official page](https://github.com/briatte/ggnet)
 
@@ -40,5 +48,5 @@ You can also embed plots, for example:
 plot(cars)
 ```
 
-![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
 
