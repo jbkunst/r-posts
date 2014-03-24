@@ -1,6 +1,6 @@
 # mclust 
 
-
+## Simple example
 
 ```r
 # http://joelcadwell.blogspot.com/2014/03/warning-clusters-may-appear-more_23.html
@@ -68,8 +68,10 @@ plot(faithfulMclust)
 
 ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-12.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-13.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-14.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-15.png) 
 
-```r
 
+## Simulating data
+
+```r
 # create 3 segment data set
 require(MASS)
 ```
@@ -94,7 +96,7 @@ colnames(mydata) <- c("Desired Level of Quality", "Willingness to Pay")
 plot(mydata, pch = "+")
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-16.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-21.png) 
 
 ```r
 
@@ -145,10 +147,12 @@ summary(mydataClust, parameters = TRUE)
 plot(mydataClust)
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-17.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-18.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-19.png) ![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-110.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-22.png) ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-23.png) ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-24.png) ![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-25.png) 
+
+
+## Let Mclust decide on number of segments
 
 ```r
-
 # let Mclust decide on number of segments
 mydataClust <- Mclust(mydata)
 summary(mydataClust, parameters = TRUE)
@@ -187,4 +191,10 @@ summary(mydataClust, parameters = TRUE)
 ## Desired Level of Quality                   1.1263             0.6669
 ## Willingness to Pay                         0.6669             0.9371
 ```
+
+```r
+plot(mydataClust)
+```
+
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-31.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-32.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-33.png) ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-34.png) 
 

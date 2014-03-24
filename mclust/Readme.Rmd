@@ -1,6 +1,6 @@
 # mclust 
 
-
+## Simple example
 ```{r}
 # http://joelcadwell.blogspot.com/2014/03/warning-clusters-may-appear-more_23.html
 # Warning: Clusters May Appear More Separated in Textbooks than in Practice
@@ -13,7 +13,10 @@ require(mclust)
 faithfulMclust <- Mclust(faithful, G=2)
 summary(faithfulMclust, parameters=TRUE)
 plot(faithfulMclust)
+```
 
+## Simulating data
+```{r}
 #create 3 segment data set
 require(MASS)
 sigma <- matrix(c(1.0,.6,.6,1.0),2,2)
@@ -35,7 +38,12 @@ mydataClust <- Mclust(mydata, G=3)
 summary(mydataClust, parameters=TRUE)
 plot(mydataClust)
 
+```
+
+## Let Mclust decide on number of segments
+```{r}
 #let Mclust decide on number of segments
 mydataClust <- Mclust(mydata)
 summary(mydataClust, parameters=TRUE)
+plot(mydataClust)
 ```
