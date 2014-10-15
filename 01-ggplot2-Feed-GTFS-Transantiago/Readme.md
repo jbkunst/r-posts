@@ -1,42 +1,44 @@
----
-output:
-  html_document:
-    highlight: null
-    keep_md: yes
-    theme: null
----
-```{r, echo=FALSE}
-library(knitr)
-```
+
 
 GTFS stands from *General Transit Feed Specification* and is a format for public transportation schedules and geographic data. And like data, is fun to use in R. 
 
 Usually is a zip file with txt files: `routes.txt`, `shapes.txt`, `stations.txt`, etc. And define  
 
 
-```{r}
+
+```r
 library(ggplot2)
 shapes <- read.csv("data/shapes.txt")
 ```
 
 The content is the 
 
-```{r, results='asis', echo=FALSE}
-kable(head(shapes))
-```
+
+|shape_id   | shape_pt_lat| shape_pt_lon| shape_pt_sequence|
+|:----------|------------:|------------:|-----------------:|
+|225-I-BASE |       -33.39|       -70.55|                 0|
+|225-I-BASE |       -33.39|       -70.55|                 1|
+|225-I-BASE |       -33.39|       -70.54|                 2|
+|225-I-BASE |       -33.39|       -70.54|                 3|
+|225-I-BASE |       -33.39|       -70.54|                 4|
+|225-I-BASE |       -33.39|       -70.54|                 5|
 
 So, it's ultra simple plot with ggplot.
 
-```{r}
+
+```r
 p <- ggplot(shapes) +
   geom_path(aes(shape_pt_lon, shape_pt_lat, group=shape_id), size=.2, alpha=.1) +
   coord_equal()
 p
 ```
 
+![plot of chunk unnamed-chunk-4](./Readme_files/figure-html/unnamed-chunk-4.png) 
+
 You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: 
 
-```{r, message=FALSE}
+
+```r
 library(devtools)
 library(plyr)
 library(dplyr)
@@ -46,7 +48,8 @@ source_url("https://raw.githubusercontent.com/jbkunst/reuse/master/R/gg_themes.R
 You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: 
 
 
-```{r}
+
+```r
 routes <- read.csv("data/routes.txt")
 trips <- read.csv("data/trips.txt")
 stops <- read.csv("data/stops.txt")
@@ -70,7 +73,8 @@ shapes_colors_metro <- shapes_colors %>% filter(shape_id %in% trips$shape_id[tri
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. 
 
-```{r}
+
+```r
 p2 <- ggplot() +
   geom_path(data=shapes, aes(shape_pt_lon, shape_pt_lat, group=shape_id),
             color="white", size=.2, alpha=.1) +
@@ -86,6 +90,8 @@ p2 <- ggplot() +
   ggtitle("TRANSANTIAGO\nSantiago's public transport system")
 p2
 ```
+
+![plot of chunk unnamed-chunk-7](./Readme_files/figure-html/unnamed-chunk-7.png) 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. 
 
