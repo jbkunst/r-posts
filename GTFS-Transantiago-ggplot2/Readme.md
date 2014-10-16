@@ -1,11 +1,6 @@
 
 
-Recently an study say Santiago, city where I live, has one of the best public transport system in LATAM (WAT?! define *best* please!). So I've search for some information and I found [this](http://www.siemens.com/press/pool/de/feature/2014/infrastructure-cities/2014-06-mobility-opportunity/slide-credo.pdf#page=6). Anyway I tried to find some related data/information and  
-
-
-
-
-GTFS stands from *General Transit Feed Specification* and is a format for public transportation schedules and geographic data. And like data, is fun to use in R. 
+Recently an study says that Santiago, city where I live, has one of the best public transport system in LATAM (WAT?! define *best* please!). So I've search for some information and I found [this](http://www.siemens.com/press/pool/de/feature/2014/infrastructure-cities/2014-06-mobility-opportunity/slide-credo.pdf#page=6). Anyway I tried to find some related data/information to work and I found the *Transantiago GTFS*. GTFS stands from *General Transit Feed Specification* and is a format for public transportation schedules and geographic data.
 
 ()
 
@@ -42,7 +37,7 @@ p <- ggplot(shapes) +
 p
 ```
 
-![plot of chunk unnamed-chunk-4](./Readme_files/figure-html/unnamed-chunk-4.png) 
+<img src="plot/gtfs-plot_simple.png" title="plot of chunk plot_simple" alt="plot of chunk plot_simple" style="display: block; margin: auto;" />
 
 You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: You can also embed plots, for example: 
 
@@ -83,6 +78,7 @@ shapes_colors_metro <- shapes_colors %>% filter(shape_id %in% trips$shape_id[tri
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot. 
 
 
+
 ```r
 p2 <- ggplot() +
   geom_path(data=shapes, aes(shape_pt_lon, shape_pt_lat, group=shape_id),
@@ -95,12 +91,22 @@ p2 <- ggplot() +
   coord_equal() +
   theme_null() +
   theme(plot.background = element_rect(fill = "black", colour = "black"),
-        title = element_text(hjust=1, colour="white")) +
-  ggtitle("TRANSANTIAGO\nSantiago's public transport system")
+        title = element_text(hjust=1, colour="white", size = 8),
+        axis.title.x = element_text(hjust=0, colour="white", size = 7)) +
+  ggtitle("TRANSANTIAGO\nSantiago's public transport system") + 
+  xlab(sprintf("Jkunst.com %s",format(Sys.Date(), "%Y")))
 p2
 ```
 
-![plot of chunk unnamed-chunk-7](./Readme_files/figure-html/unnamed-chunk-7.png) 
+<img src="plot/gtfs-plot_complex.png" title="plot of chunk plot_complex" alt="plot of chunk plot_complex" style="display: block; margin: auto;" />
 
-You can also export the image in a high resolution pds like [this](https://github.com/jbkunst/r-posts/blob/master/01-ggplot2-Feed-GTFS-Transantiago/plot/gtfs_transantiago_hires.pdf?raw=true#page=1)
+You can also export the image in a high resolution pds like [this](https://github.com/jbkunst/r-posts/blob/master/GTFS-Transantiago-ggplot2/plot/gtfs-transantiago.pdf?raw=true) with:
+
+
+```r
+ggsave(filename = "plot/gtfs-transantiago.pdf", plot = p2, width = 16, height = 12, bg = "black")
+```
+
+
+
 
