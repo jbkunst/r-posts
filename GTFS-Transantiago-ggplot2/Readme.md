@@ -1,5 +1,6 @@
 
 
+
 Days ago a study says that Santiago, city where I live, has one of the best public transport system in LATAM (WAT?! define *best* please!). So I've search for some information and I found [this](http://www.siemens.com/press/pool/de/feature/2014/infrastructure-cities/2014-06-mobility-opportunity/slide-credo.pdf#page=6). Anyway I tried to find some related data/information to work/play and I found the *Transantiago GTFS*. GTFS means *General Transit Feed Specification* and is a format for public transportation schedules and geographic data.
 
 This information comes in a zip file with information about routes, stations (name, location), shapes (route, path) and other elements in the system. For example the `shape.txt` file have the geographic path of each route.
