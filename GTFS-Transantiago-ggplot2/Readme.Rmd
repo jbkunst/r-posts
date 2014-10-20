@@ -58,7 +58,8 @@ stops_metro <- stops %>% filter(!grepl("\\d", stop_id))
 
 routes_metro <- routes %>% filter(grepl("^L\\d",route_id))
 
-shapes_metro <- shapes %>% filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id])
+shapes_metro <- shapes %>% filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id]) %>%
+   arrange(shape_id, shape_pt_sequence)
 ```
 
 Now, get the color for each Metro line.
@@ -71,7 +72,9 @@ shapes_colors <- left_join(left_join(shapes %>% select(shape_id) %>% unique(),
                            by = "route_id") %>%
   mutate(route_color = paste0("#", route_color))
 
-shapes_colors_metro <- shapes_colors %>% filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id])
+shapes_colors_metro <- shapes_colors %>%
+  filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id]) %>% unique() %>%
+  arrange(shape_id)
 ```
 
 The data is ready. So it's time to make another plot.
@@ -109,7 +112,9 @@ p3 <- ggplot() +
 p3
 ```
 
-Finally we can also export the plota in a pdf file like [this](https://github.com/jbkunst/r-posts/blob/master/GTFS-Transantiago-ggplot2/plot/gtfs-metro.pdf?raw=true) or this[https://github.com/jbkunst/r-posts/blob/master/GTFS-Transantiago-ggplot2/plot/gtfs-transantiago.pdf?raw=true] with:
+You can see the original image on wikipedia [here](http://upload.wikimedia.org/wikipedia/commons/archive/4/49/20091229144454%21Metro_de_Santiago.svg).
+
+Finally we can also export the plota in a pdf file like [this](https://github.com/jbkunst/r-posts/blob/master/GTFS-Transantiago-ggplot2/plot/gtfs-metro.pdf?raw=true) or [this](https://github.com/jbkunst/r-posts/blob/master/GTFS-Transantiago-ggplot2/plot/gtfs-transantiago.pdf?raw=true) with:
 
 ```{r, message=FALSE}
 ggsave(filename = "plot/gtfs-transantiago.pdf", plot = p2, bg = "black")
