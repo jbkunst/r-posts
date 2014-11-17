@@ -4,7 +4,7 @@ per.n <- function(p = "201201", n.ahead = 1){
 }
 
 getWindows <- function(pers = per.n("201112", n.ahead =  seq(24)),
-                       n.months.train = 3, n.months.val = 2){
+                       n.months.train = 8, n.months.val = 1){
   pers <- sort(pers)
   n.months <- n.months.train + n.months.val
   n.windows <- length(pers)-n.months
@@ -29,14 +29,37 @@ getSplitData <- function(data=data, window = getWindows()[[1]]){
 getRFPerformance <- function(splitdata = getSplitData(data),
                              response.name ="LABEL.BUY",
                              predictive.names.patter = "att",
-                             remove.indeterminates = TRUE){
+                             ntree = 200,
+                             cut.point = 0.7){
   
-  library(randomForest)
-  response.name <- sprintf("factor(%s)", response.name)
-  fml <- paste(response.name, "~", paste(str_pattern(names(splitdata$dtrain), predictive.names.patter), collapse =  " + "))  
+  dtrain <- splitdata$dtrain
+  dtest <- splitdata$dtest
   
-  mod.rf <- randomForest(fml, data=)
+  fml <- sprintf("factor(%s)", response.name)
+  fml <- paste(fml, "~", paste(str_pattern(names(dtrain), predictive.names.patter), collapse =  " + "))  
+  fml <- as.formula(fml)
+  mod.rf <- randomForest(fml, data=dtrain, do.trace = TRUE, ntree = ntree)
   
+  dtrain$prob <- predict(mod.rf, newdata = dtrain, type = "prob")[,2]
+  dtrain$pred <- ifelse(dtrain$prob >= cut.point, 1, 0)
+  
+  dtest$prob <- predict(mod.rf, newdata = dtest, type = "prob")[,2]
+  dtest$pred <- ifelse(dtest$prob >= cut.point, 1, 0)
+  
+  # t testing
+#   tt <- score_indicators(dtrain$prob, dtrain$LABEL.BUY) %>% select(Size, Goods, Bads, BadRate, KS, AUCROC)
+#   tt <- setNames(tt, paste0("Train", names(tt)))
+#   tt <- cbind(tt, P = conf_matrix(dtrain$pred, dtrain$LABEL.BUY)$indicators.t$P)
+#   tt
+  
+  # t val
+  tv <- score_indicators(dtest$prob, dtest$LABEL.BUY) %>% select(Size, Goods, Bads, BadRate, KS, AUCROC)
+  tv <- setNames(tv, paste0("Test", names(tv)))
+  tv <- cbind(tv, TestPrecision = conf_matrix(dtest$pred, dtest$LABEL.BUY)$indicators.t$P)
+  tv <- cbind(tv, TestEntry = dtrain %>% filter(pred==1) %>% nrow() / nrow(dtrain))
+  
+  cbind(data.frame(per.base = max(splitdata$dtrain$periodo)), tv)
+   
 }
 
 
