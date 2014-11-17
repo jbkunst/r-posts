@@ -19,12 +19,29 @@ getWindows <- function(pers = per.n("201112", n.ahead =  seq(24)),
 getSplitData <- function(data=data, window = getWindows()[[1]]){
   
   dtrain <- data %>% filter(periodo %in% window$train.monhts)
+
   dtest <- data %>% filter(periodo %in% window$val.months)
   
   list(dtrain = dtrain, dtest = dtest)
   
 }
 
-Modelling <- function(splitdata = getSplitData(data), ){
+getRFPerformance <- function(splitdata = getSplitData(data),
+                             response.name ="LABEL.BUY",
+                             predictive.names.patter = "att",
+                             remove.indeterminates = TRUE){
   
+  library(randomForest)
+  response.name <- sprintf("factor(%s)", response.name)
+  fml <- paste(response.name, "~", paste(str_pattern(names(splitdata$dtrain), predictive.names.patter), collapse =  " + "))  
+  
+  mod.rf <- randomForest(fml, data=)
+  
+}
+
+
+
+str_pattern <- function (string, pattern){
+  require(stringr)
+  string[str_detect(string, pattern)]
 }
