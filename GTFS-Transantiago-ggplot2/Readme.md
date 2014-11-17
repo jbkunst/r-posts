@@ -31,7 +31,7 @@ p <- ggplot(shapes) +
 p
 ```
 
-<img src="plot/gtfs-plot_simple-1.png" title="" alt="" style="display: block; margin: auto;" />
+<img src="plot/gtfs-plot_simple.png" title="plot of chunk plot_simple" alt="plot of chunk plot_simple" style="display: block; margin: auto;" />
 
 Is a good plot with a one line of code to start. But let's get the things more fun. Transantiago have a subway called *Metro*, so let's plot with more detail showing the stations and the routes (lines) over this plot.
 
@@ -96,7 +96,7 @@ p2 <- ggplot() +
 p2
 ```
 
-<img src="plot/gtfs-plot_complex-1.png" title="" alt="" style="display: block; margin: auto;" />
+<img src="plot/gtfs-plot_complex.png" title="plot of chunk plot_complex" alt="plot of chunk plot_complex" style="display: block; margin: auto;" />
 
 Or we can just plot only te metro routes with the follow code:
 
@@ -116,7 +116,7 @@ p3 <- ggplot() +
 p3
 ```
 
-<img src="plot/gtfs-plot_complex_2-1.png" title="" alt="" style="display: block; margin: auto;" />
+<img src="plot/gtfs-plot_complex_2.png" title="plot of chunk plot_complex_2" alt="plot of chunk plot_complex_2" style="display: block; margin: auto;" />
 
 You can see the original image on wikipedia [here](http://upload.wikimedia.org/wikipedia/commons/archive/4/49/20091229144454%21Metro_de_Santiago.svg).
 
