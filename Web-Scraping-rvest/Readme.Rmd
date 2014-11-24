@@ -1,0 +1,33 @@
+---
+output:
+  html_document:
+    keep_md: yes
+---
+# rvest
+
+
+```{r}
+# devtools::install_github("hadley/rvest")
+library(rvest)
+lego_movie <- html("http://www.imdb.com/title/tt1490017/")
+```
+
+```{r}
+lego_movie %>% 
+  html_node("strong span") %>%
+  html_text() %>%
+  as.numeric()
+```
+
+```{r}
+lego_movie %>%
+  html_nodes("#titleCast .itemprop span") %>%
+  html_text()
+```
+
+```{r}
+lego_movie %>%
+  html_nodes("table") %>%
+  .[[3]] %>%
+  html_table()
+```
