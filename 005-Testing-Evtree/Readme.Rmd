@@ -1,0 +1,91 @@
+---
+output:
+  html_document:
+    highlight: null
+    keep_md: yes
+    theme: null
+---
+# Evtree
+
+Take from [evtree: Evolutionary Learning of Globally Optimal Classification and Regression Trees in R](http://cran.r-project.org/web/packages/evtree/vignettes/evtree.pdf)
+
+
+## Artificial Data
+```{r, warning=FALSE, message=FALSE}
+## artificial data
+X1 <- rep(seq(0.25, 1.75, 0.5), each = 4)
+X2 <- rep(seq(0.25, 1.75, 0.5), 4)
+Y <- rep(1, 16)
+Y[(X1 < 1 & X2 < 1) | (X1 > 1 & X2 > 1)] <- 2
+Y <- factor(Y, labels = c("O", "X"))
+chess22 <- data.frame(Y, X1, X2)
+
+plot(X2 ~ X1, data = chess22, xlim = c(0, 2), ylim = c(0, 2),
+  pch = c(1, 4)[Y], col = c("black", "slategray")[Y])
+
+## trees
+library("evtree")
+set.seed(1090)
+evtree(Y ~ ., data = chess22, minbucket = 1, minsplit = 2)
+
+ctree(Y ~ ., data = chess22, minbucket = 1, minsplit = 2)
+
+library("rpart")
+as.party(rpart(Y ~ ., data = chess22, minbucket = 1, minsplit = 2))
+
+library("RWeka")
+as.party(J48(Y ~ ., data = chess22))
+```
+
+
+## Real Data
+```{r, warning=FALSE, message=FALSE}
+
+## trees
+data("BBBClub", package = "evtree")
+attach(BBBClub)
+library("rpart")
+rp  <- as.party(rpart(choice ~ ., data = BBBClub, minbucket = 10))
+rp2 <- as.party(rpart(choice ~ ., data = BBBClub, minbucket = 10, maxdepth = 2))
+plot(rp)
+
+ct  <- ctree(choice ~ ., data = BBBClub, minbucket = 10, mincrit = 0.99)
+ct2 <- ctree(choice ~ ., data = BBBClub, minbucket = 10, mincrit = 0.99, maxdepth = 2)
+plot(ct)
+
+set.seed(1090)
+ev <- evtree(choice ~ ., data = BBBClub, minbucket = 10, maxdepth = 2)
+plot(ev)
+ev
+
+## performance
+mc <- function(obj) 1 - mean(predict(obj) == BBBClub$choice)
+
+evalfun <- function(obj) 2 * nrow(BBBClub) * mc(obj) + width(obj) * log(nrow(BBBClub))
+
+trees <- list("evtree" = ev, "rpart" = rp, "ctree" = ct, "rpart2" = rp2, "ctree2" = ct2)
+
+library(plyr)
+ldply(trees, function(obj){
+  c("misclassification" = mc(obj),
+    "evaluation function" = evalfun(obj))
+})
+
+
+ftable(tab <- table(evtree = predict(ev),
+                    rpart  = predict(rp),
+                    ctree  = predict(ct),
+                    observed = BBBClub$choice))
+
+
+ldply(c("evtree"="evtree", "rpart"="rpart", "ctree" = "ctree"), function(nam) { # nam <- "evtree"
+  mt <- margin.table(tab, c(match(nam, names(dimnames(tab))), 4))
+  c(abs = as.vector(rowSums(mt))[2],
+    rel = round(100 * prop.table(mt, 1)[2, 2], digits = 3))
+})
+
+library(risk)
+ldply(trees, function(t){
+  round(conf_matrix(predict(t), BBBClub$choice)$indicators.t, 3)
+})
+```
