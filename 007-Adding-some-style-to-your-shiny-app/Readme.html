@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<title></title>
+
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+
+<div id="adding-some-style-to-your-shiny-app" class="section level1">
+<h1>Adding some style to your shiny app</h1>
+<style>
+#wrap { width: 600px; height: 676px; padding: 0; overflow: hidden; }
+#frame { width: 800px; height: 1040px; border: 0px solid black; }
+#frame {
+ -ms-zoom: 0.65;
+        -moz-transform: scale(0.65);
+        -moz-transform-origin: 0 0;
+        -o-transform: scale(0.65);
+        -o-transform-origin: 0 0;
+        -webkit-transform: scale(0.65);
+        -webkit-transform-origin: 0 0;
+
+}
+</style>
+
+<p>Fisrt of all, there are a good <a href="http://shiny.rstudio.com/articles/css.html">post</a> in Rstudio’s blog where they explain how add style in a shiny app. But that is only the beginning.</p>
+<p>Time ago, searching for js libraries and I found <a href="http://www.amcharts.com/">amcharts</a>, but the most important thing is their <a href="http://www.amcharts.com/inspiration/chalk/"><em>inspirational</em></a> page, which obviously inspired me. So I decide take the theme (backgorund included), search for some educational data and make something with shiny and <a href="http://r-shiny-apps.jkunst.com/shiny-apps/cl-educ/">here</a> is the result (patience please beacuse it’s a little slow):</p>
+<div id="wrap">
+<iframe id="frame" src="http://r-shiny-apps.jkunst.com/shiny-apps/cl-educ/" frameborder="0" allowfullscreen></iframe>
+</div>
+<p>The app is in in spanish (país: country, region: it’s like a subdivsión, colegio: school, acerca: about) but lenguage doesnt matter to show how awesome can be a shiny app.</p>
+<p>Ggplot2 and rChart (highcharts in particular) plots are very customizable so it wasnt a hard task to emulate the style and you can check the <a href="https://github.com/jbkunst/cl-educ">repo</a> if you need more detail.</p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
