@@ -1,0 +1,45 @@
+---
+title: "ecp: An R Package for Nonparametric Multiple Change Point Analysis of Multivariate Data"
+author: "Joshua Kunst"
+date: "Friday, January 23, 2015"
+output:
+  html_document:
+    keep_md: yes
+---
+
+Taken from [ecp: An R Package for Nonparametric Multiple Change Point Analysis of Multivariate Data](http://www.jstatsoft.org/v62/i07/paper).
+
+Basically, give a numeric ordered matrix (by column), the function `e.divisive` estimate the index where are change points in the distribution.
+
+
+```{r}
+set.seed(250)
+library("ecp")
+
+p1 <- rnorm(100, 0, 1) # N(0,1)
+p2 <- rnorm(100, 0, 3) # N(0,3) # change variance
+p3 <- rnorm(100, 2, 3) # N(2,3) # change mean
+p4 <- rnorm(100, 2, 4) # N(2,4) # change variance
+
+# The parameter must be a matrix
+
+Xnorm <- matrix(c(p1, p2, p3, p4), ncol = 1)
+
+output0 <- e.divisive(Xnorm) # take some time 3 secs in a I3
+
+output0
+
+
+output0$estimates
+output1$k.hat
+output1$order.found
+
+```
+
+You can also embed plots, for example:
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
