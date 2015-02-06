@@ -22,7 +22,9 @@ output:
 }
 </style>
 
-Fisrt of all, there are a good [post](http://shiny.rstudio.com/articles/css.html) in Rstudio's blog where they explain how add style in a shiny app. But that is only the beginning.
+Fisrt of all, there are a good [post](http://shiny.rstudio.com/articles/css.html) in Rstudio's blog where they explain how add styles in a shiny app. But that is only the beginning.
+
+This post it's only to show what can you do if you have an idea or inspiration.
 
 Time ago, searching for js libraries and I found [amcharts](http://www.amcharts.com/), but the most important thing is their [*inspirational*](http://www.amcharts.com/inspiration/chalk/) page, which obviously inspired me. So I decide take the theme (backgorund included), search for some educational data and make something with shiny and [here](http://r-shiny-apps.jkunst.com/shiny-apps/cl-educ/) is the result (patience please beacuse it's a little slow):
 
