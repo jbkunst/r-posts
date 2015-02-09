@@ -5,65 +5,78 @@ library("ggplot2")
 library("plyr")
 library("dplyr")
 library("reshape2")
+library("grid")
+# 
+# net <- matrix(c(0,1,1,0,0,0,0,
+#                 1,0,1,0,0,0,0,
+#                 1,1,0,1,0,0,0,
+#                 0,0,1,0,1,0,0,
+#                 0,0,0,1,0,1,1,
+#                 0,0,0,0,1,0,1,
+#                 0,0,0,0,1,1,0),
+#               byrow = TRUE, nrow = 7)
 
-net <- matrix(c(0,1,1,0,0,0,0,
-                1,0,1,0,0,0,0,
-                1,1,0,1,0,0,0,
-                0,0,1,0,1,0,0,
-                0,0,0,1,0,1,1,
-                0,0,0,0,1,0,1,
-                0,0,0,0,1,1,0),
-              byrow = TRUE, nrow = 7)
+net <- matrix(c(0,1,0,0,
+                1,0,1,1,
+                0,1,0,1,
+                0,1,1,0),
+              byrow = TRUE, nrow = 4)
+
+c0 <- 0.5
+c1 <- 0.9
+l <- 0.5
 
 net <- as.matrix.network(network(net), matrix.type="edgelist")
 
-attr(net, "positions") <- rmvnorm(n = attr(net, "n"), sigma = diag(c(1, 1)))
-attr(net, "edges") <- net[,]
-
-
-
-net.plot <- function(net){
-  
-  dpos <- attr(net, "positions") %>%
+net.fix <- function(net){
+  attr(net, "positions") <- rmvnorm(n = attr(net, "n"), sigma = diag(c(1, 1)))
+  attr(net, "edges") <- net[,] %>%
     as.data.frame %>%
-    mutate(names = attr(net, "vnames"))
-  dedges <- attr(net, "edges") %>% as.data.frame
-  dedges <- dedges %>%
-    cbind( dpos[dedges$V1,] %>% setNames(c("xs", "ys"))) %>%
-    cbind( dpos[dedges$V2,] %>% setNames(c("xe", "ye")))
-  
-  p <- ggplot() +
-    geom_point(data=dpos, aes(V1, V2), size = 10, alpha = 0.3, color="darkblue") + 
-    geom_segment(data=dedges, aes(x=xs, y=ys, xend=xe, yend=ye), alpha = 0.1, size = 2, color = "darkred") +
-    geom_text(data=dpos, aes(V1, V2, label=names)) 
-  p
+    mutate(V1n = ifelse(V1<=V2, V1, V2),
+           V2n = ifelse(V1<=V2, V2, V1)) %>%
+    select(V1=V1n, V2=V2n) %>%
+    distinct %>%
+    as.matrix
+  net
 }
 
-net.update_positions <- function(net){
-  
-  dpos_actual <- attr(net, "positions") %>% as.data.frame
-  dedges <- attr(net, "edges") %>% as.data.frame
-  nodes <- attr(net, "vnames")
+net <- net.fix(net)
 
-  # repulsive
+net.calculate.repulsive <- function(net){
+  
+  dpositions <- attr(net, "positions") %>% as.data.frame
+  dedges <- attr(net, "edges") %>% as.data.frame   
+  nodes <- attr(net, "vnames")
+  
   drep <- ldply(nodes, function(node){ # node <- 2 #sample(nodes, size = 1)
     
-    node_x <- dpos_actual[node, "V1"]
-    node_y <- dpos_actual[node, "V2"]
+    node_x <- dpositions[node, "V1"]
+    node_y <- dpositions[node, "V2"]
     
-    dpos_actual[-node,] %>%
-      mutate(V1 = node_x - V1,
-             V2 = node_y - V2,
-             r2 = V1^2+V2^2,
-             V1 = V1/r2,
-             V2 = V2/r2) %>%
-      select(V1, V2) %>%
-      colSums %>%
-      setNames(c("dx", "dy"))
+    dpositions[-node,] %>%
+      mutate(node_origin = node,
+             node_x = node_x,
+             node_y = node_y,
+             node_force = setdiff(nodes, node),
+             dist = (node_x - V1)^2 + (node_y - V2)^2,
+             dist = sqrt(dist),
+             ex = (node_x - V1)/dist,
+             ey = (node_y - V2)/dist,
+             fx = c0*ex/dist^2,
+             fy = c0*ey/dist^2)
   })
   
+  drep
+}
+
+net.calculate.attractive <- function(net){
+  
+  dpositions <- attr(net, "positions") %>% as.data.frame
+  dedges <- attr(net, "edges") %>% as.data.frame   
+  nodes <- attr(net, "vnames")
+  
   # attractive
-  datt <- ldply(nodes, function(node){ # node <- 2 #sample(nodes, size = 1)
+  datt <- ldply(nodes, function(node){ # node <- 3 #sample(nodes, size = 1)
     
     relations_edges <- dedges %>%
       filter(V1 == node | V2 == node) %>%
@@ -72,30 +85,88 @@ net.update_positions <- function(net){
       unique %>%
       setdiff(node)
     
-    node_x <- dpos_actual[node, "V1"]
-    node_y <- dpos_actual[node, "V2"]
+    node_x <- dpositions[node, "V1"]
+    node_y <- dpositions[node, "V2"]
     
-    dpos_actual[relations_edges,] %>%
-      mutate(V1 = node_x - V1,
-             V2 = node_y - V2,
-             r2 = V1^2+V2^2,
-             V1 = V1/r2,
-             V2 = V2/r2) %>%
-      select(V1, V2) %>%
-      colSums %>%
-      setNames(c("dx", "dy"))
+    dpositions[relations_edges,] %>%
+      mutate(node_origin = node,
+             node_x = node_x,
+             node_y = node_y,
+             node_force = relations_edges,
+             dist = (node_x - V1)^2 + (node_y - V2)^2,
+             dist = sqrt(dist),
+             ex = (node_x - V1)/dist,
+             ey = (node_y - V2)/dist,
+             fx = -c1*(dist - l)*ex,
+             fy = -c1*(dist - l)*ey)
   })
+}
+
+net.plot <- function(net){
   
-  dpos_updated <- dpos_actual + drep + datt
-  attr(net, "positions") <- dpos_updated %>% as.matrix
+  drep <- net.calculate.repulsive(net)
+  datt <- net.calculate.attractive(net)
+  
+  drep2 <- drep %>% group_by(node_origin) %>% summarise(fx=sum(fx), fy=sum(fy))
+  datt2 <- datt %>% group_by(node_origin) %>% summarise(fx=sum(fx), fy=sum(fy))
+  
+  dforce <- rbind.fill(drep, datt) %>%
+    group_by(node_x, node_y) %>%
+    summarise(fx=sum(fx), fy=sum(fy))
+  
+  dpositions <- attr(net, "positions") %>% as.data.frame %>% mutate(names = attr(net, "vnames"))
+  dedges <- attr(net, "edges") %>% as.data.frame
+  
+  dedges <- dedges %>%
+    cbind( dpositions[dedges$V1,1:2] %>% setNames(c("xs", "ys"))) %>%
+    cbind( dpositions[dedges$V2,1:2] %>% setNames(c("xe", "ye")))
+  
+  ggplot() +
+    geom_point(data=dpositions, aes(V1, V2), size = 10, alpha = 0.7, color="black") + # nodes
+    geom_segment(data=dedges, aes(x=xs, y=ys, xend=xe, yend=ye), alpha = 0.7, size = 2, color = "black") + # edges
     
-  net
+#     geom_segment(data=drep ,aes(x=node_x, y=node_y, xend=node_x+fx, yend=node_y+fy), alpha= 0.1, arrow = arrow(), color ="darkred", size=0.5) +
+#     geom_segment(data=drep2,aes(x=node_x, y=node_y, xend=node_x+fx, yend=node_y+fy), alpha= 0.3, arrow = arrow(), color ="darkred", size=1.2) +
+#     
+#     geom_segment(data=datt ,aes(x=node_x, y=node_y, xend=node_x+fx, yend=node_y+fy), alpha= 0.1, arrow = arrow(), color="darkblue", size=0.5) +
+#     geom_segment(data=datt2,aes(x=node_x, y=node_y, xend=node_x+fx, yend=node_y+fy), alpha= 0.3, arrow = arrow(), color="darkblue", size=1.2) +
+    
+    geom_segment(data=dforce,aes(x=node_x, y=node_y, xend=node_x+fx, yend=node_y+fy), alpha= 0.5, arrow = arrow(), color="green", size=1.2) +
+    
+    # theme
+    geom_text(data=dpositions, aes(V1, V2, label=names), color = "white") +
+    theme_gray()
+   
+}
+
+net.plot(net)
+
+net.update.positions <- function(net){
+  
+  dpositions <- attr(net, "positions")
+  
+  drep <- net.calculate.repulsive(net)
+  datt <- net.calculate.attractive(net)  
+  dforce <- rbind.fill(drep, datt) %>%
+    group_by(node_origin) %>%
+    summarise(fx=sum(fx), fy=sum(fy)) %>%
+    select(fx, fy)
+  
+  dpositions_update <- dpositions + dforce
+  dpositions_update <- dpositions_update %>%
+    setNames(c("V1", "V2")) %>%
+    as.matrix
+  
+  attr(net, "positions") <- dpositions_update
+  
+  net   
+  
 }
 
 
 
 net.plot(net)
-net <- net.update_positions(net)
+net <- net.update.positions(net)
 
 
 
