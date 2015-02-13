@@ -1,6 +1,7 @@
 #### WS ####
 rm(list=ls())
-library("gbm")
+library("nloptr")
+library("adabag")
 library("ggplot2")
 
 #### LOAD DATA ####
@@ -9,8 +10,7 @@ load("../data/process_data.RData")
 
 #### MODELLING ####
 set.seed(500)
-ntrees <- 2000
-mod <- gbm(Survived ~ ., data=dtrnf, n.trees = ntrees)
+mod <- adabag::boosting(Survived ~ ., data=dtrnf, mfinal = 200)
 
 plot(mod)
 mod
@@ -19,7 +19,7 @@ summary(mod)
 
 
 #### PREDICT ####
-preds <- gbm::predict.gbm(mod, newdata = dtstf, n.trees = ntrees, type="response")
+preds <- predict(mod, newdata = dtstf)
 qplot(preds)
 preds <- ifelse(preds>.5, 1, 0)
 

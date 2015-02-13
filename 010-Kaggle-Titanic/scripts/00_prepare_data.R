@@ -3,66 +3,101 @@ rm(list=ls())
 options(stringsAsFactors = FALSE)
 library("plyr")
 library("dplyr")
+library("stringr")
+library("ggplot2")
 source("00_utils.R")
 
 #### LOAD DATA ####
-dtrn <- read.table("../data/train.csv", header = TRUE, sep = ",")
+train <- read.table("../data/train.csv", header = TRUE, sep = ",")
+test <- read.table("../data/test.csv", header = TRUE, sep = ",")
 
 #### EXPLORING ####
-df.summary(dtrn)
+df.summary(train)
+df.summary(test)
 
-# NAs
-AgeMedian <- median(dtrn$Age, na.rm = TRUE)
-dtrn$Age[is.na(dtrn$Age)] <- AgeMedian
+data <- rbind.fill(train, test)
 
-# Char # > 32
-df.summary(dtrn) %>%
-  filter(Class == "character") %>%
-  filter(Uniques > 32)
-
-dtrn$Ticket
-dtrn$Cabin
+table(addNA(data$Survived))
+head(data)
+str(data)
 
 
-### TRANSFORM
-dtrn <- dtrn  %>% 
-  mutate(CabinStart = substring(Cabin, 0, 1) %>% factor,
-         Survived = as.factor(ifelse(Survived, "Y", "N")),
-         Pclass = as.factor(Pclass)) %>%
-   df.chr2factor
+#### VARIABLES ####
 
-df.summary(dtrn) %>%
-  filter(Class == "factor") %>%
-  filter(Uniques > 32)
+# Engineered variable: Title
+data$Title <- laply(data$Name, function(x) {strsplit(x, split="[,.]")[[1]][2]})
+data$Title <- str_trim(data$Title)
+# Combine small title groups
+data$Title[data$Title %in% c("Mme", "Mlle")] <- "Mlle"
+data$Title[data$Title %in% c("Capt", "Don", "Major", "Sir")] <- "Sir"
+data$Title[data$Title %in% c("Dona", "Lady", "the Countess", "Jonkheer")] <- "Lady"
 
+# Engineered variable: Family size
+data$FamilySize <- data$SibSp + data$Parch + 1
 
-dtrnf <-  dtrn  %>% select(-Name, -Ticket, -Cabin)
-
-
-
+data$SibParch <- (data$SibSp+1)/(data$Parch + 1)
 
 
-#### DATA TEST ####
-dtst <- read.table("../data/test.csv", header = TRUE, sep = ",")
-dtst <- dtst  %>% 
-  mutate(CabinStart = substring(Cabin, 0, 1) %>% factor(levels = levels(dtrn$CabinStart)),
-         Pclass = as.factor(Pclass),
-         Embarked = factor(Embarked, levels = levels(dtrn$Embarked))) %>%
-  df.chr2factor
+# Engineered variable: Family
+data$Surname <- laply(data$Name, function(x) {strsplit(x, split='[,.]')[[1]][1]})
+data$FamilyID <- paste(as.character(data$FamilySize), data$Surname, sep="")
+data$FamilyID[data$FamilySize <= 2] <- "Small"
 
-dtst$Age[is.na(dtst$Age)] <- AgeMedian
-dtst$Fare[is.na(dtst$Fare)] <- median(dtrn$Fare, na.rm = TRUE)
-
-
-dtrnf <- dtrn  %>% select(-Name, -Ticket, -Cabin)
-dtstf <- dtst
+# Delete erroneous family IDs
+famIDs <- data.frame(table(data$FamilyID))
+famIDs <- famIDs[famIDs$Freq <= 3,]
+data$FamilyID[data$FamilyID %in% famIDs$Var1] <- "Small"
+# Convert to a factor
 
 
-#### TRANSFORMATIONS #####
 
+# Fill in Age NAs
+summary(data$Age)
+Agefit <- rpart(Age ~ Pclass + Sex + SibSp + Parch +
+                  Embarked + Title + FamilySize, 
+                data=data[!is.na(data$Age),], method="anova")
+
+data$Age[is.na(data$Age)] <- predict(Agefit, data[is.na(data$Age),])
+summary(data$Age)
+
+data$Log_Age <- log(data$Age)
+
+# Fill in Fare NAs
+summary(data$Fare)
+data$Fare[is.na(data$Fare)] <- median(data$Fare, na.rm = TRUE)
+
+data$Fare2 <- 0
+#calculate Fare per person
+for (t in unique(data$Ticket)) {
+  who <- which(data$Ticket==t)
+  data$Fare2[who] <- data$Fare[who[1]]/length(who)
+}
+
+
+
+# Fill in Embarked blanks
+summary(data$Embarked)
+data$Embarked[c(which(data$Embarked == ""))] = "S"
+
+
+
+data$Ticket2 <- substr(gsub("[][!#$%()*,.:;<=>@^_`|~.{} ]", "", as.character(data$Ticket)), 1, 1)
+
+
+
+
+# Sector
+data$Sector <- substr(data$Cabin, 1, 1)
 
 #### EXPORT ####
-save(dtrnf, dtstf, file = "../data/process_data.RData")
+data <- data %>% 
+  mutate(Pclass = factor(Pclass)) %>%
+  df.chr2factor %>%
+  select(-Name, -Ticket, -Surname, -Cabin)
+
+str(data)
+
+save(data, file = "../data/process_data.RData")
 
 
 

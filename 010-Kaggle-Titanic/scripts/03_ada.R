@@ -1,16 +1,18 @@
 #### WS ####
 rm(list=ls())
-library("gbm")
+library("ada")
 library("ggplot2")
 
 #### LOAD DATA ####
 load("../data/process_data.RData")
 
 
+dtrnf$Survived <- (dtrnf$Survived == "Y") %>% as.numeric
+  
+
 #### MODELLING ####
 set.seed(500)
-ntrees <- 2000
-mod <- gbm(Survived ~ ., data=dtrnf, n.trees = ntrees)
+mod <- ada::ada(Survived ~ ., data=dtrnf, iter = 100)
 
 plot(mod)
 mod
@@ -19,9 +21,9 @@ summary(mod)
 
 
 #### PREDICT ####
-preds <- gbm::predict.gbm(mod, newdata = dtstf, n.trees = ntrees, type="response")
+preds <- predict(mod, newdata = dtstf)
 qplot(preds)
-preds <- ifelse(preds>.5, 1, 0)
+
 
 dtstf$Survived <- preds
 
@@ -32,7 +34,7 @@ if(dtstf %>% filter(is.na(Survived)) %>% nrow == 0){
 }
 
 write.csv(dtstf  %>% select(PassengerId, Survived),
-          file=sprintf("../output/gbm_preds_%s.csv", Sys.Date()),
+          file=sprintf("../output/ada_preds_%s.csv", Sys.Date()),
           quote=FALSE, row.names=FALSE)
 
 
