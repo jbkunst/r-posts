@@ -1,7 +1,9 @@
 ---
 title: "Party!"
+output:
+  html_document:
+    keep_md: yes
 date: "Monday, April 13, 2015"
-output: html_document
 ---
 
 Ok don Mario! El ejemplo conversado. Cargamos librería `party`. Prefiero esta antes que `rpart` por un asunto de que el `plot` es mejor para visualizar el árbol.
