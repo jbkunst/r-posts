@@ -3,6 +3,7 @@ title: "Party!"
 output:
   html_document:
     keep_md: yes
+  pdf_document: default
 date: "Monday, April 13, 2015"
 ---
 
@@ -127,6 +128,5 @@ Comparar con
 ```{r}
 tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
 ```
-
 
 

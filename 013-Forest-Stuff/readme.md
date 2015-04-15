@@ -224,4 +224,3 @@ tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
 ```
 
 
-
