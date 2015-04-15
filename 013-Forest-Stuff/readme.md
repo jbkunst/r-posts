@@ -1,6 +1,8 @@
 # Party!
 Monday, April 13, 2015  
 
+## Partiendo con la Party!
+
 Ok don Mario! El ejemplo conversado. Cargamos librería `party`. Prefiero esta antes que `rpart` por un asunto de que el `plot` es mejor para visualizar el árbol.
 
 
@@ -80,7 +82,7 @@ where(tri, niudata)
 
 chantatachan
 
-# Ahora, lo que se necesita
+## Ahora, lo que se necesita
 
 Librerías que necesitamos:
 
@@ -223,4 +225,48 @@ tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
 ## 15   0.76510067     0.29519564
 ```
 
+### Ahora nuevos datos
 
+La sintaxis es media fea por lo que es mejor esconderla en una funcion:
+
+
+
+```r
+rpart_predict_nodes <- function(tree, newdata){
+ nodes <- rpart:::pred.rpart(tree, rpart:::rpart.matrix(newdata)) 
+ nodes
+}
+
+set.seed(10)
+samp <- sample(seq(nrow(segmentationData)), size = 20)
+
+niudata <- segmentationData[samp,]
+niunodes  <- rpart_predict_nodes(tree, niudata) 
+```
+
+```
+## Warning in rpart:::pred.rpart(tree, rpart:::rpart.matrix(newdata)): NAs
+## introduced by coercion
+```
+
+```r
+niunodes 
+```
+
+```
+## 1025  620  862 1398  172  455  553  548 1239  864 1310 1141  228 1196  718 
+##    3   11   17    3    8    3    3   11    3   11   17   17    5    3   11 
+##  860  104  529  798 1673 
+##   11    3    3    3    3
+```
+
+Y comparamos con los nodos obtenidos de la forma original
+
+
+```r
+all.equal(niunodes, tree$where[samp])
+```
+
+```
+## [1] TRUE
+```

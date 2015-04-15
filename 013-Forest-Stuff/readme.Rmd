@@ -7,6 +7,8 @@ output:
 date: "Monday, April 13, 2015"
 ---
 
+## Partiendo con la Party!
+
 Ok don Mario! El ejemplo conversado. Cargamos librería `party`. Prefiero esta antes que `rpart` por un asunto de que el `plot` es mejor para visualizar el árbol.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -47,7 +49,7 @@ where(tri, niudata)
 
 chantatachan
 
-# Ahora, lo que se necesita
+## Ahora, lo que se necesita
 
 Librerías que necesitamos:
 
@@ -129,4 +131,27 @@ Comparar con
 tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
 ```
 
+### Ahora nuevos datos
 
+La sintaxis es media fea por lo que es mejor esconderla en una funcion:
+
+
+```{r}
+rpart_predict_nodes <- function(tree, newdata){
+ nodes <- rpart:::pred.rpart(tree, rpart:::rpart.matrix(newdata)) 
+ nodes
+}
+
+set.seed(10)
+samp <- sample(seq(nrow(segmentationData)), size = 20)
+
+niudata <- segmentationData[samp,]
+niunodes  <- rpart_predict_nodes(tree, niudata) 
+niunodes 
+```
+
+Y comparamos con los nodos obtenidos de la forma original
+
+```{r}
+all.equal(niunodes, tree$where[samp])
+```
