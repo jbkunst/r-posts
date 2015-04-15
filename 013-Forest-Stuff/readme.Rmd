@@ -1,0 +1,122 @@
+---
+title: "Party!"
+date: "Monday, April 13, 2015"
+output: html_document
+---
+
+Ok don Mario! El ejemplo conversado. Cargamos librería `party`. Prefiero esta antes que `rpart` por un asunto de que el `plot` es mejor para visualizar el árbol.
+
+```{r, message=FALSE, warning=FALSE}
+suppressPackageStartupMessages(library(party))
+```
+
+Cargamos datos de ejemplo. El bien conocido `iris`:
+
+```{r, echo=FALSE}
+data(iris)
+head(iris)
+str(iris)
+```
+
+Un **arbolito simple** y lo miramos:
+
+```{r}
+tri <- ctree(Species ~ ., data = iris)
+
+plot(tri)
+```
+
+Creamos una data **nueva** y vemos la prediccion y el nodo al cual pertenece.
+
+```{r}
+niudata <- data.frame(Sepal.Length = 1,
+                      Sepal.Width = 2,
+                      Petal.Length  = 2,
+                      Petal.Width = 1)
+str(niudata)
+
+predict(tri, niudata, type ="prob")
+
+where(tri, niudata)
+
+```
+![alt text](http://cienciaxxi.es/blog/wp-content/uploads/2011/12/juan-tamariz4.jpg)
+
+chantatachan
+
+# Ahora, lo que se necesita
+
+Librería que necesitamos:
+
+```{r, message=FALSE, warning=FALSE}
+library("rpart")
+library("caret")  
+library("rattle")
+library("rpart.plot")
+library("dplyr")
+```
+
+Obtenemos datos y creamos un árbol y graficamos por si acaso:
+
+```{r}
+data(segmentationData)
+segmentationData <- segmentationData[,-c(1,2)]
+
+tree <- rpart(Class ~ ., data=segmentationData, control = rpart.control(minsplit=20, cp=0, maxdepth=4))
+
+fancyRpartPlot(tree)
+
+prp(tree)    	
+
+```
+
+
+Al final, dado que tengo la clase original, los nodos y la prediccion del arbol (no en probabilidad, sino en clase). Puedo sacar por nodo la tasa de acierto y el porcentaje de casos que caen por nodo.
+
+```{r}
+rpart_summary <- function(tree){
+  
+  code <- data.frame(target = sort(unique(tree$y)),
+                     target_f = factor(attr(tree, "ylevels")))
+  
+  cases <- data.frame(target = tree$y,
+                      node = tree$where,
+                      predict = predict(tree, type="class"))
+  
+  cases <- left_join(cases, code, by = "target")
+  
+  head(cases)
+  
+  summary <- cases %>%
+    group_by(node) %>%
+    summarise(count = n(),
+              percent = count/nrow(.),
+              node_accuracy = sum(predict == target_f)/count,
+              node_prediction = unique(predict))
+  
+  summary
+  
+}
+```
+
+
+Y vemos el resultado: 
+```{r}
+resultado <- rpart_summary(tree)
+resultado
+
+```
+
+Y podemos agregar este resumen al árbol original.
+
+```{r}
+
+tree$summary <- resultado
+
+tree$summary
+
+```
+
+
+
+
