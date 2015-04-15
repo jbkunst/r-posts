@@ -48,7 +48,7 @@ chantatachan
 
 # Ahora, lo que se necesita
 
-Librería que necesitamos:
+Librerías que necesitamos:
 
 ```{r, message=FALSE, warning=FALSE}
 library("rpart")
@@ -87,14 +87,17 @@ rpart_summary <- function(tree){
   
   cases <- left_join(cases, code, by = "target")
   
-  head(cases)
-  
+  node_frame <- tree$frame[tree$frame$var == "<leaf>",] %>% rownames()
+    
   summary <- cases %>%
     group_by(node) %>%
     summarise(count = n(),
               percent = count/nrow(.),
               node_accuracy = sum(predict == target_f)/count,
-              node_prediction = unique(predict))
+              node_prediction = unique(predict)) %>%
+    ungroup() %>%
+    mutate(node_frame = node_frame) %>%
+    rename(node_where = node)
   
   summary
   
@@ -119,6 +122,11 @@ tree$summary
 
 ```
 
+Comparar con
+
+```{r}
+tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
+```
 
 
 

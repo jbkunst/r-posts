@@ -82,7 +82,7 @@ chantatachan
 
 # Ahora, lo que se necesita
 
-Librería que necesitamos:
+Librerías que necesitamos:
 
 
 ```r
@@ -129,14 +129,17 @@ rpart_summary <- function(tree){
   
   cases <- left_join(cases, code, by = "target")
   
-  head(cases)
-  
+  node_frame <- tree$frame[tree$frame$var == "<leaf>",] %>% rownames()
+    
   summary <- cases %>%
     group_by(node) %>%
     summarise(count = n(),
               percent = count/nrow(.),
               node_accuracy = sum(predict == target_f)/count,
-              node_prediction = unique(predict))
+              node_prediction = unique(predict)) %>%
+    ungroup() %>%
+    mutate(node_frame = node_frame) %>%
+    rename(node_where = node)
   
   summary
   
@@ -152,18 +155,18 @@ resultado
 ```
 
 ```
-## Source: local data frame [9 x 5]
+## Source: local data frame [9 x 6]
 ## 
-##   node count    percent node_accuracy node_prediction
-## 1    3   814 0.40316989     0.9557740              PS
-## 2    5    99 0.04903418     0.8484848              PS
-## 3    7    25 0.01238237     0.6400000              PS
-## 4    8    29 0.01436355     0.7931034              WS
-## 5   11   323 0.15998019     0.6934985              PS
-## 6   13    32 0.01584943     0.6875000              PS
-## 7   14    79 0.03912828     0.8354430              WS
-## 8   16    22 0.01089648     0.7727273              PS
-## 9   17   596 0.29519564     0.7651007              WS
+##   node_where count    percent node_accuracy node_prediction node_frame
+## 1          3   814 0.40316989     0.9557740              PS          4
+## 2          5    99 0.04903418     0.8484848              PS         10
+## 3          7    25 0.01238237     0.6400000              PS         22
+## 4          8    29 0.01436355     0.7931034              WS         23
+## 5         11   323 0.15998019     0.6934985              PS         12
+## 6         13    32 0.01584943     0.6875000              PS         26
+## 7         14    79 0.03912828     0.8354430              WS         27
+## 8         16    22 0.01089648     0.7727273              PS         14
+## 9         17   596 0.29519564     0.7651007              WS         15
 ```
 
 Y podemos agregar este resumen al árbol original.
@@ -176,20 +179,49 @@ tree$summary
 ```
 
 ```
-## Source: local data frame [9 x 5]
+## Source: local data frame [9 x 6]
 ## 
-##   node count    percent node_accuracy node_prediction
-## 1    3   814 0.40316989     0.9557740              PS
-## 2    5    99 0.04903418     0.8484848              PS
-## 3    7    25 0.01238237     0.6400000              PS
-## 4    8    29 0.01436355     0.7931034              WS
-## 5   11   323 0.15998019     0.6934985              PS
-## 6   13    32 0.01584943     0.6875000              PS
-## 7   14    79 0.03912828     0.8354430              WS
-## 8   16    22 0.01089648     0.7727273              PS
-## 9   17   596 0.29519564     0.7651007              WS
+##   node_where count    percent node_accuracy node_prediction node_frame
+## 1          3   814 0.40316989     0.9557740              PS          4
+## 2          5    99 0.04903418     0.8484848              PS         10
+## 3          7    25 0.01238237     0.6400000              PS         22
+## 4          8    29 0.01436355     0.7931034              WS         23
+## 5         11   323 0.15998019     0.6934985              PS         12
+## 6         13    32 0.01584943     0.6875000              PS         26
+## 7         14    79 0.03912828     0.8354430              WS         27
+## 8         16    22 0.01089648     0.7727273              PS         14
+## 9         17   596 0.29519564     0.7651007              WS         15
 ```
 
+Comparar con
+
+
+```r
+tree$frame[tree$frame$var == "<leaf>", c(1,2, 9)]
+```
+
+```
+##       var   n     yval2.V1     yval2.V2     yval2.V3     yval2.V4
+## 4  <leaf> 814   1.00000000 778.00000000  36.00000000   0.95577396
+## 10 <leaf>  99   1.00000000  84.00000000  15.00000000   0.84848485
+## 22 <leaf>  25   1.00000000  16.00000000   9.00000000   0.64000000
+## 23 <leaf>  29   2.00000000   6.00000000  23.00000000   0.20689655
+## 12 <leaf> 323   1.00000000 224.00000000  99.00000000   0.69349845
+## 26 <leaf>  32   1.00000000  22.00000000  10.00000000   0.68750000
+## 27 <leaf>  79   2.00000000  13.00000000  66.00000000   0.16455696
+## 14 <leaf>  22   1.00000000  17.00000000   5.00000000   0.77272727
+## 15 <leaf> 596   2.00000000 140.00000000 456.00000000   0.23489933
+##        yval2.V5 yval2.nodeprob
+## 4    0.04422604     0.40316989
+## 10   0.15151515     0.04903418
+## 22   0.36000000     0.01238237
+## 23   0.79310345     0.01436355
+## 12   0.30650155     0.15998019
+## 26   0.31250000     0.01584943
+## 27   0.83544304     0.03912828
+## 14   0.22727273     0.01089648
+## 15   0.76510067     0.29519564
+```
 
 
 
