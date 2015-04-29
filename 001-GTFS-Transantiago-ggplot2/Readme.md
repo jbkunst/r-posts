@@ -26,12 +26,12 @@ It's simple plot this data with ggplot.
 library(ggplot2)
 
 p <- ggplot(shapes) +
-  geom_path(aes(shape_pt_lon, shape_pt_lat, group=shape_id), size=.2, alpha=.1) +
+  geom_path(aes(shape_pt_lon, shape_pt_lat, group = shape_id), size = .2, alpha = .1) +
   coord_equal()
 p
 ```
 
-<img src="plot/gtfs-plot_simple.png" title="plot of chunk plot_simple" alt="plot of chunk plot_simple" style="display: block; margin: auto;" />
+<img src="plot/gtfs-plot_simple-1.png" title="" alt="" style="display: block; margin: auto;" />
 
 Is a good plot with a one line of code to start. But let's get the things more fun. Transantiago have a subway called *Metro*, so let's plot with more detail showing the stations and the routes (lines) over this plot.
 
@@ -42,7 +42,7 @@ First, we need the `devtools` package for load a script from an url. This file c
 library(devtools)
 library(plyr)
 library(dplyr)
-source_url("https://raw.githubusercontent.com/jbkunst/reuse/master/R/gg_themes.R")
+library(ggthemes)
 ```
 
 We need obtain the stops and routes which belong to *Metro*. In this case, the *stop_id* don't contain a number so we filter the metro's stations with `!grepl("\\d", stop_id)`. Then we need filter the shapes and routes for the *metro*. At the beggining is a bit complicated, in fact I needed some time to see the association between all this tables.
@@ -55,7 +55,7 @@ stops <- read.csv("data/stops.txt")
 
 stops_metro <- stops %>% filter(!grepl("\\d", stop_id))
 
-routes_metro <- routes %>% filter(grepl("^L\\d",route_id))
+routes_metro <- routes %>% filter(grepl("^L\\d", route_id))
 
 shapes_metro <- shapes %>% filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id]) %>%
    arrange(shape_id, shape_pt_sequence)
@@ -67,11 +67,18 @@ Now, get the color for each Metro line.
 ```r
 shapes_colors <- left_join(left_join(shapes %>% select(shape_id) %>% unique(),
                                      trips %>% select(shape_id, route_id) %>% unique(),
-                                     by="shape_id"),
+                                     by = "shape_id"),
                            routes %>% select(route_id, route_color) %>% unique(),
                            by = "route_id") %>%
   mutate(route_color = paste0("#", route_color))
+```
 
+```
+## Warning in left_join_impl(x, y, by$x, by$y): joining factors with
+## different levels, coercing to character vector
+```
+
+```r
 shapes_colors_metro <- shapes_colors %>%
   filter(shape_id %in% trips$shape_id[trips$route_id %in% routes_metro$route_id]) %>% unique() %>%
   arrange(shape_id)
