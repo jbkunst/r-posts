@@ -1,63 +1,30 @@
+# Calendar
+Joshua Kunst  
 
 
 ```r
-# install.packages("lubridate")
 library("lubridate")
+library("ggplot2")
+suppressPackageStartupMessages(library("dplyr"))
+suppressPackageStartupMessages(library("zoo"))
+library("lubridate")
+
+
 rm(list = ls())
 
-n <- 100
-
+set.seed(2015)
+n <- 980
 s <- seq(n)
+values <- sin(s/pi/5) + 1.5*s/n + rexp(n, rate = 2)
+dates <- ymd(20121014) + days(s - 1)
 
-values <- sin(s/pi/10) + s/n + rexp(n, rate = 2)
+df <- data_frame(values, dates)
 
-dates <- ymd(20121014) + days(s-1)
-
-
-
-require("ggplot2")
+gg <- ggplot(df) + geom_line(aes(dates, values))
+gg
 ```
 
-```
-## Loading required package: ggplot2
-```
-
-```r
-require("dplyr")
-```
-
-```
-## Loading required package: dplyr
-## 
-## Attaching package: 'dplyr'
-## 
-## The following objects are masked from 'package:lubridate':
-## 
-##     intersect, setdiff, union
-## 
-## The following object is masked from 'package:stats':
-## 
-##     filter
-## 
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
-require("lubridate")
-require("zoo")
-```
-
-```
-## Loading required package: zoo
-## 
-## Attaching package: 'zoo'
-## 
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
+![](readme_files/figure-html/unnamed-chunk-1-1.png) 
 
 ```r
 start <- min(dates) %>% {c(year(.), month(.), 1)} %>% paste0(collapse = "-") %>% ymd()
@@ -71,104 +38,75 @@ df <- left_join(data_frame(date = seq.Date(as.Date(start), as.Date(fnish), by=1)
 df <- df %>% 
   mutate(year = year(date),
          month = month(date),
-         month_label = month(date, label=TRUE),
+         month_label = month(date, label = TRUE),
          day = day(date),
-         day_label = wday(date, label=TRUE),
-         day_label = factor(as.character(day_label), levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE),
-         week = as.numeric(format(date,"%W")),
-         monthweek = ceiling(mday(date)/7))
+         day_label = wday(date, label = TRUE),
+         day_label = factor(as.character(day_label),
+                            levels = c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE),
+         week = as.numeric(format(date,"%W")))
+
+df_mw <- df %>% 
+  group_by(year, month) %>% 
+  summarise(minweek = min(week)) %>% 
+  ungroup()
+
+df <- df %>%
+  left_join(df_mw, by = c("year", "month")) %>% 
+  mutate(monthweek = week - minweek + 1)
 
 df <- df %>% 
-  arrange(date) 
+  arrange(date) %>% 
+  filter(!is.na(value))
 
-df %>% filter(year == 2015 & month == 2)
-```
-
-```
-## Source: local data frame [0 x 9]
-## 
-## Variables not shown: date (date), value (dbl), year (dbl), month (dbl),
-##   month_label (fctr), day (int), day_label (fctr), week (dbl), monthweek
-##   (dbl)
-```
-
-```r
-ggplot(df) +
+p <- ggplot(df) +
   geom_tile(aes(day_label, monthweek, fill = value), colour = "white") +
   facet_grid(year ~ month_label, scales = "free_x") +
   scale_y_reverse() + 
   theme(legend.position = "none") +
-  geom_text(aes(day_label, monthweek,label=day, size = 2), colour = "white") +
+  geom_text(aes(day_label, monthweek, label = day, size = 2), colour = "white") +
   xlab(NULL) + ylab(NULL)
+
+p
 ```
 
-![plot of chunk unnamed-chunk-1](figure/unnamed-chunk-1-1.png) 
-
-```r
-df <- transform(df,
-                year = year(dates),
-                month = month(dates),
-                monthf = month(dates, label=TRUE),
-                weekday = wday(dates),
-                weekdayf = wday(dates, label=TRUE),
-                yearmonth = as.yearmon(dates),
-                yearmonthf = factor(as.yearmon(dates)),
-                week = as.numeric(format(dates,"%W")), #week(dates),
-                day = day(dates),
-                monthday =  mday(dates),
-                monthweek = ceiling(mday(dates)/7))
-```
-
-```
-## Error in `[<-.data.frame`(`*tmp*`, inx[matched], value = structure(list(: replacement element 1 has 100 rows, need 123
-```
+![](readme_files/figure-html/unnamed-chunk-1-2.png) 
 
 ```r
-df <- ddply(df,  .(yearmonthf), transform, monthweek = 1 + week - min(week))
+sessionInfo()
 ```
 
 ```
-## Error in eval(expr, envir, enclos): could not find function "ddply"
-```
-
-```r
-df$weekdayf <- factor(as.character(df$weekdayf), levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE)
-```
-
-```
-## Error in `$<-.data.frame`(`*tmp*`, "weekdayf", value = structure(integer(0), .Label = c("Mon", : replacement has 0 rows, data has 123
-```
-
-```r
-head(df)
-```
-
-```
-## Source: local data frame [6 x 9]
+## R version 3.2.0 (2015-04-16)
+## Platform: i386-w64-mingw32/i386 (32-bit)
+## Running under: Windows 7 (build 7601) Service Pack 1
 ## 
-##         date value year month month_label day day_label week monthweek
-## 1 2012-10-01    NA 2012    10         Oct   1       Mon   40         1
-## 2 2012-10-02    NA 2012    10         Oct   2      Tues   40         1
-## 3 2012-10-03    NA 2012    10         Oct   3       Wed   40         1
-## 4 2012-10-04    NA 2012    10         Oct   4     Thurs   40         1
-## 5 2012-10-05    NA 2012    10         Oct   5       Fri   40         1
-## 6 2012-10-06    NA 2012    10         Oct   6       Sat   40         1
+## locale:
+## [1] LC_COLLATE=Spanish_Chile.1252  LC_CTYPE=Spanish_Chile.1252   
+## [3] LC_MONETARY=Spanish_Chile.1252 LC_NUMERIC=C                  
+## [5] LC_TIME=Spanish_Chile.1252    
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+## [1] zoo_1.7-12      dplyr_0.4.1     ggplot2_1.0.1   lubridate_1.3.3
+## 
+## loaded via a namespace (and not attached):
+##  [1] Rcpp_0.11.6        knitr_1.10.5       magrittr_1.5      
+##  [4] MASS_7.3-40        munsell_0.4.2      lattice_0.20-31   
+##  [7] colorspace_1.2-6   stringr_1.0.0.9000 plyr_1.8.2        
+## [10] tools_3.2.0        parallel_3.2.0     grid_3.2.0        
+## [13] gtable_0.1.2       DBI_0.3.1          htmltools_0.2.6   
+## [16] lazyeval_0.1.10    yaml_2.1.13        digest_0.6.8      
+## [19] assertthat_0.1     reshape2_1.4.1     formatR_1.2       
+## [22] memoise_0.2.1      evaluate_0.7       rmarkdown_0.6.1   
+## [25] labeling_0.3       stringi_0.4-1      scales_0.2.4      
+## [28] proto_0.3-10
 ```
 
-```r
-df <- df[complete.cases(df),]
-p <- ggplot(df, aes(weekdayf, monthweek, fill = values)) + 
-  geom_tile(colour = "white") +
-  facet_grid(year ~ monthf, scales = "free_x") +
-  scale_y_reverse() + 
-  theme(legend.position = "none") +
-  geom_text(aes(label=day, size = 2), colour = "white") +
-  xlab(NULL) + ylab(NULL)
 
-print(p)
-```
-
-```
-## Error in layout_base(data, cols, drop = drop): At least one layer must contain all variables used for facetting
-```
-
+---
+title: "readme.R"
+author: "jkunst"
+date: "Wed May 20 18:09:18 2015"
+---

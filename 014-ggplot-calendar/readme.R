@@ -1,22 +1,32 @@
-# install.packages("lubridate")
+#' ---
+#' title: "Calendar"
+#' author: "Joshua Kunst"
+#' output: 
+#'  html_document: 
+#'    keep_md: yes
+#' ---
+
+#+ fig.width=10, fig.height=5
+
 library("lubridate")
+library("ggplot2")
+suppressPackageStartupMessages(library("dplyr"))
+suppressPackageStartupMessages(library("zoo"))
+library("lubridate")
+
+
 rm(list = ls())
 
-n <- 100
-
+set.seed(2015)
+n <- 980
 s <- seq(n)
+values <- sin(s/pi/5) + 1.5*s/n + rexp(n, rate = 2)
+dates <- ymd(20121014) + days(s - 1)
 
-values <- sin(s/pi/10) + s/n + rexp(n, rate = 2)
+df <- data_frame(values, dates)
 
-dates <- ymd(20121014) + days(s-1)
-
-
-
-require("ggplot2")
-require("dplyr")
-require("lubridate")
-require("zoo")
-
+gg <- ggplot(df) + geom_line(aes(dates, values))
+gg
 
 start <- min(dates) %>% {c(year(.), month(.), 1)} %>% paste0(collapse = "-") %>% ymd()
 fnish <- max(dates) %>% {c(year(.), month(.), 1)} %>% paste0(collapse = "-") %>% ymd()
@@ -29,50 +39,34 @@ df <- left_join(data_frame(date = seq.Date(as.Date(start), as.Date(fnish), by=1)
 df <- df %>% 
   mutate(year = year(date),
          month = month(date),
-         month_label = month(date, label=TRUE),
+         month_label = month(date, label = TRUE),
          day = day(date),
-         day_label = wday(date, label=TRUE),
-         day_label = factor(as.character(day_label), levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE),
-         week = as.numeric(format(date,"%W")),
-         monthweek = ceiling(mday(date)/7))
+         day_label = wday(date, label = TRUE),
+         day_label = factor(as.character(day_label),
+                            levels = c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE),
+         week = as.numeric(format(date,"%W")))
+
+df_mw <- df %>% 
+  group_by(year, month) %>% 
+  summarise(minweek = min(week)) %>% 
+  ungroup()
+
+df <- df %>%
+  left_join(df_mw, by = c("year", "month")) %>% 
+  mutate(monthweek = week - minweek + 1)
 
 df <- df %>% 
-  arrange(date) 
+  arrange(date) %>% 
+  filter(!is.na(value))
 
-df %>% filter(year == 2015 & month == 2)
-
-ggplot(df) +
+p <- ggplot(df) +
   geom_tile(aes(day_label, monthweek, fill = value), colour = "white") +
   facet_grid(year ~ month_label, scales = "free_x") +
   scale_y_reverse() + 
   theme(legend.position = "none") +
-  geom_text(aes(day_label, monthweek,label=day, size = 2), colour = "white") +
+  geom_text(aes(day_label, monthweek, label = day, size = 2), colour = "white") +
   xlab(NULL) + ylab(NULL)
 
-df <- transform(df,
-                year = year(dates),
-                month = month(dates),
-                monthf = month(dates, label=TRUE),
-                weekday = wday(dates),
-                weekdayf = wday(dates, label=TRUE),
-                yearmonth = as.yearmon(dates),
-                yearmonthf = factor(as.yearmon(dates)),
-                week = as.numeric(format(dates,"%W")), #week(dates),
-                day = day(dates),
-                monthday =  mday(dates),
-                monthweek = ceiling(mday(dates)/7))
-df <- ddply(df,  .(yearmonthf), transform, monthweek = 1 + week - min(week))
-df$weekdayf <- factor(as.character(df$weekdayf), levels=c("Mon","Tues","Wed","Thurs","Fri","Sat","Sun"), ordered = TRUE)
-head(df)
+p
 
-
-df <- df[complete.cases(df),]
-p <- ggplot(df, aes(weekdayf, monthweek, fill = values)) + 
-  geom_tile(colour = "white") +
-  facet_grid(year ~ monthf, scales = "free_x") +
-  scale_y_reverse() + 
-  theme(legend.position = "none") +
-  geom_text(aes(label=day, size = 2), colour = "white") +
-  xlab(NULL) + ylab(NULL)
-
-print(p)
+sessionInfo()
