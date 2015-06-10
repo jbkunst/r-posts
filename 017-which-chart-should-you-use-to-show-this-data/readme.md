@@ -14,6 +14,7 @@ library("dplyr")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
+library("lubridate")
 ```
 
 # The data and other stuff
@@ -60,19 +61,20 @@ head(data2)
 ## 6 2010       A  190
 ```
 
-# Plot 1
+# Plots
 
 
 ```r
-ggplot(data2) +
-  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+data3 <- data2 %>%
+  group_by(year) %>% 
+  summarise(sale = sum(sale))
+
+ggplot(data3) + 
+  geom_line(aes(x = year, y = sale), size = 1.2) + 
   theme_hc() + scale_colour_hc() 
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-5-1.png) 
-
-# Plot 2
-
 
 ```r
 ggplot(data2) +
@@ -81,10 +83,51 @@ ggplot(data2) +
   theme_hc() + scale_colour_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-6-1.png) 
+![](readme_files/figure-html/unnamed-chunk-5-2.png) 
 
-# Plot 3
+```r
+ggplot(data2) +
+  geom_line(aes(x = year, y = sale), size = 1.2, color = "darkred") + 
+  facet_grid(product ~ .) +
+  theme_hc() + scale_colour_hc() 
+```
 
+![](readme_files/figure-html/unnamed-chunk-5-3.png) 
+
+```r
+ggplot(data2) +
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  theme_hc() + scale_colour_hc() 
+```
+
+![](readme_files/figure-html/unnamed-chunk-5-4.png) 
+
+```r
+data5 <- data2 %>% 
+  group_by(product) %>%
+  arrange(product) %>% 
+  mutate(sale = cumsum(sale))
+
+data6 <- rbind(data2 %>% mutate(value = "sale"),
+               data5 %>% mutate(value = "running sum of sales"))
+
+ggplot(data6) + 
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  facet_grid(value ~ ., scales = "free_y") +
+  theme_hc() + scale_colour_hc() 
+```
+
+![](readme_files/figure-html/unnamed-chunk-5-5.png) 
+
+```r
+data4 <- data2 %>% filter(year %in% c(max(year), min(year)))
+
+ggplot(data4) +
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  theme_hc() + scale_colour_hc() 
+```
+
+![](readme_files/figure-html/unnamed-chunk-5-6.png) 
 
 ```r
 ggplot(data2) +
@@ -92,10 +135,7 @@ ggplot(data2) +
   theme_hc() + scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-7-1.png) 
-
-# Plot 4
-
+![](readme_files/figure-html/unnamed-chunk-5-7.png) 
 
 ```r
 ggplot(data2) +
@@ -103,10 +143,7 @@ ggplot(data2) +
   theme_hc() + scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-8-1.png) 
-
-# Plot 5
-
+![](readme_files/figure-html/unnamed-chunk-5-8.png) 
 
 ```r
 ggplot(data2) +
@@ -114,11 +151,11 @@ ggplot(data2) +
   theme_hc() + scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-9-1.png) 
+![](readme_files/figure-html/unnamed-chunk-5-9.png) 
 
 
 ---
 title: "readme.R"
-author: "jkunst"
-date: "Thu Jun 04 11:06:18 2015"
+author: "Joshua K"
+date: "Sun Jun 07 03:11:46 2015"
 ---

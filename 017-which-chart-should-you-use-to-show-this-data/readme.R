@@ -19,10 +19,9 @@ library("dplyr")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
-
+library("lubridate")
 
 #' # The data and other stuff
-
 data <- data_frame(year = 2005:2014,
                    A = c(100, 110, 140, 170, 120, 190, 220, 250, 240, 300),
                    B = c(80, 70, 50, 100, 130, 180, 220, 160, 260, 370))
@@ -35,29 +34,64 @@ data2 <- data %>% gather(product, sale, -year)
 
 head(data2)
 
+#' # Plots
+data3 <- data2 %>%
+  group_by(year) %>% 
+  summarise(sale = sum(sale))
 
-#' # Plot 1
-ggplot(data2) +
-  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+ggplot(data3) + 
+  geom_line(aes(x = year, y = sale), size = 1.2) + 
   theme_hc() + scale_colour_hc() 
-  
-#' # Plot 2
+
+
 ggplot(data2) +
   geom_line(aes(x = year, y = sale), size = 1.2, color = "darkred") + 
   facet_grid(~product) +
   theme_hc() + scale_colour_hc() 
 
-#' # Plot 3
+
+ggplot(data2) +
+  geom_line(aes(x = year, y = sale), size = 1.2, color = "darkred") + 
+  facet_grid(product ~ .) +
+  theme_hc() + scale_colour_hc() 
+
+
+ggplot(data2) +
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  theme_hc() + scale_colour_hc() 
+
+data5 <- data2 %>% 
+  group_by(product) %>%
+  arrange(product) %>% 
+  mutate(sale = cumsum(sale))
+
+data6 <- rbind(data2 %>% mutate(value = "sale"),
+               data5 %>% mutate(value = "running sum of sales"))
+
+ggplot(data6) + 
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  facet_grid(value ~ ., scales = "free_y") +
+  theme_hc() + scale_colour_hc() 
+
+
+
+data4 <- data2 %>% filter(year %in% c(max(year), min(year)))
+
+ggplot(data4) +
+  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  theme_hc() + scale_colour_hc() 
+
+
 ggplot(data2) +
   geom_area(aes(x = year, y = sale, fill = product), size = 1.2) +
   theme_hc() + scale_fill_hc() 
 
-#' # Plot 4
+
 ggplot(data2) +
   geom_bar(aes(x = year, y = sale, fill = product), stat = "identity") +
   theme_hc() + scale_fill_hc() 
 
-#' # Plot 5
+
 ggplot(data2) +
   geom_bar(aes(x = year, y = sale, fill = product), stat = "identity", position = "dodge") +
   theme_hc() + scale_fill_hc() 
