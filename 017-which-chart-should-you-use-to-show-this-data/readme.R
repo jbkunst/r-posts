@@ -21,6 +21,7 @@ library("ggthemes")
 
 #+ echo=FALSE
 library("printr")
+options(stringsAsFactors = FALSE, knitr.table.format = "markdown")
 knitr::opts_chunk$set(collapse = TRUE, comment = ">", warning = FALSE,
                       fig.width = 10, fig.height = 5,
                       fig.align = "center", dpi = 72)
