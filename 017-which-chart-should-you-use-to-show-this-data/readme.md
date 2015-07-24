@@ -6,15 +6,30 @@ Joshua Kunst
 [This post](http://gravyanecdote.com/visual-analytics/which-chart-should-you-use-to-show-this-data/) show
 different ways to plot a *simple* data. The video uses tableau software and just for fun and learn we 
 try to replicate all the plots in the ggplot's way.
-In all this plots you can omit the themes (like this code: `theme_hc() + scale_colour_hc()`)
 
 
 ```r
 library("dplyr")
 library("tidyr")
+library("lubridate")
 library("ggplot2")
 library("ggthemes")
-library("lubridate")
+```
+
+
+The theme for the ggplot:
+
+
+```r
+theme_set(theme_fivethirtyeight() +
+theme(strip.background = element_rect(fill = "#434348"),
+      strip.text = element_text(color = "#F0F0F0"),
+      plot.title = element_text(face = "plain")))
+
+update_geom_defaults("line", list(colour = "#434348", size = 1.5))
+update_geom_defaults("point", list(colour = "#434348", size = 3))
+update_geom_defaults("bar", list(fill = "#7cb5ec"))
+update_geom_defaults("text", list(size = 4, colour = "gray30"))
 ```
 
 # The data and other stuff
@@ -25,20 +40,22 @@ data <- data_frame(year = 2005:2014,
                    A = c(100, 110, 140, 170, 120, 190, 220, 250, 240, 300),
                    B = c(80, 70, 50, 100, 130, 180, 220, 160, 260, 370))
 
+data <- data %>%
+  mutate(year = ymd(paste0(year, "-01-01")))
+
 head(data)
 ```
 
-```
-## Source: local data frame [6 x 3]
-## 
-##   year   A   B
-## 1 2005 100  80
-## 2 2006 110  70
-## 3 2007 140  50
-## 4 2008 170 100
-## 5 2009 120 130
-## 6 2010 190 180
-```
+
+
+year            A     B
+-----------  ----  ----
+2005-01-01    100    80
+2006-01-01    110    70
+2007-01-01    140    50
+2008-01-01    170   100
+2009-01-01    120   130
+2010-01-01    190   180
 
 The data will be easier to plot (this is a subjetive opinion) if we *tidier it a little bit*
 
@@ -49,60 +66,64 @@ data2 <- data %>% gather(product, sale, -year)
 head(data2)
 ```
 
-```
-## Source: local data frame [6 x 3]
-## 
-##   year product sale
-## 1 2005       A  100
-## 2 2006       A  110
-## 3 2007       A  140
-## 4 2008       A  170
-## 5 2009       A  120
-## 6 2010       A  190
-```
 
-# Plots
 
+year         product    sale
+-----------  --------  -----
+2005-01-01   A           100
+2006-01-01   A           110
+2007-01-01   A           140
+2008-01-01   A           170
+2009-01-01   A           120
+2010-01-01   A           190
 
 ```r
+
 data3 <- data2 %>%
   group_by(year) %>% 
   summarise(sale = sum(sale))
 
+
 ggplot(data3) + 
-  geom_line(aes(x = year, y = sale), size = 1.2) + 
-  theme_hc() + scale_colour_hc() 
+  geom_line(aes(x = year, y = sale))
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-1.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-1.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
+
 ggplot(data2) +
-  geom_line(aes(x = year, y = sale), size = 1.2, color = "darkred") + 
-  facet_grid(~product) +
-  theme_hc() + scale_colour_hc() 
+  geom_line(aes(x = year, y = sale)) + 
+  facet_grid(~product)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-2.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-2.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 ggplot(data2) +
-  geom_line(aes(x = year, y = sale), size = 1.2, color = "darkred") + 
-  facet_grid(product ~ .) +
-  theme_hc() + scale_colour_hc() 
+  geom_line(aes(x = year, y = sale)) + 
+  facet_grid(product ~ .)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-3.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-3.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 ggplot(data2) +
-  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
-  theme_hc() + scale_colour_hc() 
+  geom_line(aes(x = year, y = sale, color = product)) +
+  scale_color_hc()
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-4.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-4.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 data5 <- data2 %>% 
   group_by(product) %>%
   arrange(product) %>% 
@@ -111,51 +132,62 @@ data5 <- data2 %>%
 data6 <- rbind(data2 %>% mutate(value = "sale"),
                data5 %>% mutate(value = "running sum of sales"))
 
+
 ggplot(data6) + 
-  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
+  geom_line(aes(x = year, y = sale, color = product)) +
   facet_grid(value ~ ., scales = "free_y") +
-  theme_hc() + scale_colour_hc() 
+  scale_colour_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-5.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-5.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 data4 <- data2 %>% filter(year %in% c(max(year), min(year)))
 
 ggplot(data4) +
-  geom_line(aes(x = year, y = sale, color = product), size = 1.2) +
-  theme_hc() + scale_colour_hc() 
+  geom_line(aes(x = year, y = sale, color = product)) +
+  scale_colour_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-6.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-6.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 ggplot(data2) +
-  geom_area(aes(x = year, y = sale, fill = product), size = 1.2) +
-  theme_hc() + scale_fill_hc() 
+  geom_area(aes(x = year, y = sale, fill = product)) +
+  scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-7.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-7.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 ggplot(data2) +
-  geom_bar(aes(x = year, y = sale, fill = product), stat = "identity") +
-  theme_hc() + scale_fill_hc() 
+  geom_bar(aes(x = year, y = sale, fill = product),
+           stat = "identity") +
+  scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-8.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-8.png" title="" alt="" style="display: block; margin: auto;" />
 
 ```r
+
+
 ggplot(data2) +
-  geom_bar(aes(x = year, y = sale, fill = product), stat = "identity", position = "dodge") +
-  theme_hc() + scale_fill_hc() 
+  geom_bar(aes(x = year, y = sale, fill = product),
+           stat = "identity", position = "dodge") +
+  scale_fill_hc() 
 ```
 
-![](readme_files/figure-html/unnamed-chunk-5-9.png) 
+<img src="readme_files/figure-html/unnamed-chunk-6-9.png" title="" alt="" style="display: block; margin: auto;" />
 
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Sun Jun 07 03:11:46 2015"
+author: "jkunst"
+date: "Fri Jul 24 16:56:24 2015"
 ---
