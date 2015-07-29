@@ -195,8 +195,6 @@ long <- rnorm(20,-98,15)
 lat <- rnorm(20,39,10)
 df <- data.frame(lat,long)
 
-library(ggplot2)
-
 #This creates the voronoi line segments
 voronoi <- deldir(df$long, df$lat)
 
