@@ -1,0 +1,34 @@
+@font-face {
+  font-family: ETBembo;
+  src: url("ETBembo-RomanLF.ttf");
+  
+}
+
+body {
+  font-family: ETBembo, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia serif;
+  background-color: #fffff8 /*white;*/
+}
+  
+h1 {
+  font-style: italic;
+  font-weight: 400;
+  margin-top: 8rem;
+  margin-bottom: 4rem;
+  font-size: 4.5rem;
+  line-height: 1;
+}
+
+p {
+  font-size: 1.8rem;
+  line-height: 2rem;
+  margin-top: 1.4rem;
+  margin-bottom: 1.4rem;
+  width: 55%;
+  padding-right: 0;
+  vertical-align: baseline;
+  
+}
+
+aside {
+  font-size: 1em;
+}
