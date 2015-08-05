@@ -1,16 +1,16 @@
 @font-face {
-  font-family: ETBembo;
-  src: url("ETBembo-RomanLF.ttf");
+  font-family: "URW Palladio L";
+  /*src: url('urw-palladio-l-roman.ttf');*/
+  src: url('urw-palladio-l-italic.ttf');
   
 }
 
 body {
-  font-family: ETBembo, Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia serif;
+  font-family: "URW Palladio L";
   background-color: #fffff8 /*white;*/
 }
   
 h1 {
-  font-style: italic;
   font-weight: 400;
   margin-top: 8rem;
   margin-bottom: 4rem;

@@ -1,5 +1,5 @@
 ---
-title: "Example and improvement Defaul for Tufte-style Handouts (for Web Use)"
+title: "Example and improvement Default for Tufte-style Handouts (for Web Use)"
 author: "Joshua Kunst"
 date: "`r Sys.Date()`"
 output: 
