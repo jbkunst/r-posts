@@ -10,8 +10,6 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-<link href="tufte2.css" media="all" rel="stylesheet" />
-
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
 library("ggthemes")
 library("knitr")
