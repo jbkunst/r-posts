@@ -1,36 +1,30 @@
-#' ---
-#' title: "A brief look to Hollywood's 100 Favorite TV Shows"
-#' author: "Joshua Kunst"
-#' output: 
-#'  html_document: 
-#'    keep_md: yes
-#' ---
+# A brief look to Hollywood's 100 Favorite TV Shows
+Joshua Kunst  
+
+
+```r
 # http://faculty.cs.niu.edu/~hutchins/csci230/sorting.htm
-#+ warning=FALSE, message=FALSE, echo=FALSE
-rm(list = ls())
-
-# devtools::install_github("jbkunst/omdbapi")
-library("omdbapi")
-library("rvest")
-library("plyr")
-library("dplyr")
-library("stringr")
-library("printr")
-library("ggplot2")
-library("ggthemes")
+```
 
 
-#' http://www.hollywoodreporter.com/
-#' 
+http://www.hollywoodreporter.com/
 
+
+
+```r
 url <- "http://www.hollywoodreporter.com/lists/best-tv-shows-ever-top-819499/item/desperate-housewives-hollywoods-100-favorite-820451"
 
 items <- html(url) %>% 
   html_nodes(".list--ordered__item")
 
 length(items) == 100 # Yay!
+```
 
+```
+## [1] TRUE
+```
 
+```r
 data <- ldply(items, function(item){
   # item <- sample(items, size = 1)[[1]]
   # item <- items[[45]]
@@ -56,7 +50,19 @@ data <- ldply(items, function(item){
   dsummary
   
 }, .progress = "win")
+```
 
+```
+## Movie not found!
+## Movie not found!
+## Movie not found!
+## Movie not found!
+## Movie not found!
+## Movie not found!
+## Movie not found!
+```
+
+```r
 names(data) <- tolower(names(data))
 
 data <- tbl_df(data) %>% 
@@ -67,21 +73,47 @@ data <- tbl_df(data) %>%
 data %>%
   select(place, name, company, genre) %>%
   head()
+```
 
+
+
+ place  name              company   genre                     
+------  ----------------  --------  --------------------------
+     1  Friends           NBC       Comedy, Romance           
+     2  Breaking Bad      AMC       Crime, Drama, Thriller    
+     3  The X-Files       Fox       Drama, Mystery, Sci-Fi    
+     4  Game of Thrones   HBO       Adventure, Drama, Fantasy 
+     5  Seinfeld          NBC       Comedy                    
+     6  The Sopranos      HBO       Crime, Drama              
+
+```r
 data %>% count(main_genre) %>% arrange(desc(n))
+```
 
-#' ggplot version:
-#' 
 
-ggplot(data) +
-  geom_bar(aes(x = main_genre, fill = main_genre))
 
-ggplot(data) +
-  geom_segment(aes(x = to, xend  = from, y = place, yend = place, group = place, color= main_genre),
-               size = 2, alpha = 0.75) +
-  scale_color_hc() + 
-  theme_minimal() +
-  theme(legend.position = "bottom")
+main_genre     n
+-----------  ---
+Comedy        50
+Drama         14
+Crime          9
+Action         8
+NA             7
+Adventure      5
+Animation      5
+Fantasy        1
+N/A            1
+
+ggplot version:
+
+
+
+```r
+# ggplot(data) +
+#   geom_segment(aes(x = to, xend  = from, y = place, yend = place, group = place, color=name),
+#                size = 2, alpha = 0.75) +
+#   theme_minimal() +
+#   theme(legend.position = "none")
 
 
 # hc version
@@ -119,3 +151,11 @@ ggplot(data) +
 # 
 # #+ results = 'asis'
 # hc$show('inline', include_assets = TRUE, standalone = TRUE)
+```
+
+
+---
+title: "readme.R"
+author: "Joshua K"
+date: "Sat Sep 19 03:51:39 2015"
+---
