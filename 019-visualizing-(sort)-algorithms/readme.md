@@ -7,7 +7,7 @@ Have you read [Visualizing Algorithms](http://bost.ocks.org/mike/algorithms/) by
 We need some sorts algorihms. In # http://faculty.cs.niu.edu/~hutchins/csci230/sorting.htm you can
 see some algorithms. 
  
-Insertion Sort:
+We start with Insertion Sort:
 
 
 ```r
@@ -36,69 +36,7 @@ insertion_sort_steps <- function(x  = sample(1:15)){
 }
 ```
 
-Let's do others algorithms:
-
-Bubble sort:
-
-
-```r
-bubble_sort_steps <- function(x = sample(1:15)){
-  
-  msteps <- matrix(data = x, ncol = length(x))
-  
-  for (i in 1:(length(x) - 1)) {
-    
-    for (j in 1:(length(x) - 1)) {
-      
-      if (x[j] > x[j + 1]) {
-        temp <- x[j]
-        x[j] <- x[j + 1]
-        x[j + 1] <- temp
-      }
-      
-      msteps <- rbind(msteps, as.vector(x))
-      
-    }
-  }
-  
-  msteps
-  
-}
-```
-
-Selection sort:
-
-
-```r
-selection_sort_steps <- function(x = sample(1:15)){
-  
-  msteps <- matrix(data = x, ncol = length(x))
-  
-  for (i in 1:(length(x) - 1)) {
-    
-    smallsub <- i
-    
-    for (j in (i + 1):(length(x) - 1)) {
-      
-      if (x[j] < x[smallsub]) {
-        smallsub <- j
-      }
-    }
-    
-    temp <- x[i]
-    x[i] <- x[smallsub]
-    x[smallsub] <- temp
-    
-    msteps <- rbind(msteps, as.vector(x))
-    
-  }
-  
-  msteps
-  
-}
-```
-
-Let's see what these functions do:
+Now to test it and see what the function do:
 
 
 ```r
@@ -178,7 +116,7 @@ head(df_steps, 10)
 ## 10     3        2       3
 ```
 
-The next step will be plot this data frame.
+The next step will be plot the data frame.
 
 
 ```r
@@ -217,25 +155,87 @@ With:
 
 
 ```r
-plot_sort(df_steps, size = 7) + geom_text(color = "white", size = 5)
+plot_sort(df_steps, size = 6) + geom_text(color = "white", size = 4)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-10-1.png) 
+![](readme_files/figure-html/unnamed-chunk-8-1.png) 
 
-The functions works, so we can now scroll. Are you ready?
+Nice. The functions works, so we can now scroll! 
 
 
 ```r
-sample(seq(25)) %>% 
+sample(seq(30)) %>% 
   insertion_sort_steps() %>% 
   sort_matix_to_df() %>% 
-  plot_sort(size = 3)
+  plot_sort(size = 2.2)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-11-1.png) 
+![](readme_files/figure-html/unnamed-chunk-9-1.png) 
 
 
-Now to compare:
+Now to compare with other sort algorithms:
+
+Bubble sort:
+
+
+```r
+bubble_sort_steps <- function(x = sample(1:15)){
+  
+  msteps <- matrix(data = x, ncol = length(x))
+  
+  for (i in 1:(length(x) - 1)) {
+    
+    for (j in 1:(length(x) - 1)) {
+      
+      if (x[j] > x[j + 1]) {
+        temp <- x[j]
+        x[j] <- x[j + 1]
+        x[j + 1] <- temp
+      }
+      
+      msteps <- rbind(msteps, as.vector(x))
+      
+    }
+  }
+  
+  msteps
+  
+}
+```
+
+Selection sort:
+
+
+```r
+selection_sort_steps <- function(x = sample(1:15)){
+  
+  msteps <- matrix(data = x, ncol = length(x))
+  
+  for (i in 1:(length(x) - 1)) {
+    
+    smallsub <- i
+    
+    for (j in (i + 1):(length(x) - 1)) {
+      
+      if (x[j] < x[smallsub]) {
+        smallsub <- j
+      }
+    }
+    
+    temp <- x[i]
+    x[i] <- x[smallsub]
+    x[smallsub] <- temp
+    
+    msteps <- rbind(msteps, as.vector(x))
+    
+  }
+  
+  msteps
+  
+}
+```
+
+And test with a longer vector:
 
 
 ```r
@@ -254,12 +254,12 @@ head(big_df)
 
  step  position    element  sort      
 -----  ---------  --------  ----------
-    1  1                10  Selection 
-    1  2                16  Selection 
-    1  3                 1  Selection 
-    1  4                 4  Selection 
-    1  5                11  Selection 
-    1  6                 6  Selection 
+    1  1                 8  Selection 
+    1  2                 7  Selection 
+    1  3                16  Selection 
+    1  4                18  Selection 
+    1  5                10  Selection 
+    1  6                 3  Selection 
 
 ```r
 big_df %>%
@@ -272,7 +272,7 @@ big_df %>%
 sort         steps
 ----------  ------
 Bubble        7240
-Insertion     1660
+Insertion     1940
 Selection      400
 
 ```r
@@ -305,16 +305,14 @@ ggplot(df_steps) +
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        plot.background = element_rect(fill = "transparent"),
-        strip.text = element_text(size = 8),
-        panel.border = element_rect(fill = "transparent", color = "gray"))
+        strip.text = element_text(size = 8))
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-15-1.png) 
 
 Some bonus content :D.
 
-<iframe width="420" height="315" src="https://www.youtube.com/embed/M8xtOinmByo" frameborder="0"></iframe>
+<iframe width="420" height="315" src="https://www.youtube.com/embed/M8xtOinmByo" frameborder="0" style="display: block;margin-left: auto;margin-right: auto;"></iframe>
 References:
 
 1. http://bost.ocks.org/mike/algorithms/
@@ -328,6 +326,6 @@ References:
 
 ---
 title: "readme.R"
-author: "jkunst"
-date: "Mon Sep 21 12:48:11 2015"
+author: "Joshua K"
+date: "Tue Sep 22 01:12:41 2015"
 ---
