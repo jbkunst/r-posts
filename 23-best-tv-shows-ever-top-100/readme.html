@@ -63,7 +63,7 @@ img {
 <div id="header">
 <h1 class="title">A brief look to Hollywood’s 100 Favorite TV Shows</h1>
 <h4 class="author"><em>Joshua Kunst</em></h4>
-<h4 class="date"><em>Sat Sep 19 03:51:39 2015</em></h4>
+<h4 class="date"><em>Wed Sep 23 11:15:02 2015</em></h4>
 </div>
 
 
@@ -78,184 +78,121 @@ length(items) == 100 # Yay!</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <pre class="r"><code>data &lt;- ldply(items, function(item){
   # item &lt;- sample(items, size = 1)[[1]]
-  # item &lt;- items[[45]]
+  # item &lt;- items[[100-78+1]]
   
   name &lt;- item %&gt;% html_node(&quot;.list-item__title&quot;) %&gt;% html_text()
   
-
   info &lt;- item %&gt;% html_node(&quot;.list-item__deck&quot;) %&gt;% html_text()
   
   years &lt;- str_extract_all(info, &quot;\\d+&quot;) %&gt;% unlist() %&gt;% as.numeric()
   
   company &lt;- str_replace(info, &quot;\\(.*\\)&quot;, &quot;&quot;) %&gt;% str_trim()
   
-  imdbid &lt;- search_by_title(name, type = &quot;series&quot;) %&gt;% filter(grepl(years[1], Year)) %&gt;% .$imdbID %&gt;% .[1]
+  if (name == &quot;The Mary Tyler Moore Show&quot;) name &lt;- &quot;Mary Tyler Moore&quot;
+  if (name == &quot;The Office (U.S.)&quot;) name &lt;- &quot;The Office&quot;
+  if (name == &quot;Sherlock (U.K.)&quot;) name &lt;- &quot;Sherlock&quot;
+  if (grepl(&quot;With Children&quot;, name)) name &lt;- &quot;Married with Children&quot;
   
-  dsummary &lt;- data_frame(name, from = years[1], to = years[2], company) 
   
-  if(!is.null(imdbid)) {
-    dsummary &lt;- cbind(dsummary, find_by_id(imdbid)) %&gt;% 
-      mutate(main_genre = str_split(Genre, &quot;\\,&quot;) %&gt;% unlist() %&gt;% .[1])
-  }
-    
-  dsummary
+  imdbdata &lt;- httr::GET(&quot;http://www.omdbapi.com/&quot;,
+                        query = list(t = name, y = years[1], type = &quot;series&quot;)) %&gt;%
+    content() %&gt;%
+    as.data.frame()
   
-}, .progress = &quot;win&quot;)</code></pre>
-<pre><code>## Movie not found!
-## Movie not found!
-## Movie not found!
-## Movie not found!
-## Movie not found!
-## Movie not found!
-## Movie not found!</code></pre>
-<pre class="r"><code>names(data) &lt;- tolower(names(data))
+  main_genre &lt;- str_split(imdbdata$Genre, &quot;\\,&quot;) %&gt;% unlist() %&gt;% .[1]
+  
+  dsummary &lt;- data_frame(name, from = years[1], to = years[2], company, main_genre) 
+  
+  dataserie &lt;- cbind(dsummary, imdbdata)
+  
+  dataserie
+  
+}, .progress = &quot;win&quot;)
+
+names(data) &lt;- tolower(names(data))
 
 data &lt;- tbl_df(data) %&gt;% 
   mutate(place = rev(seq(100)),
          to = ifelse(is.na(to), 2005, to)) %&gt;% 
   arrange(place) 
 
-data %&gt;%
-  select(place, name, company, genre) %&gt;%
-  head()</code></pre>
+
+ggplot(data) +
+  geom_segment(aes(x = to, xend  = from, y = place, yend = place, group = place, color = main_genre),
+               size = 2, alpha = 0.75,  lineend = &quot;round&quot;) +
+  scale_color_hc() + 
+  theme_minimal() +
+  theme(legend.position = &quot;bottom&quot;)</code></pre>
+<p><img src="data:image/png;base64,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" /></p>
+<pre class="r"><code>data %&gt;% sample_n(1) %&gt;% select(imdbid)</code></pre>
+<div id="imdbid" class="section level2">
+<h2>imdbid</h2>
+<p>tt2193021</p>
+<pre class="r"><code>data %&gt;% filter(imdbid == &quot;tt0098936&quot;)</code></pre>
 <table>
 <thead>
 <tr class="header">
-<th align="right">place</th>
 <th align="left">name</th>
+<th align="right">from</th>
+<th align="right">to</th>
 <th align="left">company</th>
-<th align="left">genre</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="right">1</td>
-<td align="left">Friends</td>
-<td align="left">NBC</td>
-<td align="left">Comedy, Romance</td>
-</tr>
-<tr class="even">
-<td align="right">2</td>
-<td align="left">Breaking Bad</td>
-<td align="left">AMC</td>
-<td align="left">Crime, Drama, Thriller</td>
-</tr>
-<tr class="odd">
-<td align="right">3</td>
-<td align="left">The X-Files</td>
-<td align="left">Fox</td>
-<td align="left">Drama, Mystery, Sci-Fi</td>
-</tr>
-<tr class="even">
-<td align="right">4</td>
-<td align="left">Game of Thrones</td>
-<td align="left">HBO</td>
-<td align="left">Adventure, Drama, Fantasy</td>
-</tr>
-<tr class="odd">
-<td align="right">5</td>
-<td align="left">Seinfeld</td>
-<td align="left">NBC</td>
-<td align="left">Comedy</td>
-</tr>
-<tr class="even">
-<td align="right">6</td>
-<td align="left">The Sopranos</td>
-<td align="left">HBO</td>
-<td align="left">Crime, Drama</td>
-</tr>
-</tbody>
-</table>
-<pre class="r"><code>data %&gt;% count(main_genre) %&gt;% arrange(desc(n))</code></pre>
-<table>
-<thead>
-<tr class="header">
 <th align="left">main_genre</th>
-<th align="right">n</th>
+<th align="left">title</th>
+<th align="left">year</th>
+<th align="left">rated</th>
+<th align="left">released</th>
+<th align="left">runtime</th>
+<th align="left">genre</th>
+<th align="left">director</th>
+<th align="left">writer</th>
+<th align="left">actors</th>
+<th align="left">plot</th>
+<th align="left">language</th>
+<th align="left">country</th>
+<th align="left">awards</th>
+<th align="left">poster</th>
+<th align="left">metascore</th>
+<th align="left">imdbrating</th>
+<th align="left">imdbvotes</th>
+<th align="left">imdbid</th>
+<th align="left">type</th>
+<th align="left">response</th>
+<th align="right">place</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Comedy</td>
-<td align="right">50</td>
-</tr>
-<tr class="even">
+<td align="left">Twin Peaks</td>
+<td align="right">1990</td>
+<td align="right">1991</td>
+<td align="left">ABC</td>
 <td align="left">Drama</td>
-<td align="right">14</td>
-</tr>
-<tr class="odd">
-<td align="left">Crime</td>
-<td align="right">9</td>
-</tr>
-<tr class="even">
-<td align="left">Action</td>
-<td align="right">8</td>
-</tr>
-<tr class="odd">
-<td align="left">NA</td>
-<td align="right">7</td>
-</tr>
-<tr class="even">
-<td align="left">Adventure</td>
-<td align="right">5</td>
-</tr>
-<tr class="odd">
-<td align="left">Animation</td>
-<td align="right">5</td>
-</tr>
-<tr class="even">
-<td align="left">Fantasy</td>
-<td align="right">1</td>
-</tr>
-<tr class="odd">
+<td align="left">Twin Peaks</td>
+<td align="left">1990–1991</td>
+<td align="left">TV-MA</td>
+<td align="left">08 Apr 1990</td>
+<td align="left">47 min</td>
+<td align="left">Drama, Mystery, Thriller</td>
 <td align="left">N/A</td>
-<td align="right">1</td>
+<td align="left">Mark Frost, David Lynch</td>
+<td align="left">Kyle MacLachlan, Michael Ontkean, Mädchen Amick, Dana Ashbrook</td>
+<td align="left">An idiosyncratic FBI agent investigates the murder of a young woman in the even more idiosyncratic town of Twin Peaks.</td>
+<td align="left">English, Icelandic, Afrikaans, Norwegian</td>
+<td align="left">USA</td>
+<td align="left">Won 3 Golden Globes. Another 11 wins &amp; 43 nominations.</td>
+<td align="left"><a href="http://ia.media-imdb.com/images/M/MV5BMTExNzk2NjcxNTNeQTJeQWpwZ15BbWU4MDcxOTczOTIx._V1_SX300.jpg" class="uri">http://ia.media-imdb.com/images/M/MV5BMTExNzk2NjcxNTNeQTJeQWpwZ15BbWU4MDcxOTczOTIx._V1_SX300.jpg</a></td>
+<td align="left">N/A</td>
+<td align="left">8.9</td>
+<td align="left">93,786</td>
+<td align="left">tt0098936</td>
+<td align="left">series</td>
+<td align="left">True</td>
+<td align="right">20</td>
 </tr>
 </tbody>
 </table>
-<p>ggplot version:</p>
-<pre class="r"><code># ggplot(data) +
-#   geom_segment(aes(x = to, xend  = from, y = place, yend = place, group = place, color=name),
-#                size = 2, alpha = 0.75) +
-#   theme_minimal() +
-#   theme(legend.position = &quot;none&quot;)
-
-
-# hc version
-# 
-# library(&quot;taucharts&quot;)
-# library(&quot;tidyr&quot;)
-# 
-# data2 &lt;- data %&gt;%
-#   select(name, from, to) %&gt;%
-#   gather(key, year, -name) %&gt;% 
-#   left_join(data %&gt;% select(name, place), by = &quot;name&quot;) %&gt;% 
-#   mutate(year2 = lubridate::ymd(paste0(year, &quot;0101&quot;)),
-#          year3 = as.character(year))
-# 
-# head(data2)
-# 
-# tauchart(data2) %&gt;% 
-#   tau_line(&quot;year3&quot;, &quot;place&quot;, &quot;name&quot;) %&gt;% 
-#   tau_tooltip()
-# 
-# 
-# 
-# # tau
-# 
-# # hc version
-# 
-# hc &lt;- rCharts::Highcharts$new()
-# hc$legend(enabled = F)
-# hc
-# 
-# for(i in seq(nrow(data))){
-#   d &lt;- data[i,]
-#   hc$series(data = list(c(d$from, d$place), c(d$to, d$place)), lineWidth = 7, name = d$name)
-# }
-# 
-# #+ results = 'asis'
-# hc$show('inline', include_assets = TRUE, standalone = TRUE)</code></pre>
+<pre class="r"><code># http://www.myapifilms.com/imdb?idIMDB=tt0460649&amp;format=JSON&amp;aka=0&amp;business=0&amp;seasons=1&amp;seasonYear=0&amp;technical=0&amp;lang=en-us&amp;actors=N&amp;biography=0&amp;trailer=0&amp;uniqueName=0&amp;filmography=0&amp;bornDied=0&amp;starSign=0&amp;actorActress=0&amp;actorTrivia=0&amp;movieTrivia=0&amp;awards=0&amp;moviePhotos=N&amp;movieVideos=N&amp;similarMovies=0</code></pre>
+</div>
 
 
 </div>
