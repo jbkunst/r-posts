@@ -151,7 +151,7 @@ selection_sort_steps <- function(x = sample(1:15)){
     
     smallsub <- i
     
-    for (j in (i + 1):(length(x) - 1)) {
+    for (j in (i + 1):(length(x) - 0)) { # Is not - 1 like website
       
       if (x[j] < x[smallsub]) {
         smallsub <- j
@@ -175,9 +175,9 @@ selection_sort_steps <- function(x = sample(1:15)){
 x <- sample(seq(20))
 
 big_df <- rbind(
-  x %>% selection_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Selection"),  
-  x %>% insertion_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Insertion"),
-  x %>% bubble_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Bubble")
+  x %>% selection_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Selection Sort"),  
+  x %>% insertion_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Insertion Sort"),
+  x %>% bubble_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Bubble Sort")
 )
 
 head(big_df)
@@ -195,7 +195,7 @@ ggplot(big_df,
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        strip.text = element_text(size = 10))
+        strip.text = element_text(size = 8))
 
 #' Or like http://algs4.cs.princeton.edu/21elementary/ we can plot geom_ba
 df_steps <- sample(seq(20)) %>% 
@@ -210,7 +210,7 @@ ggplot(df_steps) +
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        strip.text = element_text(size = 8))
+        strip.text = element_text(size = 7))
  
 #' Some bonus content :D.
 #' 
@@ -233,6 +233,6 @@ ggplot(df) +
   scale_colour_gradient(low = "white", high = "black") + 
   theme(legend.position = "none",
         plot.background = element_rect(fill = "black", colour = "black"),
-        strip.text = element_text(size = 8))
+        strip.text = element_text(size = 7))
 
 

@@ -215,7 +215,7 @@ selection_sort_steps <- function(x = sample(1:15)){
     
     smallsub <- i
     
-    for (j in (i + 1):(length(x) - 1)) {
+    for (j in (i + 1):(length(x) - 0)) { # Is not - 1 like website
       
       if (x[j] < x[smallsub]) {
         smallsub <- j
@@ -242,9 +242,9 @@ And test with a longer vector:
 x <- sample(seq(20))
 
 big_df <- rbind(
-  x %>% selection_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Selection"),  
-  x %>% insertion_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Insertion"),
-  x %>% bubble_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Bubble")
+  x %>% selection_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Selection Sort"),  
+  x %>% insertion_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Insertion Sort"),
+  x %>% bubble_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Bubble Sort")
 )
 
 head(big_df)
@@ -252,14 +252,14 @@ head(big_df)
 
 
 
- step  position    element  sort      
------  ---------  --------  ----------
-    1  1                 8  Selection 
-    1  2                 7  Selection 
-    1  3                16  Selection 
-    1  4                18  Selection 
-    1  5                10  Selection 
-    1  6                 3  Selection 
+ step  position    element  sort           
+-----  ---------  --------  ---------------
+    1  1                 8  Selection Sort 
+    1  2                 7  Selection Sort 
+    1  3                16  Selection Sort 
+    1  4                18  Selection Sort 
+    1  5                10  Selection Sort 
+    1  6                 3  Selection Sort 
 
 ```r
 big_df %>%
@@ -269,11 +269,11 @@ big_df %>%
 
 
 
-sort         steps
-----------  ------
-Bubble        7240
-Insertion     1940
-Selection      400
+sort              steps
+---------------  ------
+Bubble Sort        7240
+Insertion Sort     1940
+Selection Sort      400
 
 ```r
 ggplot(big_df,
@@ -284,7 +284,7 @@ ggplot(big_df,
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        strip.text = element_text(size = 10))
+        strip.text = element_text(size = 8))
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-14-1.png) 
@@ -305,7 +305,7 @@ ggplot(df_steps) +
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        strip.text = element_text(size = 8))
+        strip.text = element_text(size = 7))
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-15-1.png) 
@@ -326,6 +326,6 @@ References:
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Tue Sep 22 01:12:41 2015"
+author: "jkunst"
+date: "Tue Sep 22 10:41:30 2015"
 ---
