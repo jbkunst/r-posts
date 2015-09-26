@@ -1,5 +1,5 @@
 #' ---
-#' title: "Visualizing (Sort) Algorithms"
+#' title: "Visualizing Sort Algorithms with ggplot"
 #' author: "Joshua Kunst"
 #' output: 
 #'  html_document: 
@@ -9,15 +9,19 @@
 #' layout: post
 #' featured_image: /images/just-another-way-to-make-a-r-flavored-blog/github_fork_game.png
 #' ---
-#+ echo=FALSE, warning=FALSE, message=FALSE
+#+ setup, echo=FALSE, warning=FALSE, message=FALSE
 rm(list = ls())
 library("dplyr")
 library("tidyr")
 library("ggplot2")
 library("ggthemes")
-library("stringr")
+library("viridis")
+theme_set(theme_map())
 knitr::opts_chunk$set(dpi = 108)
-#' Have you read [Visualizing Algorithms](http://bost.ocks.org/mike/algorithms/) by Mike Bostock? It's a *magic post*. 
+
+#' Have you read [Visualizing Algorithms](http://bost.ocks.org/mike/algorithms/) by Mike Bostock? It's a *pure gold post*.
+#' In that post Mike show a *static* representation of a sort algorith and obvious it will fun to replicate that image
+#' with ggplot. So here we go.
 
 #' We need some sorts algorihms. In # http://faculty.cs.niu.edu/~hutchins/csci230/sorting.htm you can
 #' see some algorithms. 
@@ -93,7 +97,6 @@ plot_sort <- function(df_steps, size = 5, color.low = "#D1F0E1", color.high = "#
     scale_colour_gradient(low = color.low, high = color.high) +
     coord_flip() + 
     scale_x_reverse() + 
-    ggthemes::theme_map() +
     theme(legend.position = "none")
   
 }
@@ -105,9 +108,9 @@ msteps
 #+ fig.width=3.5
 plot_sort(df_steps, size = 6) + geom_text(color = "white", size = 4)
 
-#' Nice. The functions works, so we can now scroll! 
-#+ fig.width = 3.5, fig.height=15
-sample(seq(30)) %>% 
+#' It works, so we can now scroll! 
+#+ fig.width = 8, fig.height=35
+sample(seq(70)) %>% 
   insertion_sort_steps() %>% 
   sort_matix_to_df() %>% 
   plot_sort(size = 2.2)
@@ -116,7 +119,7 @@ sample(seq(30)) %>%
 #+ echo=FALSE
 library("printr")
 
-#' Now to compare with other sort algorithms:
+#' Now try with other sort algorithms:
 #' 
 #' Bubble sort:
 bubble_sort_steps <- function(x = sample(1:15)){
@@ -172,7 +175,8 @@ selection_sort_steps <- function(x = sample(1:15)){
 
 #' And test with a longer vector:
 
-x <- sample(seq(20))
+n <- 50
+x <- sample(seq(n))
 
 big_df <- rbind(
   x %>% selection_sort_steps() %>% sort_matix_to_df() %>% mutate(sort = "Selection Sort"),  
@@ -186,32 +190,30 @@ big_df %>%
   group_by(sort) %>% 
   summarise(steps = n())
 
-#+ fig.width=8, fig.height=4
+#+ fig.width=8, fig.height=7
 ggplot(big_df,
        aes(step, position, group = element, color = element, label = element)) +  
-  geom_path(size = 1, alpha = 1, lineend = "round") +
+  geom_path(size = 0.8, alpha = 1, lineend = "round") +
   scale_colour_gradient(low = "#c21500", high = "#ffc500") + # http://uigradients.com/#Kyoto
   facet_wrap(~sort, scales = "free_x", ncol = 1) +
-  ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
         strip.text = element_text(size = 8))
 
-#' Or like http://algs4.cs.princeton.edu/21elementary/ we can plot geom_ba
-df_steps <- sample(seq(20)) %>% 
-  insertion_sort_steps() %>%
-  sort_matix_to_df()
-
-ggplot(df_steps) +
-  geom_bar(aes(x = position, y = element, fill = element),
-           stat = "identity",width = 0.5) +
-  facet_wrap(~step) + 
-  scale_colour_gradient(low = "#c21500", high = "#ffc500") + 
-  ggthemes::theme_map() +
+#' Or we can plot vertical using the [viridis package](https://github.com/sjmgarnier/viridis): 
+#+ fig.width=8, fig.height=20
+ggplot(big_df,
+       aes(position, step, group = element, color = element, label = element)) +  
+  geom_path(size = 1, alpha = 1, lineend = "round") +
+  scale_colour_gradientn(colours = viridis_pal()(n)) +
+  facet_wrap(~sort, scales = "free_y", nrow = 1) +
+  scale_y_reverse() +
   theme(legend.position = "none",
         strip.background = element_rect(fill = "transparent", linetype = 0),
-        strip.text = element_text(size = 7))
- 
+        strip.text = element_text(size = 8))
+
+#' And that's it. If you write/implement another sort algorithm in this way let me know to view it ;). 
+
 #' Some bonus content :D.
 #' 
 #' <iframe width="420" height="315" src="https://www.youtube.com/embed/M8xtOinmByo" frameborder="0" style="display: block;margin-left: auto;margin-right: auto;"></iframe>
@@ -229,10 +231,7 @@ df <- data_frame(x = seq(1:20))
 ggplot(df) + 
   geom_bar(aes(x = x, y = x, fill = x),
            stat = "identity",width = 0.5) +
-  ggthemes::theme_map() +
   scale_colour_gradient(low = "white", high = "black") + 
   theme(legend.position = "none",
         plot.background = element_rect(fill = "black", colour = "black"),
         strip.text = element_text(size = 7))
-
-
