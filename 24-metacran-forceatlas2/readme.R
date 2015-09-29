@@ -31,7 +31,7 @@ df_dpnds <- tbl_df(df_dpnds) %>%
   filter(to != "R")
 
 
-top_n <- 200
+top_n <- 300
 
 top_pcks <- data_frame(name = c(df_dpnds$to, df_dpnds$from)) %>% count(name) %>% arrange(desc(n)) %>% head(top_n)
 top_pcks_names <- top_pcks$name
@@ -39,32 +39,30 @@ top_pcks_names <- top_pcks$name
 
 edges <- df_dpnds %>% filter(from %in% top_pcks_names & to %in% top_pcks_names)
 nodes <- data_frame(name = unique(c(edges$to, edges$from))) %>% 
-  left_join(df_pcks) %>% 
-  left_join(top_pcks)
+  left_join(df_pcks, by = "name") %>% 
+  left_join(top_pcks, by = "name")
   
 
-g <- graph.data.frame(edges, directed=FALSE, vertices = nodes)
+g <- graph.data.frame(edges, directed = FALSE, vertices = nodes)
 
 plot(g)
 
+plot.igraph(g, layout = layout.fruchterman.reingold, vertex.size = 2, vertex.label = NA)
 
-t <- Sys.time()
-layout <- layout.forceatlas2(g, iterations = 10000, plotstep = 100)
-t - Sys.time()
+gpos <- 
 
+dlay <- as_data_frame(g, what="vertices") %>% 
+  cbind(layout.fruchterman.reingold(g) %>% as.data.frame() %>% setNames(c("x", "y"))) %>% 
+  tbl_df()
 
-layout <- layout %>%
-  left_join(df_dpnds %>%  count(name = to)) %>%
-  mutate(alpha = n/max(n))
+head(dlay)
 
-
-df_dpnds_g
-
-p <- ggplot(layout) +
-  geom_point(aes(V1, V2, size = log(n), alpha = sqrt(alpha))) +
-  # geom_text(aes(V1, V2, label = name, size = log(n), alpha = sqrt(alpha)), data = layout %>% filter(n>100)) +
-  scale_size(range = c(1, 20)) 
-
-p + ggthemes::theme_map() + theme(legend.position = "none",  panel.border = element_blank())
+ggplot(dlay) + 
+  geom_point(aes(x, y, size = log(n)), alpha = 0.3, color = "white") +
+  scale_size(range = c(1, 20)) +
+  ggthemes::theme_map() +
+  theme(legend.position = "none",
+        plot.background = element_rect(fill = "black", colour = "black"),
+        panel.border = element_blank())
 
 
