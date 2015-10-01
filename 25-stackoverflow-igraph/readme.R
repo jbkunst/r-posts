@@ -67,15 +67,14 @@ df_qst <- tbl_df(df_qst)
 df_qst <- df_qst %>% 
   mutate(creation_date = as.POSIXct(creation_date, origin = "1970-01-01"),
          last_activity_date = as.POSIXct(last_activity_date, origin = "1970-01-01"),
-         creation_month = format(creation_date, "%Y-%m-01") %>% as.Date())
+         creation_month = format(creation_date, "%Y-%m-01") %>% as.Date()) %>% 
+  filter(creation_month != max(creation_month))
 
-
-ggplot(df_qst) + 
-  geom_bar(aes(creation_month), binwidth = 10) 
-
-df_q
-
-
+df_qst %>% 
+  count(creation_month) %>% 
+  ggplot(aes(creation_month, n)) + 
+  geom_line() +
+  geom_point() 
 
 # Dataframe with question_id, question_tag
 df_qtag <- ldply(qlist, function(x){
