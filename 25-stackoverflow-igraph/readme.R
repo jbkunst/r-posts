@@ -15,23 +15,23 @@ library("lubridate")
 SITE <- "stackoverflow"
 TAG <- "r"
 KEY <- "ifpYG3FCatEyPyX8AqkVCA(("
-NPAGES <- 4000 # Requests  
+NPAGES <- 5000 # Requests  
 API_URL <- "https://api.stackexchange.com/2.2/questions"
 NTAGS <- 50
 
 
 ##### Question List
-# qlist <- llply(seq(NPAGES), function(p) { # p <- 1
-#   data <- API_URL %>% 
-#     GET(query = list(site = SITE, tagged = TAG, page = p, key = KEY,
-#                      sort = "creation", pagesize = 100, order = "desc")) %>% 
-#     content()
-#   
-#   if (p %% 100 == 0) message("page: ",p ," | quota remaining: ", data$quota_remaining)
-#   
-#   data$items
-# }, .progress = "win") 
-# qlist <- unlist(qlist, recursive = FALSE)
+qlist <- llply(seq(NPAGES), function(p) { # p <- 1
+  data <- API_URL %>% 
+    GET(query = list(site = SITE, tagged = TAG, page = p, key = KEY,
+                     sort = "creation", pagesize = 100, order = "desc")) %>% 
+    content()
+  
+  if (p %% 100 == 0) message("page: ",p ," | quota remaining: ", data$quota_remaining)
+  
+  data$items
+}, .progress = "win") 
+qlist <- unlist(qlist, recursive = FALSE)
 
 # saveRDS(qlist, "qlist.Rds")
 qlist <- readRDS("qlist.Rds")
