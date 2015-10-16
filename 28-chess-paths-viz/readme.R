@@ -15,8 +15,60 @@ library("dplyr")
 library("readr")
 library("ggplot2")
 
-# dfgames <- read_csv("data/chess_magnus.csv.gz")
-# 
+dfgames <- read_csv("data/chess_magnus.csv.gz")
+
+moves_to_hist_df <- function(moves){ # moves <- sample(size = 1, dfgames$moves)
+  
+  mvs <- moves %>% strsplit(" ") %>% unlist()
+  chss <- Chess$new()
+  
+  for (mv in mvs) chss$move(mv)
+  
+  dfhist <- chss$history(verbose = TRUE) %>% 
+    mutate(number_move = seq(nrow(.)))
+  
+  return(as.data.frame(dfhist))
+  
+}
+
+
+moves <- sample(size = 50, dfgames$moves)
+
+system.time(moves_to_hist_df(moves[1]))
+
+
+
+library(doParallel)
+cl <- makeCluster(8)
+registerDoParallel(cl)
+
+
+system.time(
+  ldply(moves, moves_to_hist_df)
+)
+
+system.time(
+  respar <- foreach(i = moves,
+                    .combine = rbind.fill,
+                    .packages = c("magrittr", "rchess", "dplyr")) %dopar% moves_to_hist_df(i)
+)
+
+
+library("parallel")
+
+n.cores <- detectCores()
+n.cores
+cl <- makeCluster(n.cores)
+
+clusterExport(cl, list("%>%", "Chess", "mutate"))
+
+system.time(respar2 <- parLapply(cl,moves, moves_to_hist_df))
+
+respar2 <- ldply(respar2)
+
+
+
+ 
 # dfgames <- dfgames %>% head(125)
 # 
 # problems(dfgames)
