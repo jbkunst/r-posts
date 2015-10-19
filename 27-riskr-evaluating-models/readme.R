@@ -1,10 +1,14 @@
 library("dplyr")
 library("ggplot2")
-library("ggthemes")
-# library("riskr")
+# library("ggthemes")
+library("riskr")
+library("printr")
 
+#
+print.numeric <- function(x, digits = 2) formatC(x, digits = digits, format = "f")
+knitr::opts_chunk$set(warning = FALSE)
 update_geom_defaults("line", list(size = 1.2))
-theme_set(ggthemes::theme_fivethirtyeight(base_size = 11) +
+theme_set(theme_minimal() +
             theme(rect = element_rect(fill = "white"),
                   axis.title = element_text(colour = "grey30"),
                   axis.title.y = element_text(angle = 90),
@@ -24,42 +28,43 @@ target <- rbinom(n, 1, prob = model)
 model_2 <- model + runif(n)
 model_3 <- ifelse(target < 0.5, model + runif(n),  model + runif(n) * 1.5)
 random_model <- runif(n)
-perfect_model <- ifelse(target < 0.5, runif(n) * 0.49, runif(n) * 0.5 + .51)
-bad_model <-  -model
+# perfect_model <- ifelse(target < 0.5, runif(n) * 0.49, runif(n) * 0.5 + .51)
+# bad_model <-  -model
 
 
 models_df <- data.frame(target, model, model_2, model_3,
-                        random_model, perfect_model, bad_model)
+                        random_model)
 head(models_df)
 
+perf(target, models_df %>% select(contains("model")))
 
-p <- gg_roc(target, models_df %>% select(contains("model"))) +
+#+ warning=FALSE
+gg_roc(target, models_df %>% select(contains("model"))) +
   ggthemes::scale_color_hc("darkunica") + 
   coord_equal()
-p
 
-perf(models_df$target, models_df %>% select(contains("model")))
-
-gg_gain(target, model)
-gg_gain(target, model_2)
-gg_gain(target, model_3)
-gg_gain(target, random_model)
-gg_gain(target, perfect_model)
-gg_gain(target, bad_model)
-
-
-gg_dists(target, model)
-gg_dists(target, model_2)
-gg_dists(target, model_3)
-gg_dists(target, random_model)
-gg_dists(target, perfect_model)
-gg_dists(target, bad_model)
-
-
-
-gg_perf(target, model)
-gg_perf(target, model_2)
-gg_perf(target, model_3)
-gg_perf(target, random_model)
-gg_perf(target, perfect_model)
-gg_perf(target, bad_model)
+# perf(models_df$target, models_df %>% select(contains("model")))
+# 
+# gg_gain(target, model)
+# gg_gain(target, model_2)
+# gg_gain(target, model_3)
+# gg_gain(target, random_model)
+# gg_gain(target, perfect_model)
+# gg_gain(target, bad_model)
+# 
+# 
+# gg_dists(target, model)
+# gg_dists(target, model_2)
+# gg_dists(target, model_3)
+# gg_dists(target, random_model)
+# gg_dists(target, perfect_model)
+# gg_dists(target, bad_model)
+# 
+# 
+# 
+# gg_perf(target, model)
+# gg_perf(target, model_2)
+# gg_perf(target, model_3)
+# gg_perf(target, random_model)
+# gg_perf(target, perfect_model)
+# gg_perf(target, bad_model)
