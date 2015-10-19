@@ -14,8 +14,12 @@ library("plyr")
 library("dplyr")
 library("readr")
 library("ggplot2")
+library("doParallel")
 
 dfgames <- read_csv("data/chess_magnus.csv.gz")
+
+str(dfgames)
+
 
 moves_to_hist_df <- function(moves){ # moves <- sample(size = 1, dfgames$moves)
   
@@ -27,81 +31,31 @@ moves_to_hist_df <- function(moves){ # moves <- sample(size = 1, dfgames$moves)
   dfhist <- chss$history(verbose = TRUE) %>% 
     mutate(number_move = seq(nrow(.)))
   
-  return(as.data.frame(dfhist))
+  return((dfhist))
   
 }
 
+dfgames$moves[1]
 
-moves <- sample(size = 50, dfgames$moves)
-
-system.time(moves_to_hist_df(moves[1]))
-
+moves_to_hist_df(dfgames$moves[1])
 
 
-library(doParallel)
-cl <- makeCluster(8)
+
+cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 
+dfmoves <- foreach(moves = dfgames$moves,
+                   .combine = rbind.fill,
+                   .packages = c("magrittr", "rchess", "dplyr")) %dopar%
+  moves_to_hist_df(moves)
 
-system.time(
-  ldply(moves, moves_to_hist_df)
-)
-
-system.time(
-  respar <- foreach(i = moves,
-                    .combine = rbind.fill,
-                    .packages = c("magrittr", "rchess", "dplyr")) %dopar% moves_to_hist_df(i)
-)
+stopCluster(cl)
 
 
-library("parallel")
-
-n.cores <- detectCores()
-n.cores
-cl <- makeCluster(n.cores)
-
-clusterExport(cl, list("%>%", "Chess", "mutate"))
-
-system.time(respar2 <- parLapply(cl,moves, moves_to_hist_df))
-
-respar2 <- ldply(respar2)
-
-
-
+dfmoves <- tbl_df(dfmoves)
+dfmoves <- dfmoves %>% mutate(game_id = number_move - lag(number_move))
  
-# dfgames <- dfgames %>% head(125)
-# 
-# problems(dfgames)
-# 
-# dfgames  <- dfgames %>% mutate(game_id = seq(nrow(.)))
-# 
-# 
-# t0 <- Sys.time()
-# 
-# dfmoves <- dfgames %>%
-#   group_by(game_id) %>% 
-#   do({
-#     mvs <- .$moves %>% strsplit(" ") %>% unlist()
-#     chss <- Chess$new()
-#     
-#     for (mv in mvs) chss$move(mv)
-#     
-#     dfhist <- chss$history(verbose = TRUE) %>% 
-#       mutate(number_move = seq(nrow(.)))
-#     
-#     dfhist
-#     
-#   }) %>%
-#   ungroup()
-# 
-# t1 <- Sys.time() - t0
-# 
-# saveRDS(dfgames, file = "data/dfgames.rds")
-# saveRDS(dfmoves, file = "data/dfmoves.rds")
-# 
-# #' Load data
-dfgames <- readRDS("data/dfgames.rds")
-dfmoves <- readRDS("data/dfmoves.rds")
+
 
 #' Example Game
 dfmvex <- dfmoves %>% filter(game_id == 1)
