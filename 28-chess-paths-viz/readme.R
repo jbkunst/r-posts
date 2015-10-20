@@ -12,13 +12,118 @@ rm(list = ls())
 library("rchess")
 library("plyr")
 library("dplyr")
+library("stringr")
 library("readr")
 library("ggplot2")
 library("doParallel")
+options(stringsAsFactors = FALSE)
 
-dfgames <- read_csv("data/chess_magnus.csv.gz")
+#' Some parameters
 
-str(dfgames)
+url_base  <- "http://www.bakuworldcup2015.com/files/pgn/Round%s.pgn"
+
+url_pgns <- laply(seq(6), function(round){ sprintf(url_base, round)})
+url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn")
+
+url_pgns
+
+
+games <- ldply(url_pgns, function(url_pgn) {
+  # url_pgn <- sample(url_pgns, size = 1)
+  # url_pgn <- "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"
+  pgn_lines <- readLines(url_pgn, warn = FALSE)
+  
+  idx <- which(pgn_lines == "[Event \"FIDE World Chess Cup\"]")
+  idxp1 <- idx + 1
+  idxm1 <- idx - 1
+  
+  pgn_lines[pgn_lines == "[Event \"FIDE World Chess Cup\"]"] <- ""
+  idxm1 <- idxm1[idxm1>=1]
+  idxp1 <- idxp1[idxp1<=length(pgn_lines)]
+  pgn_lines <- pgn_lines[-c(idxp1, idxm1)]
+  pgn_lines <- c("", pgn_lines)
+  
+  where_is_no_info <- which(str_length(pgn_lines) == 0)
+  where_is_no_info <- where_is_no_info[seq(length(where_is_no_info)) %% 2 == 0]
+  where_is_no_info <- c(0, where_is_no_info)
+  
+  df_cuts <- data_frame(from = head(where_is_no_info, -1) + 1,
+                        to = tail(where_is_no_info, -1) - 1)
+  
+  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 2
+    
+    pgn <- pgn_lines[seq(df_cuts[row, ]$from, df_cuts[row, ]$to)]
+    
+    data_keys <- str_extract(headers, "\\w+")
+    data_vals <- str_extract(headers, "\".*\"") %>% str_replace_all("\"", "")
+    
+    df_game <- t(data_vals) %>%
+      data.frame(stringsAsFactors = FALSE) %>%
+      setNames(data_keys) %>%
+      mutate(moves = paste0(moves, collapse = " "))
+    
+    df_game
+  }, .progress = "win")
+  
+}, .progress = "win")
+
+games <- tbl_df(games)
+
+games <- ldply(url_pgns, function(url_pgn) {
+  # url_pgn <- sample(url_pgns, size = 1)
+  # url_pgn <- "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"
+  pgn_lines <- readLines(url_pgn, warn = FALSE)
+  
+  idx <- which(pgn_lines == "[Event \"FIDE World Chess Cup\"]")
+  idxp1 <- idx + 1
+  idxm1 <- idx - 1
+  
+  pgn_lines[pgn_lines == "[Event \"FIDE World Chess Cup\"]"] <- ""
+  idxm1 <- idxm1[idxm1>=1]
+  idxp1 <- idxp1[idxp1<=length(pgn_lines)]
+  pgn_lines <- pgn_lines[-c(idxp1, idxm1)]
+  pgn_lines <- c("", pgn_lines)
+  
+  where_is_no_info <- which(str_length(pgn_lines) == 0)
+  where_is_no_info <- where_is_no_info[seq(length(where_is_no_info)) %% 2 == 0]
+  where_is_no_info <- c(0, where_is_no_info)
+  
+  df_cuts <- data_frame(from = head(where_is_no_info, -1) + 1,
+                        to = tail(where_is_no_info, -1) - 1)
+  
+  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 2
+    
+    pgn <- pgn_lines[seq(df_cuts[row, ]$from, df_cuts[row, ]$to)]
+    
+    data_keys <- str_extract(headers, "\\w+")
+    data_vals <- str_extract(headers, "\".*\"") %>% str_replace_all("\"", "")
+    
+    df_game <- t(data_vals) %>%
+      data.frame(stringsAsFactors = FALSE) %>%
+      setNames(data_keys) %>%
+      mutate(moves = paste0(moves, collapse = " "))
+    
+    df_game
+  }, .progress = "win")
+  
+}, .progress = "win")
+
+games <- tbl_df(games)
+
+## data for moves
+moves <- pgn[seq(which(pgn == "") + 1, length(pgn))] %>% 
+  paste0(collapse = " ") %>% 
+  str_replace_all("\\{\\[%clk \\d+:\\d+:\\d+\\]\\}", "" ) %>% # remove times
+  str_split("\\d+\\.|\\s+") %>%
+  unlist() %>% 
+  .[. != ""] %>% 
+  head(-1) # remove final result
+
+## data game
+headers <- pgn[seq(which(pgn == "")) - 1]
+
+
+games %>% select(-moves) %>% str()
 
 
 moves_to_hist_df <- function(moves){ # moves <- sample(size = 1, dfgames$moves)
