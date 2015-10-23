@@ -25,6 +25,7 @@ url_pgns
 ```
 
 ```r
+set.seed(1)
 prop_frac <- 10/100
 ```
 
@@ -145,7 +146,7 @@ system.time({
 
 ```
 ##    user  system elapsed 
-##    0.11    0.03   26.89
+##    0.13    0.02   25.10
 ```
 
 # the beautiful result    
@@ -159,14 +160,14 @@ head(dfmoves)
 ```
 ## Source: local data frame [6 x 9]
 ## 
-##   game_id       piece  from    to number_move piece_number_move    status
-##     (int)       (chr) (chr) (chr)       (int)             (int)     (chr)
-## 1       4     a1 Rook    a1    c1          39                 1 game over
-## 2       4   b1 Knight    b1    c3           5                 1  captured
-## 3       4   c1 Bishop    c1    b2          15                 1        NA
-## 4       4   c1 Bishop    b2    a3          35                 2 game over
-## 5       4 White Queen    d1    c2           7                 1        NA
-## 6       4 White Queen    c2    c3          11                 2        NA
+##   game_id     piece  from    to number_move piece_number_move   status
+##     (int)     (chr) (chr) (chr)       (int)             (int)    (chr)
+## 1     226   a1 Rook    a1    c1          21                 1       NA
+## 2     226   a1 Rook    c1    d1          33                 2       NA
+## 3     226   a1 Rook    d1    d2          51                 3       NA
+## 4     226   a1 Rook    d2    d4          69                 4 captured
+## 5     226 b1 Knight    b1    d2           7                 1       NA
+## 6     226 b1 Knight    d2    e4          25                 2 captured
 ## Variables not shown: number_move_capture (int), captured_by (chr)
 ```
 
@@ -312,5 +313,5 @@ ggplot() +
 ---
 title: "readme.R"
 author: "jkunst"
-date: "Fri Oct 23 16:49:09 2015"
+date: "Fri Oct 23 16:59:59 2015"
 ---

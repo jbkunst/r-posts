@@ -26,6 +26,7 @@ url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cu
 url_pgns
 
 #+ results='hide'
+set.seed(1)
 prop_frac <- 10/100
 
 #' # The magic parese function
@@ -183,7 +184,7 @@ ggplot() +
 #' # All pieces just because we can
 dfmoves2 <- dfmoves %>% sample_frac(prop_frac)
 
-#+ dpi = 144
+#+ dpi = 216
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
   geom_curve(data = dfmoves2 %>% filter(x_gt_y_equal_xy_sign),
