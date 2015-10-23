@@ -15,15 +15,20 @@ library("dplyr")
 library("stringr")
 library("readr")
 library("ggplot2")
+knitr::opts_chunk$set(warning = FALSE)
 options(stringsAsFactors = FALSE)
 
+#' # Intro
 #' Some parameters
 url_base  <- "http://www.bakuworldcup2015.com/files/pgn/Round%s.pgn"
 url_pgns <- laply(seq(6), function(round){ sprintf(url_base, round)})
 url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn")
 url_pgns
 
+#+ results='hide'
+prop_frac <- 10/100
 
+#' # The magic parese function
 dfgames <- ldply(url_pgns, function(url_pgn) {
   # url_pgn <- sample(url_pgns, size = 1)
   # url_pgn <- "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"
@@ -48,7 +53,7 @@ dfgames <- ldply(url_pgns, function(url_pgn) {
   
   df_cuts <- df_cuts %>% filter(!from == to)
   
-  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 1
+  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 3
     
     pgn <- pgn_lines[seq(df_cuts[row, ]$from, df_cuts[row, ]$to)]
     
@@ -82,6 +87,7 @@ dfgames <- dfgames %>% mutate(game_id = seq(nrow(.)))
 
 tail(dfgames)
 
+#+ eval=FALSE, results='hide'
 system.time({
   pgn <- sample(dfgames$pgn, size = 1)
   chss <- Chess$new()
@@ -89,74 +95,113 @@ system.time({
   chss$history_detail()  
 })
 
+#' # This took some time 
 library("foreach")
 library("doParallel")
-workers <- makeCluster(parallel::detectCores()) # My computer has 2 cores
+workers <- makeCluster(parallel::detectCores())
 registerDoParallel(workers)
 
-# system.time({
-#   history1 <- adply(head(dfgames, 20) %>% select(pgn, game_id), .margins = 1, function(x){
-#     chss <- Chess$new()
-#     chss$load_pgn(x$pgn)
-#     chss$history_detail()
-#   })
-# })
-# 
-# system.time({
-#   history2 <- adply(head(dfgames, 20) %>% select(pgn, game_id), .margins = 1, function(x){
-#     chss <- Chess$new()
-#     chss$load_pgn(x$pgn)
-#     chss$history_detail()
-#   }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
-# })
-# 
-# all.equal(history1, history2)
-# rm(history1, history2)
-   
 system.time({
- dfhistory <- adply(dfgames %>% select(pgn, game_id), .margins = 1, function(x){
+ dfmoves <- adply(dfgames %>% sample_frac(prop_frac) %>% select(pgn, game_id), .margins = 1, function(x){
    chss <- Chess$new()
    chss$load_pgn(x$pgn)
    chss$history_detail()
  }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
 })
-   
-dfhistory <- tbl_df(dfhistory) %>% select(-pgn)
-
-head(dfhistory)
-
-dfhistory %>%
-  filter(piece == "White King") %>%
-  count(game_id) %>% 
-  arrange(desc(n))
 
 
-dfhist <- dfhistory %>% filter(game_id == 312, piece == "White King")
+#' # the beautiful result    
+dfmoves <- tbl_df(dfmoves) %>% select(-pgn)
+head(dfmoves)
 
-dfhist
-dfboard <- rchess:::.chessboarddata() %>% select(cell, col, row, x, y, cc)
 
+#' # A nice data frame 
+dfboard <- rchess:::.chessboarddata() %>%
+  select(cell, col, row, x, y, cc)
 dfboard
 
-dfhist <- dfhist %>% 
+#' # Join
+dfmoves <- dfmoves %>% 
   left_join(dfboard %>% rename(from = cell, x.from = x, y.from = y), by = "from") %>% 
   left_join(dfboard %>% rename(to = cell, x.to = x, y.to = y) %>% select(-cc, -col, -row), by = "to") %>% 
-  mutate(curve = ifelse((x.from - x.to) < 0, TRUE, FALSE))
+  mutate(x_gt_y = abs(x.to - x.from) > abs(y.to - y.from),
+         xy_sign = sign((x.to - x.from)*(y.to - y.from)) == 1,
+         x_gt_y_equal_xy_sign = x_gt_y == xy_sign)
+
+#' # Details
+piece_lvls <- dfmoves %>%
+  filter(piece_number_move == 1) %>%
+  select(piece, col, row) %>%
+  distinct() %>% 
+  arrange(desc(row), col) %>% 
+  .$piece
+
+dfmoves <- dfmoves %>% 
+  mutate(piece = factor(piece, levels = piece_lvls),
+         piece_color = ifelse(str_extract(piece, "\\d") %in% c("1", "2"), "white", "black"),
+         piece_color = ifelse(str_detect(piece, "White"), "white", piece_color))
 
 
+#' # The g1 Knight
+ggplot() + 
+  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
+  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = 0.50, angle = -45, alpha = 0.01, color = "white", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", !x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = -0.50, angle = 45, alpha = 0.01, color = "white", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  coord_equal() +
+  ggthemes::theme_map() +
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
+  
+
+#' # The f8 Bishop
+ggplot() + 
+  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
+  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = 0.50, angle = -45, alpha = 0.01, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", !x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = -0.50, angle = 45, alpha = 0.01, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  coord_equal() +
+  ggthemes::theme_map() +
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
+
+
+#' # All pieces just because we can
+dfmoves2 <- dfmoves %>% sample_frac(prop_frac)
+
+#+ dpi = 144
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfhist %>% filter(curve),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             color = "white", alpha = 0.5, curvature = 1, angle = -55,
-             arrow = arrow(length = unit(0.25,"cm")),
-             position =  position_jitter(width = 0.25, height = 0.25)) +
-  geom_curve(data = dfhist %>% filter(!curve),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             color = "white", alpha = 0.5, curvature = .3,
-             arrow = arrow(length = unit(0.25,"cm")),
-             position =  position_jitter(width = 0.25, height = 0.25)) +
-  scale_fill_manual(values =  c("gray10", "gray20")) +
-  coord_equal() + 
+  geom_curve(data = dfmoves2 %>% filter(x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
+             curvature = 0.50, angle = -45, alpha = 0.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves2 %>% filter(!x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
+             curvature = -0.50, angle = 45, alpha = 0.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  scale_color_manual(values =  c("black", "white")) +
+  facet_wrap(~piece, nrow = 4, ncol = 8) + 
+  coord_equal() +
   ggthemes::theme_map() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
+
+# ggsave("~/../Desktop/Rplot.pdf", width = 16, height = 9, scale = 2)
+

@@ -3,232 +3,314 @@ Joshua Kunst
 
 
 
-Plots a chess data
+# Intro
+Some parameters
 
 
 ```r
-chessboardjs()
+url_base  <- "http://www.bakuworldcup2015.com/files/pgn/Round%s.pgn"
+url_pgns <- laply(seq(6), function(round){ sprintf(url_base, round)})
+url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn")
+url_pgns
 ```
 
-<!--html_preserve--><div id="htmlwidget-1128" style="width:300px;height:300px;" class="chessboardjs"></div>
-<script type="application/json" data-for="htmlwidget-1128">{"x":{"fen":"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"},"evals":[]}</script><!--/html_preserve-->
+```
+## [1] "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"             
+## [2] "http://www.bakuworldcup2015.com/files/pgn/Round2.pgn"             
+## [3] "http://www.bakuworldcup2015.com/files/pgn/Round3.pgn"             
+## [4] "http://www.bakuworldcup2015.com/files/pgn/Round4.pgn"             
+## [5] "http://www.bakuworldcup2015.com/files/pgn/Round5.pgn"             
+## [6] "http://www.bakuworldcup2015.com/files/pgn/Round6.pgn"             
+## [7] "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn"
+```
 
-Example Game
+```r
+prop_frac <- 10/100
+```
+
+# The magic parese function
 
 
 ```r
-dfmvex <- dfmoves %>% filter(game_id == 1)
-dfmvex
+dfgames <- ldply(url_pgns, function(url_pgn) {
+  # url_pgn <- sample(url_pgns, size = 1)
+  # url_pgn <- "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"
+  pgn_lines <- readLines(url_pgn, warn = FALSE)
+  
+  idx <- which(pgn_lines == "[Event \"FIDE World Chess Cup\"]")
+  idxp1 <- idx + 1
+  idxm1 <- idx - 1
+  
+  pgn_lines[pgn_lines == "[Event \"FIDE World Chess Cup\"]"] <- ""
+  idxm1 <- idxm1[idxm1 >= 1]
+  idxp1 <- idxp1[idxp1 <= length(pgn_lines)]
+  pgn_lines <- pgn_lines[-c(idxp1, idxm1)]
+  pgn_lines <- c("", pgn_lines)
+  
+  where_is_no_info <- which(str_length(pgn_lines) == 0)
+  where_is_no_info <- where_is_no_info[seq(length(where_is_no_info)) %% 2 == 0]
+  where_is_no_info <- c(0, where_is_no_info)
+  
+  df_cuts <- data_frame(from = head(where_is_no_info, -1) + 1,
+                        to = tail(where_is_no_info, -1) - 1)
+  
+  df_cuts <- df_cuts %>% filter(!from == to)
+  
+  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 3
+    
+    pgn <- pgn_lines[seq(df_cuts[row, ]$from, df_cuts[row, ]$to)]
+    
+    headers <- pgn[1:(which(pgn == "") - 1)]
+    
+    data_keys <- str_extract(headers, "\\w+")
+    data_vals <- str_extract(headers, "\".*\"") %>% str_replace_all("\"", "")
+    
+    pgn2 <- pgn[(which(pgn == "") + 1):length(pgn)]
+    pgn2 <- paste0(pgn2, collapse = "")
+    pgn2 <- str_replace_all(pgn2, "\\{\\[%clk( |)\\d+:\\d+:\\d+\\]\\}", "")
+    
+    df_game <- t(data_vals) %>%
+      data.frame(stringsAsFactors = FALSE) %>%
+      setNames(data_keys) %>% 
+      mutate(pgn = pgn2)
+    
+    df_game
+    
+  }, .progress = "win")
+  
+  df_games <- tbl_df(df_games)
+  
+  df_games
+  
+}, .progress = "win")
+
+dfgames <- tbl_df(dfgames)
+
+dfgames <- dfgames %>% mutate(game_id = seq(nrow(.)))
+
+tail(dfgames)
 ```
 
 ```
-## Source: local data frame [85 x 10]
+## Source: local data frame [6 x 18]
 ## 
-##    game_id color  from    to flags piece   san captured number_move
-##      (int) (chr) (chr) (chr) (chr) (chr) (chr)    (chr)       (int)
-## 1        1     w    g1    f3     n     n   Nf3       NA           1
-## 2        1     b    g8    f6     n     n   Nf6       NA           2
-## 3        1     w    c2    c4     b     p    c4       NA           3
-## 4        1     b    g7    g6     n     p    g6       NA           4
-## 5        1     w    g2    g3     n     p    g3       NA           5
-## 6        1     b    f8    g7     n     b   Bg7       NA           6
-## 7        1     w    f1    g2     n     b   Bg2       NA           7
-## 8        1     b    c7    c5     b     p    c5       NA           8
-## 9        1     w    d2    d4     b     p    d4       NA           9
-## 10       1     b    c5    d4     c     p  cxd4        p          10
-## ..     ...   ...   ...   ...   ...   ...   ...      ...         ...
-## Variables not shown: promotion (chr)
-```
-
-Lets check king knigth. This pices start in 
-
-
-```r
-chss <- Chess$new()
-chss$clear()
-chss$put("n", "w", "g1")
-```
-
-```
-## [1] TRUE
+##         Date Round            White            Black Result Board
+##        (chr) (chr)            (chr)            (chr)  (chr) (chr)
+## 1 2015.10.03    57   Svidler, Peter Karjakin, Sergey    0-1     1
+## 2 2015.10.04    58 Karjakin, Sergey   Svidler, Peter    1-0     1
+## 3 2015.10.05    59 Karjakin, Sergey   Svidler, Peter    1-0     1
+## 4 2015.10.05    60   Svidler, Peter Karjakin, Sergey    1-0     1
+## 5 2015.10.05    61 Karjakin, Sergey   Svidler, Peter    0-1     1
+## 6 2015.10.05    62   Svidler, Peter Karjakin, Sergey    0-1     1
+## Variables not shown: WhiteTitle (chr), WhiteElo (chr), WhiteCountry (chr),
+##   WhiteFideId (chr), WhiteEloChange (chr), BlackTitle (chr), BlackElo
+##   (chr), BlackCountry (chr), BlackFideId (chr), BlackEloChange (chr), pgn
+##   (chr), game_id (int)
 ```
 
 ```r
-plot(chss)
+system.time({
+  pgn <- sample(dfgames$pgn, size = 1)
+  chss <- Chess$new()
+  chss$load_pgn(pgn)
+  chss$history_detail()  
+})
 ```
 
-<!--html_preserve--><div id="htmlwidget-9037" style="width:300px;height:300px;" class="chessboardjs"></div>
-<script type="application/json" data-for="htmlwidget-9037">{"x":{"fen":"8/8/8/8/8/8/8/6N1 w - - 0 1"},"evals":[]}</script><!--/html_preserve-->
-
-Some details of parameters
+# This took some time 
 
 
 ```r
-pos_start <- "g1"
-pos_current <- pos_start
-pos_nummove <- 0
-piece_was_captured <- FALSE
-path <- NULL
-path <- c(path, pos_current)
-
-while (!piece_was_captured) {
-  message(pos_current, " ", pos_nummove)
-  # Maybe the piece was capture and have no movements :(,
-  # thats why check from and to variable.
-  dfmvex_aux <- dfmvex %>%
-    filter(from == pos_current | to == pos_current,
-           number_move > pos_nummove) %>% 
-    head(1)
-  
-  # The game is over?
-  if (nrow(dfmvex_aux) == 0) break
-  
-  # Check if the piece was captured :(
-  if (dfmvex_aux$to == pos_current) break
-  
-  pos_current <- dfmvex_aux$to
-  pos_nummove <- dfmvex_aux$number_move
-  
-  path <- c(path, pos_current)
-  
-}
+library("foreach")
+library("doParallel")
 ```
 
 ```
-## g1 0
-## f3 1
-## d4 11
-## c2 25
-## e3 27
-## d5 29
-## f4 41
+## Loading required package: iterators
+## Loading required package: parallel
 ```
 
-Creating data to plot
+```r
+workers <- makeCluster(parallel::detectCores())
+registerDoParallel(workers)
+
+system.time({
+ dfmoves <- adply(dfgames %>% sample_frac(prop_frac) %>% select(pgn, game_id), .margins = 1, function(x){
+   chss <- Chess$new()
+   chss$load_pgn(x$pgn)
+   chss$history_detail()
+ }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
+})
+```
+
+```
+##    user  system elapsed 
+##    0.11    0.03   26.89
+```
+
+# the beautiful result    
 
 
 ```r
-dfboard <- rchess:::.chessboarddata() %>% select(cell, col, row, x, y, cc)
+dfmoves <- tbl_df(dfmoves) %>% select(-pgn)
+head(dfmoves)
+```
 
-dfpaths <- data_frame(from = head(path, -1),
-                      to = tail(path, -1))
+```
+## Source: local data frame [6 x 9]
+## 
+##   game_id       piece  from    to number_move piece_number_move    status
+##     (int)       (chr) (chr) (chr)       (int)             (int)     (chr)
+## 1       4     a1 Rook    a1    c1          39                 1 game over
+## 2       4   b1 Knight    b1    c3           5                 1  captured
+## 3       4   c1 Bishop    c1    b2          15                 1        NA
+## 4       4   c1 Bishop    b2    a3          35                 2 game over
+## 5       4 White Queen    d1    c2           7                 1        NA
+## 6       4 White Queen    c2    c3          11                 2        NA
+## Variables not shown: number_move_capture (int), captured_by (chr)
+```
 
-dfpaths <- dfpaths %>% 
-  left_join(dfboard %>% rename(from = cell), by = "from") %>% 
-  left_join(dfboard %>% rename(to = cell) %>% select(-cc), by = "to") %>% 
-  mutate(curve = ifelse((x.x - x.y) < 0, TRUE, FALSE))
+# A nice data frame 
 
 
+```r
+dfboard <- rchess:::.chessboarddata() %>%
+  select(cell, col, row, x, y, cc)
+dfboard
+```
+
+```
+## Source: local data frame [64 x 6]
+## 
+##     cell   col   row     x     y    cc
+##    (chr) (chr) (int) (int) (int) (chr)
+## 1     a1     a     1     1     1     b
+## 2     b1     b     1     2     1     w
+## 3     c1     c     1     3     1     b
+## 4     d1     d     1     4     1     w
+## 5     e1     e     1     5     1     b
+## 6     f1     f     1     6     1     w
+## 7     g1     g     1     7     1     b
+## 8     h1     h     1     8     1     w
+## 9     a2     a     2     1     2     w
+## 10    b2     b     2     2     2     b
+## ..   ...   ...   ...   ...   ...   ...
+```
+
+# Join
+
+
+```r
+dfmoves <- dfmoves %>% 
+  left_join(dfboard %>% rename(from = cell, x.from = x, y.from = y), by = "from") %>% 
+  left_join(dfboard %>% rename(to = cell, x.to = x, y.to = y) %>% select(-cc, -col, -row), by = "to") %>% 
+  mutate(x_gt_y = abs(x.to - x.from) > abs(y.to - y.from),
+         xy_sign = sign((x.to - x.from)*(y.to - y.from)) == 1,
+         x_gt_y_equal_xy_sign = x_gt_y == xy_sign)
+```
+
+# Details
+
+
+```r
+piece_lvls <- dfmoves %>%
+  filter(piece_number_move == 1) %>%
+  select(piece, col, row) %>%
+  distinct() %>% 
+  arrange(desc(row), col) %>% 
+  .$piece
+
+dfmoves <- dfmoves %>% 
+  mutate(piece = factor(piece, levels = piece_lvls),
+         piece_color = ifelse(str_extract(piece, "\\d") %in% c("1", "2"), "white", "black"),
+         piece_color = ifelse(str_detect(piece, "White"), "white", piece_color))
+```
+
+# The g1 Knight
+
+
+```r
+ggplot() + 
+  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
+  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = 0.50, angle = -45, alpha = 0.01, color = "white", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", !x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = -0.50, angle = 45, alpha = 0.01, color = "white", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  coord_equal() +
+  ggthemes::theme_map() +
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
+```
+
+![](readme_files/figure-html/unnamed-chunk-11-1.png) 
+
+# The f8 Bishop
+
+
+```r
+ggplot() + 
+  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
+  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = 0.50, angle = -45, alpha = 0.01, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", !x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = -0.50, angle = 45, alpha = 0.01, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  coord_equal() +
+  ggthemes::theme_map() +
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
+```
+
+![](readme_files/figure-html/unnamed-chunk-12-1.png) 
+
+# All pieces just because we can
+
+
+```r
+dfmoves2 <- dfmoves %>% sample_frac(prop_frac)
+```
+
+```r
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfpaths %>% filter(curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.5, curvature = -.3,
-             arrow = arrow(length = unit(0.25,"cm")), position =  position_jitter(w = 0.25, h = 0.25)) +
-  geom_curve(data = dfpaths %>% filter(!curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.25, curvature = .3,
-             arrow = arrow(length = unit(0.25,"cm")), position =  position_jitter(w = 0.25, h = 0.25)) +
-  scale_fill_manual(values =  c("gray10", "gray20")) +
-  coord_equal() + 
+  geom_curve(data = dfmoves2 %>% filter(x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
+             curvature = 0.50, angle = -45, alpha = 0.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves2 %>% filter(!x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
+             curvature = -0.50, angle = 45, alpha = 0.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray40", "gray60")) +
+  scale_color_manual(values =  c("black", "white")) +
+  facet_wrap(~piece, nrow = 4, ncol = 8) + 
+  coord_equal() +
   ggthemes::theme_map() +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        strip.background = element_blank(),
+        strip.text = element_text(size = 10))
 ```
 
-```
-## Warning: replacing previous import by 'grid::arrow' when loading 'ggthemes'
-```
-
-```
-## Warning: replacing previous import by 'grid::unit' when loading 'ggthemes'
-```
-
-```
-## Warning: replacing previous import by 'scales::alpha' when loading
-## 'ggthemes'
-```
-
-![](readme_files/figure-html/unnamed-chunk-6-1.png) 
+![](readme_files/figure-html/unnamed-chunk-14-1.png) 
 
 ```r
-dfpaths <- dfmoves %>% 
-  group_by(game_id) %>% 
-  do({
-    dfmvex <- .
-    #' Some details of parameters
-    pos_start <- "g1"
-    pos_current <- pos_start
-    pos_nummove <- 0
-    piece_was_captured <- FALSE
-    path <- NULL
-    path <- c(path, pos_current)
-    
-    while (!piece_was_captured) {
-      dfmvex_aux <- dfmvex %>%
-        filter(from == pos_current | to == pos_current,
-               number_move > pos_nummove) %>% 
-        head(1)
-      
-      if (nrow(dfmvex_aux) == 0) break
-      if (dfmvex_aux$to == pos_current) break
-      
-      pos_current <- dfmvex_aux$to
-      pos_nummove <- dfmvex_aux$number_move
-      
-      path <- c(path, pos_current)
-    }
-    
-    dfpaths <- data_frame(from = head(path, -1),
-                          to = tail(path, -1))
-    
-    dfpaths
-    
-  })
-
-
-
-dfpaths <- dfpaths %>% 
-  left_join(dfboard %>% rename(from = cell), by = "from") %>% 
-  left_join(dfboard %>% rename(to = cell) %>% select(-cc), by = "to") %>% 
-  mutate(curve = ifelse((x.x - x.y) < 0, TRUE, FALSE))
-
-
-ggplot() +
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfpaths %>% filter(curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.2, curvature = -.3,
-             arrow = arrow(length = unit(0.25,"cm")), position =  position_jitter(w = 0.25, h = 0.25)) +
-  geom_curve(data = dfpaths %>% filter(!curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.2, curvature = .3,
-             arrow = arrow(length = unit(0.25,"cm")), position =  position_jitter(w = 0.25, h = 0.25)) +
-  scale_fill_manual(values =  c("gray10", "gray20")) +
-  coord_equal() + 
-  ggthemes::theme_map() +
-  theme(legend.position = "none")
+# ggsave("~/../Desktop/Rplot.pdf", width = 16, height = 9, scale = 2)
 ```
-
-![](readme_files/figure-html/unnamed-chunk-6-2.png) 
-
-```r
-ggplot() +
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_point(data = dfpaths, aes(x.x, y.x), position =  position_jitter(w = 0.25, h = 0.25),
-             color = "white", alpha = 0.1) +
-  geom_curve(data = dfpaths %>% filter(curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.2, curvature = -.3,
-             position =  position_jitter(w = 0.25, h = 0.25)) +
-  geom_curve(data = dfpaths %>% filter(!curve),
-             aes(x = x.x, y = y.x, xend = x.y, yend = y.y), color = "white", alpha = 0.2, curvature = .3,
-             position =  position_jitter(w = 0.25, h = 0.25)) +
-  scale_fill_manual(values =  c("gray10", "gray20")) +
-  coord_equal() + 
-  ggthemes::theme_map() +
-  theme(legend.position = "none")
-```
-
-![](readme_files/figure-html/unnamed-chunk-6-3.png) 
 
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Fri Oct 16 01:03:28 2015"
+author: "jkunst"
+date: "Fri Oct 23 16:49:09 2015"
 ---

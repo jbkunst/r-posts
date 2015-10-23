@@ -1,49 +1,38 @@
 library("ggplot2")
-
-theme_set(ggthemes::theme_map())
-
-df <- data_frame(x = 0, y = 0, xend = 1, yend = 1)
+library("dplyr")
 
 
-df1 <- data_frame(x = 0, y = 0, xend = 1, yend = 1)
-df2 <- data_frame(x = 0, y = 0, xend = 3, yend = 3)
-
-ggplot(df, aes(x, y, xend = xend, yend = yend, size = 1.2, alpha = 0.75)) +
-  geom_curve(color = "white", curvature = 1, angle = 0) +
-  geom_curve(color = "black", curvature = 0, angle = 1) +
-  geom_curve(color = "red", curvature = 1, angle = 45) + 
-  geom_curve(color = "blue", curvature = -1, angle = -45) +
-  geom_curve(color = "green", curvature = 0.5, angle = 45) + 
-  geom_curve(color = "yellow", curvature = -0.5, angle = -45) +
-  geom_curve(color = "darkblue", curvature = 1, angle = 90) + 
-  geom_curve(color = "darkred", curvature = -1, angle = -90) +
-  geom_curve(color = "white", curvature = 0.5, angle = 90) + 
-  geom_curve(color = "black", curvature = -0.5, angle = -90) +
-  xlim(c(-1,1.5)) + ylim(c(-1,1.5))
-
-ggplot(df, aes(x, y, xend = xend, yend = yend, size = 1.2, alpha = 0.75)) +
-  geom_curve(color = "red", curvature = 1, angle = 45) + 
-  geom_curve(color = "blue", curvature = -1, angle = -45) +
-  xlim(c(-1,1.5)) + ylim(c(-1,1.5))
+df <- data_frame(x.to = c( 2, 3, 3, 2,-2,-3,-3,-2),
+                 y.to = c( 3, 2,-2,-3,-3,-2, 2, 3),
+                 x = 0,
+                 y = 0,
+                 x_gt_y = abs(x.to) > abs(y.to),
+                 xy_sign = sign(x.to*y.to) == 1,
+                 x_gt_y_equal_xy_sign = x_gt_y == xy_sign)
 
 
-ggplot(df, aes(x, y, xend = xend, yend = yend, size = 1.2, alpha = 0.75)) +
-  geom_curve(color = "red",  curvature =  0.85, angle =  45) + 
-  geom_curve(color = "blue", curvature = -0.85, angle = -45) +
-  xlim(c(-1,1.5)) + ylim(c(-1,1.5))
+ggplot(df) + 
+  geom_segment(aes(x = x, y = y, xend = x.to, yend = y.to, color = x_gt_y, linetype = !xy_sign),
+               arrow = arrow(length = unit(0.25,"cm"))) + 
+  coord_equal()
 
+ggplot(df) + 
+  geom_curve(aes(x = x, y = y, xend = x.to, yend = y.to, color = x_gt_y_equal_xy_sign),
+             curvature = 0.75, angle = -45,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  coord_equal() + 
+  theme(legend.position = "bottom") +
+  xlim(-4, 4) + ylim(-4,4)
 
-ggplot(df, aes(x, y, xend = xend, yend = yend, size = 1.2, alpha = 0.75)) +
-  geom_curve(color = "red",  curvature =  0.85, angle =  120) + 
-  geom_curve(color = "blue", curvature = -0.85, angle =  120) +
-  xlim(c(-1,1.5)) + ylim(c(-1,1.5))
-
-
-#### 
-
-ggplot() +
-  geom_curve(data = df1, aes(x, y, xend=xend, yend=yend),
-             color = "red",  curvature =  0.5, angle =  120) + 
-  geom_curve(data = df2, aes(x, y, xend=xend, yend=yend),
-             color = "blue",  curvature =  0.5, angle =  120)
-  
+ggplot() + 
+  geom_curve(data = df %>% filter(x_gt_y_equal_xy_sign),
+             aes(x = x, y = y, xend = x.to, yend = y.to, color = x_gt_y_equal_xy_sign),
+             curvature = 0.75, angle = -45,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = df %>% filter(!x_gt_y_equal_xy_sign),
+             aes(x = x, y = y, xend = x.to, yend = y.to, color = x_gt_y_equal_xy_sign),
+             curvature =-0.75, angle = 45,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  coord_equal() + 
+  theme(legend.position = "bottom") +
+  xlim(-4, 4) + ylim(-4,4)
