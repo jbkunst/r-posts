@@ -24,11 +24,6 @@ url_pgns
 ## [7] "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn"
 ```
 
-```r
-set.seed(1)
-prop_frac <- 10/100
-```
-
 # The magic parese function
 
 
@@ -132,11 +127,12 @@ library("doParallel")
 ```
 
 ```r
-workers <- makeCluster(parallel::detectCores())
+workers <- makeCluster(parallel::detectCores()/2)
 registerDoParallel(workers)
 
+
 system.time({
- dfmoves <- adply(dfgames %>% sample_frac(prop_frac) %>% select(pgn, game_id), .margins = 1, function(x){
+ dfmoves <- adply(dfgames %>% select(pgn, game_id), .margins = 1, function(x){
    chss <- Chess$new()
    chss$load_pgn(x$pgn)
    chss$history_detail()
@@ -146,7 +142,7 @@ system.time({
 
 ```
 ##    user  system elapsed 
-##    0.13    0.02   25.10
+##    1.40    0.09  637.25
 ```
 
 # the beautiful result    
@@ -162,12 +158,12 @@ head(dfmoves)
 ## 
 ##   game_id     piece  from    to number_move piece_number_move   status
 ##     (int)     (chr) (chr) (chr)       (int)             (int)    (chr)
-## 1     226   a1 Rook    a1    c1          21                 1       NA
-## 2     226   a1 Rook    c1    d1          33                 2       NA
-## 3     226   a1 Rook    d1    d2          51                 3       NA
-## 4     226   a1 Rook    d2    d4          69                 4 captured
-## 5     226 b1 Knight    b1    d2           7                 1       NA
-## 6     226 b1 Knight    d2    e4          25                 2 captured
+## 1       1   a1 Rook    a1    c1          57                 1       NA
+## 2       1   a1 Rook    c1    h1          65                 2       NA
+## 3       1   a1 Rook    h1    h5          73                 3       NA
+## 4       1   a1 Rook    h5    h7          89                 4       NA
+## 5       1   a1 Rook    h7    e7          95                 5 captured
+## 6       1 b1 Knight    b1    d2          13                 1       NA
 ## Variables not shown: number_move_capture (int), captured_by (chr)
 ```
 
@@ -249,7 +245,7 @@ ggplot() +
         strip.text = element_text(size = 10))
 ```
 
-![](readme_files/figure-html/unnamed-chunk-11-1.png) 
+![](readme_files/figure-html/unnamed-chunk-10-1.png) 
 
 # The f8 Bishop
 
@@ -273,14 +269,14 @@ ggplot() +
         strip.text = element_text(size = 10))
 ```
 
-![](readme_files/figure-html/unnamed-chunk-12-1.png) 
+![](readme_files/figure-html/unnamed-chunk-11-1.png) 
+
+```r
+dfmoves2 <- dfmoves %>% sample_frac(20/100)
+```
 
 # All pieces just because we can
 
-
-```r
-dfmoves2 <- dfmoves %>% sample_frac(prop_frac)
-```
 
 ```r
 ggplot() +
@@ -300,10 +296,10 @@ ggplot() +
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_blank(),
-        strip.text = element_text(size = 10))
+        strip.text = element_text(size = 6))
 ```
 
-![](readme_files/figure-html/unnamed-chunk-14-1.png) 
+![](readme_files/figure-html/unnamed-chunk-13-1.png) 
 
 ```r
 # ggsave("~/../Desktop/Rplot.pdf", width = 16, height = 9, scale = 2)
@@ -312,6 +308,6 @@ ggplot() +
 
 ---
 title: "readme.R"
-author: "jkunst"
-date: "Fri Oct 23 16:59:59 2015"
+author: "Joshua K"
+date: "Fri Oct 23 20:08:16 2015"
 ---

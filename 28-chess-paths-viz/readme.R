@@ -25,9 +25,6 @@ url_pgns <- laply(seq(6), function(round){ sprintf(url_base, round)})
 url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn")
 url_pgns
 
-#+ results='hide'
-set.seed(1)
-prop_frac <- 10/100
 
 #' # The magic parese function
 dfgames <- ldply(url_pgns, function(url_pgn) {
@@ -99,11 +96,12 @@ system.time({
 #' # This took some time 
 library("foreach")
 library("doParallel")
-workers <- makeCluster(parallel::detectCores())
+workers <- makeCluster(parallel::detectCores()/2)
 registerDoParallel(workers)
 
+
 system.time({
- dfmoves <- adply(dfgames %>% sample_frac(prop_frac) %>% select(pgn, game_id), .margins = 1, function(x){
+ dfmoves <- adply(dfgames %>% select(pgn, game_id), .margins = 1, function(x){
    chss <- Chess$new()
    chss$load_pgn(x$pgn)
    chss$history_detail()
@@ -181,8 +179,11 @@ ggplot() +
         strip.text = element_text(size = 10))
 
 
+#+ results='hide'
+dfmoves2 <- dfmoves %>% sample_frac(20/100)
+
 #' # All pieces just because we can
-dfmoves2 <- dfmoves %>% sample_frac(prop_frac)
+
 
 #+ dpi = 216
 ggplot() +
@@ -202,7 +203,7 @@ ggplot() +
   ggthemes::theme_map() +
   theme(legend.position = "none",
         strip.background = element_blank(),
-        strip.text = element_text(size = 10))
+        strip.text = element_text(size = 6))
 
 # ggsave("~/../Desktop/Rplot.pdf", width = 16, height = 9, scale = 2)
 
