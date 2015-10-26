@@ -1,119 +1,67 @@
-# Chess movements
+# Chess Vizs
 Joshua Kunst  
 
 
 
-# Intro
-Some parameters
+### Intro
+- Pieces movements
+- Piece survavility
+- Square usage by player
+- tree movements
+### The Data
 
 
 ```r
-url_base  <- "http://www.bakuworldcup2015.com/files/pgn/Round%s.pgn"
-url_pgns <- laply(seq(6), function(round){ sprintf(url_base, round)})
-url_pgns <- c(url_pgns, "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn")
-url_pgns
+data(chesswc)
+head(chesswc)
 ```
 
 ```
-## [1] "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"             
-## [2] "http://www.bakuworldcup2015.com/files/pgn/Round2.pgn"             
-## [3] "http://www.bakuworldcup2015.com/files/pgn/Round3.pgn"             
-## [4] "http://www.bakuworldcup2015.com/files/pgn/Round4.pgn"             
-## [5] "http://www.bakuworldcup2015.com/files/pgn/Round5.pgn"             
-## [6] "http://www.bakuworldcup2015.com/files/pgn/Round6.pgn"             
-## [7] "http://www.bakuworldcup2015.com/files/pgn/baku-world-cup-2015.pgn"
-```
-
-# The magic parese function
-
-
-```r
-dfgames <- ldply(url_pgns, function(url_pgn) {
-  # url_pgn <- sample(url_pgns, size = 1)
-  # url_pgn <- "http://www.bakuworldcup2015.com/files/pgn/Round1.pgn"
-  pgn_lines <- readLines(url_pgn, warn = FALSE)
-  
-  idx <- which(pgn_lines == "[Event \"FIDE World Chess Cup\"]")
-  idxp1 <- idx + 1
-  idxm1 <- idx - 1
-  
-  pgn_lines[pgn_lines == "[Event \"FIDE World Chess Cup\"]"] <- ""
-  idxm1 <- idxm1[idxm1 >= 1]
-  idxp1 <- idxp1[idxp1 <= length(pgn_lines)]
-  pgn_lines <- pgn_lines[-c(idxp1, idxm1)]
-  pgn_lines <- c("", pgn_lines)
-  
-  where_is_no_info <- which(str_length(pgn_lines) == 0)
-  where_is_no_info <- where_is_no_info[seq(length(where_is_no_info)) %% 2 == 0]
-  where_is_no_info <- c(0, where_is_no_info)
-  
-  df_cuts <- data_frame(from = head(where_is_no_info, -1) + 1,
-                        to = tail(where_is_no_info, -1) - 1)
-  
-  df_cuts <- df_cuts %>% filter(!from == to)
-  
-  df_games <- ldply(seq(nrow(df_cuts)), function(row){ # row <- 3
-    
-    pgn <- pgn_lines[seq(df_cuts[row, ]$from, df_cuts[row, ]$to)]
-    
-    headers <- pgn[1:(which(pgn == "") - 1)]
-    
-    data_keys <- str_extract(headers, "\\w+")
-    data_vals <- str_extract(headers, "\".*\"") %>% str_replace_all("\"", "")
-    
-    pgn2 <- pgn[(which(pgn == "") + 1):length(pgn)]
-    pgn2 <- paste0(pgn2, collapse = "")
-    pgn2 <- str_replace_all(pgn2, "\\{\\[%clk( |)\\d+:\\d+:\\d+\\]\\}", "")
-    
-    df_game <- t(data_vals) %>%
-      data.frame(stringsAsFactors = FALSE) %>%
-      setNames(data_keys) %>% 
-      mutate(pgn = pgn2)
-    
-    df_game
-    
-  }, .progress = "win")
-  
-  df_games <- tbl_df(df_games)
-  
-  df_games
-  
-}, .progress = "win")
-
-dfgames <- tbl_df(dfgames)
-
-dfgames <- dfgames %>% mutate(game_id = seq(nrow(.)))
-
-tail(dfgames)
-```
-
-```
-## Source: local data frame [6 x 18]
+## Source: local data frame [6 x 11]
 ## 
-##         Date Round            White            Black Result Board
-##        (chr) (chr)            (chr)            (chr)  (chr) (chr)
-## 1 2015.10.03    57   Svidler, Peter Karjakin, Sergey    0-1     1
-## 2 2015.10.04    58 Karjakin, Sergey   Svidler, Peter    1-0     1
-## 3 2015.10.05    59 Karjakin, Sergey   Svidler, Peter    1-0     1
-## 4 2015.10.05    60   Svidler, Peter Karjakin, Sergey    1-0     1
-## 5 2015.10.05    61 Karjakin, Sergey   Svidler, Peter    0-1     1
-## 6 2015.10.05    62   Svidler, Peter Karjakin, Sergey    0-1     1
-## Variables not shown: WhiteTitle (chr), WhiteElo (chr), WhiteCountry (chr),
-##   WhiteFideId (chr), WhiteEloChange (chr), BlackTitle (chr), BlackElo
-##   (chr), BlackCountry (chr), BlackFideId (chr), BlackEloChange (chr), pgn
-##   (chr), game_id (int)
+##                 event                site       date round
+##                 (chr)               (chr)     (date) (dbl)
+## 1 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## 2 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## 3 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## 4 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## 5 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## 6 FIDE World Cup 2011 Khanty-Mansiysk RUS 2011-08-28   1.1
+## Variables not shown: white (chr), black (chr), result (chr), whiteelo
+##   (int), blackelo (int), eco (chr), pgn (chr)
 ```
+
+```r
+chesswc %>% count(event)
+```
+
+```
+## Source: local data frame [3 x 2]
+## 
+##                 event     n
+##                 (chr) (int)
+## 1 FIDE World Cup 2011   393
+## 2 FIDE World Cup 2013   430
+## 3 FIDE World Cup 2015   419
+```
+
+```r
+chesswc <- chesswc %>% filter(event == "FIDE World Cup 2015")
+```
+
+### Problem format
+
 
 ```r
 system.time({
-  pgn <- sample(dfgames$pgn, size = 1)
+  pgn <- sample(chesswc$pgn, size = 1)
   chss <- Chess$new()
   chss$load_pgn(pgn)
   chss$history_detail()  
 })
 ```
 
-# This took some time 
+### Parallel process
 
 
 ```r
@@ -127,12 +75,13 @@ library("doParallel")
 ```
 
 ```r
-workers <- makeCluster(parallel::detectCores()/2)
+workers <- makeCluster(parallel::detectCores())
 registerDoParallel(workers)
 
+chesswc <- chesswc %>% mutate(game_id = seq(nrow(.)))
 
 system.time({
- dfmoves <- adply(dfgames %>% select(pgn, game_id), .margins = 1, function(x){
+ dfmoves <- adply(chesswc %>% select(pgn, game_id), .margins = 1, function(x){
    chss <- Chess$new()
    chss$load_pgn(x$pgn)
    chss$history_detail()
@@ -142,10 +91,10 @@ system.time({
 
 ```
 ##    user  system elapsed 
-##    1.40    0.09  637.25
+##    0.34    0.08  126.97
 ```
 
-# the beautiful result    
+### The beautiful result    
 
 
 ```r
@@ -156,18 +105,18 @@ head(dfmoves)
 ```
 ## Source: local data frame [6 x 9]
 ## 
-##   game_id     piece  from    to number_move piece_number_move   status
-##     (int)     (chr) (chr) (chr)       (int)             (int)    (chr)
-## 1       1   a1 Rook    a1    c1          57                 1       NA
-## 2       1   a1 Rook    c1    h1          65                 2       NA
-## 3       1   a1 Rook    h1    h5          73                 3       NA
-## 4       1   a1 Rook    h5    h7          89                 4       NA
-## 5       1   a1 Rook    h7    e7          95                 5 captured
-## 6       1 b1 Knight    b1    d2          13                 1       NA
+##   game_id   piece  from    to number_move piece_number_move status
+##     (int)   (chr) (chr) (chr)       (int)             (int)  (chr)
+## 1       1 a1 Rook    a1    e1          47                 1     NA
+## 2       1 a1 Rook    e1    d1          61                 2     NA
+## 3       1 a1 Rook    d1    c1          75                 3     NA
+## 4       1 a1 Rook    c1    b1          85                 4     NA
+## 5       1 a1 Rook    b1    b7          91                 5     NA
+## 6       1 a1 Rook    b7    b5          95                 6     NA
 ## Variables not shown: number_move_capture (int), captured_by (chr)
 ```
 
-# A nice data frame 
+### Auxiliar dataframe
 
 
 ```r
@@ -194,7 +143,7 @@ dfboard
 ## ..   ...   ...   ...   ...   ...   ...
 ```
 
-# Join
+### Join
 
 
 ```r
@@ -223,57 +172,51 @@ dfmoves <- dfmoves %>%
          piece_color = ifelse(str_detect(piece, "White"), "white", piece_color))
 ```
 
-# The g1 Knight
+# The f1 Bishop
 
 
 ```r
 ggplot() + 
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", x_gt_y_equal_xy_sign),
+  geom_curve(data = dfmoves %>% filter(piece == "f1 Bishop", x_gt_y_equal_xy_sign),
              aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             curvature = 0.50, angle = -45, alpha = 0.01, color = "white", size = 1.05,
+             curvature = 0.50, angle = -45, alpha = 0.02, color = "white", size = 1.05,
              arrow = arrow(length = unit(0.25,"cm"))) + 
-  geom_curve(data = dfmoves %>% filter(piece == "g1 Knight", !x_gt_y_equal_xy_sign),
+  geom_curve(data = dfmoves %>% filter(piece == "f1 Bishop", !x_gt_y_equal_xy_sign),
              aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             curvature = -0.50, angle = 45, alpha = 0.01, color = "white", size = 1.05,
+             curvature = -0.50, angle = 45, alpha = 0.02, color = "white", size = 1.05,
              arrow = arrow(length = unit(0.25,"cm"))) +
-  scale_fill_manual(values =  c("gray40", "gray60")) +
+  scale_fill_manual(values =  c("gray10", "gray20")) +
   coord_equal() +
   ggthemes::theme_map() +
-  theme(legend.position = "none",
-        strip.background = element_blank(),
-        strip.text = element_text(size = 10))
+  ggtitle("f1 Bishop") + 
+  theme(legend.position = "none")
+```
+
+![](readme_files/figure-html/unnamed-chunk-9-1.png) 
+
+# The g8 Knight
+
+
+```r
+ggplot() + 
+  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
+  geom_curve(data = dfmoves %>% filter(piece == "g8 Knight", x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = 0.50, angle = -45, alpha = 0.02, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) + 
+  geom_curve(data = dfmoves %>% filter(piece == "g8 Knight", !x_gt_y_equal_xy_sign),
+             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             curvature = -0.50, angle = 45, alpha = 0.02, color = "black", size = 1.05,
+             arrow = arrow(length = unit(0.25,"cm"))) +
+  scale_fill_manual(values =  c("gray80", "gray90")) +
+  coord_equal() +
+  ggthemes::theme_map() +
+  ggtitle("g8 Knight") + 
+  theme(legend.position = "none")
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-10-1.png) 
-
-# The f8 Bishop
-
-
-```r
-ggplot() + 
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             curvature = 0.50, angle = -45, alpha = 0.01, color = "black", size = 1.05,
-             arrow = arrow(length = unit(0.25,"cm"))) + 
-  geom_curve(data = dfmoves %>% filter(piece == "f8 Bishop", !x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             curvature = -0.50, angle = 45, alpha = 0.01, color = "black", size = 1.05,
-             arrow = arrow(length = unit(0.25,"cm"))) +
-  scale_fill_manual(values =  c("gray40", "gray60")) +
-  coord_equal() +
-  ggthemes::theme_map() +
-  theme(legend.position = "none",
-        strip.background = element_blank(),
-        strip.text = element_text(size = 10))
-```
-
-![](readme_files/figure-html/unnamed-chunk-11-1.png) 
-
-```r
-dfmoves2 <- dfmoves %>% sample_frac(20/100)
-```
 
 # All pieces just because we can
 
@@ -281,13 +224,13 @@ dfmoves2 <- dfmoves %>% sample_frac(20/100)
 ```r
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfmoves2 %>% filter(x_gt_y_equal_xy_sign),
+  geom_curve(data = dfmoves %>% filter(x_gt_y_equal_xy_sign),
              aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             curvature = 0.50, angle = -45, alpha = 0.05,
+             curvature = 0.50, angle = -45, alpha = 0.02,
              arrow = arrow(length = unit(0.25,"cm"))) + 
-  geom_curve(data = dfmoves2 %>% filter(!x_gt_y_equal_xy_sign),
+  geom_curve(data = dfmoves %>% filter(!x_gt_y_equal_xy_sign),
              aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             curvature = -0.50, angle = 45, alpha = 0.05,
+             curvature = -0.50, angle = 45, alpha = 0.02,
              arrow = arrow(length = unit(0.25,"cm"))) +
   scale_fill_manual(values =  c("gray40", "gray60")) +
   scale_color_manual(values =  c("black", "white")) +
@@ -299,7 +242,7 @@ ggplot() +
         strip.text = element_text(size = 6))
 ```
 
-![](readme_files/figure-html/unnamed-chunk-13-1.png) 
+![](readme_files/figure-html/unnamed-chunk-11-1.png) 
 
 ```r
 # ggsave("~/../Desktop/Rplot.pdf", width = 16, height = 9, scale = 2)
@@ -308,6 +251,6 @@ ggplot() +
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Fri Oct 23 20:08:16 2015"
+author: "jkunst"
+date: "Mon Oct 26 17:25:28 2015"
 ---
