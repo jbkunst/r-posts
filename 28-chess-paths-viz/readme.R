@@ -3,31 +3,47 @@
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
-#'    toc: true
+#'    toc: false
 #'    keep_md: yes
 #' ---
-
-#+ echo=FALSE, warning=FALSE, message=FALSE, results='hide'
-rm(list = ls())
-library("rchess")
-library("plyr")
-library("dplyr")
-library("stringr")
-library("readr")
-library("ggplot2")
-knitr::opts_chunk$set(warning = FALSE, cache = TRUE)
-options(stringsAsFactors = FALSE)
 
 #' There are nice visualizations from chess data: [piece movement](),
 #' [piece survaviliy](), [square usage by player]().
 #' Sadly not always the authors shows the code/data for replicate the final result.
 #' So I write some code to show how to do some this great visualizations entirely in
 #' R. Just for fun.
+#'
+#' 1. [The Data](#the-data)
+#' 1. [Piece Movements](#piece-movements)
+#' 1. [Suvival rates](#suvival-rates)
+#' 1. [Square usage by player](#square-usage-by-player)
 
-#' ### The Data
+#+ echo=FALSE, warning=FALSE, message=FALSE, results='hide'
+rm(list = ls())
+library("plyr")
+library("dplyr")
+library("stringr")
+library("readr")
+library("ggplot2")
+library("printr")
+library("showtext") 
+
+knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev = "CairoPNG")
+
+font.add.google("Lato", "myfont")
+showtext.auto()
+
+theme_set(ggthemes::theme_map(base_family = "myfont") +
+            theme(legend.position = "none",
+                  text = element_text(size = 10),
+                  title = element_text(size = 12)))
+
+
+
+#####' ### The Data ####
 #' The original data data come from [here](http://www.theweekinchess.com/chessnews/events/fide-world-cup-2015)
 #' which was parsed for example data in the [rchess]() package.
-
+library("rchess")
 data(chesswc)
 str(chesswc)
 
@@ -45,7 +61,8 @@ str_sub(pgn, 0, 50)
 chss <- Chess$new()
 chss$load_pgn(pgn)
 
-chss$history_detail()
+chss$history_detail() %>%
+  filter(piece == "White Queen")
 
 #' The result is a dataframe where each row is a piece's movement showing explicitly the cells
 #' where the travel in a particular number move. Now we apply this function over the 433
@@ -64,14 +81,15 @@ dfmoves <- adply(chesswc %>% select(pgn, game_id), .margins = 1, function(x){
   }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
 
 dfmoves <- tbl_df(dfmoves) %>% select(-pgn)
-dfmoves
+dfmoves %>% filter(game_id == 1, piece == "g1 Knight")
 
-#' ### Piece Movements
+#####' ### Piece Movements #####
 #' To try replicate the result it's necessary a data to represent (and then plot) the
 #' board.
 dfboard <- rchess:::.chessboarddata() %>%
   select(cell, col, row, x, y, cc)
-dfboard
+
+head(dfboard)
 
 dfpaths <- dfmoves %>%
   left_join(dfboard %>% rename(from = cell, x.from = x, y.from = y), by = "from") %>%
@@ -94,10 +112,8 @@ ggplot() +
              position = position_jitter(width = 0.2, height = 0.2),
              curvature = -0.50, angle = 45, alpha = 0.02, color = "white", size = 1.05) +
   scale_fill_manual(values =  c("gray10", "gray20")) +
-  coord_equal() +
-  ggthemes::theme_map() +
   ggtitle("f1 Bishop") +
-  theme(legend.position = "none", title = element_text(size = 12))
+  coord_equal()
 
 #' The g8 Knight.
 ggplot() +
@@ -111,15 +127,14 @@ ggplot() +
              position = position_jitter(width = 0.2, height = 0.2),
              curvature = -0.50, angle = 45, alpha = 0.02, color = "black", size = 1.05) +
   scale_fill_manual(values =  c("gray80", "gray90")) +
-  coord_equal() +
-  ggthemes::theme_map() +
   ggtitle("g8 Knight") +
-  theme(legend.position = "none", title = element_text(size = 12))
+  coord_equal() 
 
 
 #' I think it's look very similar to the original source.
 #'
-#' ### Suvival rates
+
+#####' ### Suvival rates #####
 #' The `dfmoves` is the heart from all these plots beacuse have a lot of information. for example,
 #' if we filter for `!is.na(status)` we can know what happend with every piece in every game, if
 #' a piece was caputered of never was captured in the game.
@@ -150,17 +165,15 @@ ggplot(dfsurvrates) +
   scale_fill_gradient(low = "darkred",  high = "white") +
   geom_text(data = dfsurvrates %>% filter(!is.na(surv_rate)),
             aes(x, y, label = scales::percent(surv_rate)),
-            color = "gray70", size = 4) +
-  theme_minimal() +
+            color = "gray70", size = 3) +
   scale_x_continuous(breaks = 1:8, labels = letters[1:8]) +
   scale_y_continuous(breaks = 1:8, labels = 1:8)  +
   geom_segment(data = dfboard2, aes(x, y, xend = xend, yend = yend), color = "gray70") +
   geom_segment(data = dfboard2, aes(y, x, xend = yend, yend = xend), color = "gray70") +
-  theme(legend.position = "none",
-        panel.grid = element_blank(),
-        axis.title = element_blank()) +
-  coord_equal() +
-  ggtitle("Survival Rates for each piece")
+  ggtitle("Survival Rates for each piece") + 
+  coord_equal() + 
+  theme_minimal() +
+  theme(legend.position = "none")
 
 #' Obviously the plot show same data in text and color, and there a lot of space without
 #' information but the idea is use the chess board in fun(?) way. We can replace the
@@ -171,21 +184,18 @@ ggplot(dfsurvrates) +
   scale_fill_gradient(NULL, low = "darkred",  high = "white") +
   geom_text(data = dfsurvrates %>% filter(!is.na(surv_rate)),
             aes(x, y, label = unicode), size = 8, color = "gray20", alpha = 0.7) +
-  theme_minimal() +
   scale_x_continuous(breaks = 1:8, labels = letters[1:8]) +
   scale_y_continuous(breaks = 1:8, labels = 1:8)  +
   geom_segment(data = dfboard2, aes(x, y, xend = xend, yend = yend), color = "gray70") +
   geom_segment(data = dfboard2, aes(y, x, xend = yend, yend = xend), color = "gray70") +
-  theme(legend.position = "bottom",
-        panel.grid = element_blank(),
-        axis.title = element_blank()) +
+  ggtitle("Survival Rates for each piece") + 
   coord_equal() +
-  ggtitle("Survival Rates for each piece")
+  theme_minimal() +
+  theme(legend.position = "bottom")
 
-#' ### Square usage by player
+#####' ### Square usage by player #####
 #' For this visualization we will use the `to` variable. We select the player who have more
 #' games in the table `chesswc`.
-
 count(chesswc, white) %>% arrange(desc(n)) %>% head(4)
 
 players <- count(chesswc, white) %>% arrange(desc(n)) %>% .$white %>% head(4)
@@ -209,19 +219,15 @@ ggplot(dfmov_players) +
   scale_fill_gradient("Movements to every cell\n(normalized by games)") +
   geom_text(aes(x, row, label = round(p, 2)), size = 2, color = "white", alpha = 0.5) +
   facet_wrap(~player) +
-  coord_equal() +
-  theme_minimal() +
   scale_x_continuous(breaks = 1:8, labels = letters[1:8]) +
   scale_y_continuous(breaks = 1:8, labels = 1:8)  +
   geom_segment(data = dfboard2, aes(x, y, xend = xend, yend = yend), color = "gray70") +
   geom_segment(data = dfboard2, aes(y, x, xend = yend, yend = xend), color = "gray70") +
-  theme(legend.position = "bottom",
-        panel.grid = element_blank(),
-        axis.title = element_blank())
+  coord_equal() +
+  theme_minimal() +
+  theme(legend.position = "bottom")
 
-
-
-#' ### Distributions for the first movement
+#####' ### Distributions for the first movement #####
 #' Now, with the same data and using the `piece_number_move` and `number_move` we can obtain
 #' the distribution for the first movement for each piece.
 piece_lvls <- rchess:::.chesspiecedata() %>%
@@ -232,20 +238,23 @@ piece_lvls <- rchess:::.chesspiecedata() %>%
 
 dfmoves_first_mvm <- dfmoves %>%
   mutate(piece = factor(piece, levels = piece_lvls),
-         number_move_2 = ifelse(number_move %% 2 == 0, number_move/2, (number_move+1)/2 )) %>%
+         number_move_2 = ifelse(number_move %% 2 == 0, number_move/2, (number_move + 1)/2 )) %>%
   filter(piece_number_move == 1)
 
 ggplot(dfmoves_first_mvm) +
   geom_density(aes(number_move_2), fill = "#B71C1C", alpha = 0.8, color = NA) +
-  theme_minimal() +
   scale_y_continuous(breaks = NULL) +
   facet_wrap(~piece, nrow = 4, ncol = 8, scales = "free_y")  +
-  xlim(0, 40)
+  xlab("Density") + ylab("Number Move") + 
+  xlim(0, 40) +
+  theme_gray() +
+  theme(text = element_text(size = 8), panel.background = element_rect(fill = "gray90"))
 
 #' Notice the similarities between the White King and h1 Rook due the castling, the same
 #' effect is present between the Black King and the h8 Rook.
+#'
 
-#' ### Captured by
+#####' ### Who captures whom #####
 #'
 library("igraph")
 library("ForceAtlas2")
@@ -257,12 +266,16 @@ dfcaputures <- dfmoves %>%
 
 dfvertices <- rchess:::.chesspiecedata() %>%
   select(-fen, -start_position) %>%
-  mutate(color = ifelse(color == "w", "gray20", "gray80"))
+  mutate(color = ifelse(color == "w", "gray20", "gray80"),
+         name2 = str_replace(name, " \\w+$", unicode),
+         name2 = str_replace(name2, "White|Black", ""),
+         size = ifelse(str_length(name2) == 1, 7, 5))
 
 g <- graph.data.frame(dfcaputures %>% select(captured_by, piece, weight = n),
                       directed = TRUE,
                       vertices = dfvertices)
 
+set.seed(123)
 lout <- layout.forceatlas2(g, iterations = 10000, plotstep = 0)
 
 dfvertices <- dfvertices %>%
@@ -274,7 +287,7 @@ dfedges <- as_data_frame(g, "edges") %>%
   left_join(dfvertices %>% select(from = name, x, y), by = "from") %>%
   left_join(dfvertices %>% select(to = name, xend = x, yend = y), by = "to")
 
-
+#+ fig.height=10
 ggplot() +
   geom_curve(data = dfedges %>% filter((str_extract(from, "\\d+") %in% c(1, 2) | str_detect(from, "White"))),
              aes(x, y, xend = xend, yend = yend, alpha = weight, size = weight),
@@ -284,17 +297,12 @@ ggplot() +
              curvature = 0.1, color = "blue") +
   scale_alpha(range = c(0.01, 0.5)) +
   scale_size(range = c(0.01, 2)) +
-  geom_point(data = dfvertices, aes(x, y, color = color), size = 22, alpha = 0.9) +
+  geom_point(data = dfvertices, aes(x, y, color = color), size = 15, alpha = 0.9) +
   scale_color_manual(values = c("gray90", "gray10")) +
-  geom_text(data = dfvertices, aes(x, y, label = name), size = 3, color = "gray50") +
-  theme_minimal() +
-  theme(legend.position = "none",
-        panel.background = element_blank(),
-        panel.grid = element_blank(),
-        axis.title = element_blank()) +
-  ggtitle("Red path: white captures black | Blue path: black captures white")
+  geom_text(data = dfvertices, aes(x, y, label = name2, size), color = "gray50") +
+  ggtitle("Red: white captures black | Blue: black captures white")
 
-#' ### Bonus content
+#####' ### Bonus content ####
 #' All pieces just because we can
 dfpaths <- dfpaths %>%
   mutate(piece = factor(piece, levels = piece_lvls),
@@ -315,7 +323,4 @@ ggplot() +
   scale_color_manual(values =  c("black", "white")) +
   facet_wrap(~piece, nrow = 4, ncol = 8) +
   coord_equal() +
-  ggthemes::theme_map() +
-  theme(legend.position = "none",
-        strip.background = element_blank(),
-        strip.text = element_text(size = 6))
+  theme(strip.background = element_blank())
