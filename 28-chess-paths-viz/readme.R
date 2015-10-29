@@ -32,7 +32,6 @@ data(chesswc)
 str(chesswc)
 
 chesswc %>% count(event)
-chesswc %>% count(white) %>% arrange(desc(n))
 
 chesswc <- chesswc %>% filter(event == "FIDE World Cup 2015")
 
