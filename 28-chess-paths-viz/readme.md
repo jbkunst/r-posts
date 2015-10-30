@@ -66,7 +66,7 @@ str_sub(pgn, 0, 50)
 ```
 
 ```
-## [1] "1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a"
+## [1] "1. e4 e5 2. Nf3 Nc6 3. Bb5 Nf6 4. d3 Bc5 5. Bxc6 d"
 ```
 
 ```r
@@ -85,10 +85,22 @@ chss$history_detail() %>%
 
 
 
-piece         from   to    number_move   piece_number_move  status      number_move_capture  captured_by 
-------------  -----  ---  ------------  ------------------  ---------  --------------------  ------------
-White Queen   d1     d2             17                   1  NA                           NA  NA          
-White Queen   d2     f2             35                   2  captured                     38  Black Queen 
+piece         from   to    number_move   piece_number_move  status       number_move_capture  captured_by 
+------------  -----  ---  ------------  ------------------  ----------  --------------------  ------------
+White Queen   d1     e2             29                   1  NA                            NA  NA          
+White Queen   e2     f2             31                   2  NA                            NA  NA          
+White Queen   f2     g3             35                   3  NA                            NA  NA          
+White Queen   g3     f2             37                   4  NA                            NA  NA          
+White Queen   f2     e2             41                   5  NA                            NA  NA          
+White Queen   e2     g2             45                   6  NA                            NA  NA          
+White Queen   g2     f2             57                   7  NA                            NA  NA          
+White Queen   f2     f1             81                   8  NA                            NA  NA          
+White Queen   f1     d3             93                   9  NA                            NA  NA          
+White Queen   d3     f1             95                  10  NA                            NA  NA          
+White Queen   f1     h3             99                  11  NA                            NA  NA          
+White Queen   h3     f1            103                  12  NA                            NA  NA          
+White Queen   f1     f2            107                  13  NA                            NA  NA          
+White Queen   f2     a7            113                  14  game over                     NA  NA          
 
 The result is a dataframe where each row is a piece's movement showing explicitly the cells
 where the travel in a particular number move. Now we apply this function over the 433
@@ -96,18 +108,10 @@ games in the last FIDE World cup.
 
 
 ```r
-library("foreach")
-library("doParallel")
-```
-
-```
-## Loading required package: iterators
-## Loading required package: parallel
-```
-
-```r
-workers <- makeCluster(parallel::detectCores())
-registerDoParallel(workers)
+# library("foreach")
+# library("doParallel")
+# workers <- makeCluster(parallel::detectCores())
+# registerDoParallel(workers)
 
 chesswc <- chesswc %>% mutate(game_id = seq(nrow(.)))
 
@@ -115,7 +119,7 @@ dfmoves <- adply(chesswc %>% select(pgn, game_id), .margins = 1, function(x){
   chss <- Chess$new()
   chss$load_pgn(x$pgn)
   chss$history_detail()
-  }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
+  }, .parallel = FALSE, .paropts = list(.packages = c("rchess")))
 
 dfmoves <- tbl_df(dfmoves) %>% select(-pgn)
 dfmoves %>% filter(game_id == 1, piece == "g1 Knight")
@@ -164,7 +168,7 @@ dfpaths <- dfmoves %>%
 
 The data is ready! So we need now some `ggplot`, `geom_tile` for the board, the new `geom_curve`
 to represent the piece's path and some `jitter` to make this more artistic`. Let's
-start with the fi Bishop.
+start with the f1 Bishop.
 
 
 ```r
@@ -185,31 +189,14 @@ ggplot() +
 
 ![](readme_files/figure-html/unnamed-chunk-6-1.png) 
 
-The g8 Knight.
-
-
-```r
-ggplot() +
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfpaths %>% filter(piece == "g8 Knight", x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = 0.50, angle = -45, alpha = 0.02, color = "black", size = 1.05) +
-  geom_curve(data = dfpaths %>% filter(piece == "g8 Knight", !x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = -0.50, angle = 45, alpha = 0.02, color = "black", size = 1.05) +
-  scale_fill_manual(values =  c("gray80", "gray90")) +
-  ggtitle("g8 Knight") +
-  coord_equal() 
-```
+The same way we can plot the rest of the pieces.
 
 ![](readme_files/figure-html/unnamed-chunk-7-1.png) 
 
 I think it's look very similar to the original source.
 
 ### Suvival rates #####
-The `dfmoves` is the heart from all these plots beacuse have a lot of information. for example,
+The `dfmoves` is the heart from all these plots beacuse have a lot of information. For example,
 if we filter for `!is.na(status)` we can know what happend with every piece in every game, if
 a piece was caputered of never was captured in the game.
 
@@ -383,30 +370,6 @@ effect is present between the Black King and the h8 Rook.
 
 ```r
 library("igraph")
-```
-
-```
-## 
-## Attaching package: 'igraph'
-## 
-## The following object is masked from 'package:stringr':
-## 
-##     %>%
-## 
-## The following objects are masked from 'package:dplyr':
-## 
-##     %>%, as_data_frame, groups, union
-## 
-## The following objects are masked from 'package:stats':
-## 
-##     decompose, spectrum
-## 
-## The following object is masked from 'package:base':
-## 
-##     union
-```
-
-```r
 library("ForceAtlas2")
 
 dfcaputures <- dfmoves %>%
@@ -456,38 +419,9 @@ ggplot() +
 
 ![](readme_files/figure-html/unnamed-chunk-14-1.png) 
 
-### Bonus content ####
-All pieces just because we can
-
-
-```r
-dfpaths <- dfpaths %>%
-  mutate(piece = factor(piece, levels = piece_lvls),
-         piece_color = ifelse(str_extract(piece, "\\d") %in% c("1", "2"), "white", "black"),
-         piece_color = ifelse(str_detect(piece, "White"), "white", piece_color))
-
-ggplot() +
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfpaths %>% filter(x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = 0.50, angle = -45, alpha = 0.02) +
-  geom_curve(data = dfpaths %>% filter(!x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = -0.50, angle = 45, alpha = 0.02) +
-  scale_fill_manual(values =  c("gray40", "gray60")) +
-  scale_color_manual(values =  c("black", "white")) +
-  facet_wrap(~piece, nrow = 4, ncol = 8) +
-  coord_equal() +
-  theme(strip.background = element_blank())
-```
-
-![](readme_files/figure-html/unnamed-chunk-15-1.png) 
-
 
 ---
 title: "readme.R"
-author: "jkunst"
-date: "Thu Oct 29 18:14:12 2015"
+author: "Joshua K"
+date: "Thu Oct 29 23:34:30 2015"
 ---

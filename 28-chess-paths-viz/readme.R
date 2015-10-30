@@ -28,7 +28,7 @@ library("ggplot2")
 library("printr")
 library("showtext") 
 
-knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev = "CairoPNG")
+knitr::opts_chunk$set(warning = FALSE, cache = TRUE, fig.showtext = TRUE, dev = "CairoPNG", fig.width = 10)
 
 font.add.google("Lato", "myfont")
 showtext.auto()
@@ -67,10 +67,10 @@ chss$history_detail() %>%
 #' The result is a dataframe where each row is a piece's movement showing explicitly the cells
 #' where the travel in a particular number move. Now we apply this function over the 433
 #' games in the last FIDE World cup.
-library("foreach")
-library("doParallel")
-workers <- makeCluster(parallel::detectCores())
-registerDoParallel(workers)
+# library("foreach")
+# library("doParallel")
+# workers <- makeCluster(parallel::detectCores())
+# registerDoParallel(workers)
 
 chesswc <- chesswc %>% mutate(game_id = seq(nrow(.)))
 
@@ -78,7 +78,7 @@ dfmoves <- adply(chesswc %>% select(pgn, game_id), .margins = 1, function(x){
   chss <- Chess$new()
   chss$load_pgn(x$pgn)
   chss$history_detail()
-  }, .parallel = TRUE, .paropts = list(.packages = c("rchess")))
+  }, .parallel = FALSE, .paropts = list(.packages = c("rchess")))
 
 dfmoves <- tbl_df(dfmoves) %>% select(-pgn)
 dfmoves %>% filter(game_id == 1, piece == "g1 Knight")
@@ -100,7 +100,7 @@ dfpaths <- dfmoves %>%
 
 #' The data is ready! So we need now some `ggplot`, `geom_tile` for the board, the new `geom_curve`
 #' to represent the piece's path and some `jitter` to make this more artistic`. Let's
-#' start with the fi Bishop.
+#' start with the f1 Bishop.
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
   geom_curve(data = dfpaths %>% filter(piece == "f1 Bishop", x_gt_y_equal_xy_sign),
@@ -115,7 +115,8 @@ ggplot() +
   ggtitle("f1 Bishop") +
   coord_equal()
 
-#' The g8 Knight.
+#' The same way we can plot the rest of the pieces.
+#+ echo=FALSE
 ggplot() +
   geom_tile(data = dfboard, aes(x, y, fill = cc)) +
   geom_curve(data = dfpaths %>% filter(piece == "g8 Knight", x_gt_y_equal_xy_sign),
@@ -135,7 +136,7 @@ ggplot() +
 #'
 
 #####' ### Suvival rates #####
-#' The `dfmoves` is the heart from all these plots beacuse have a lot of information. for example,
+#' The `dfmoves` is the heart from all these plots beacuse have a lot of information. For example,
 #' if we filter for `!is.na(status)` we can know what happend with every piece in every game, if
 #' a piece was caputered of never was captured in the game.
 dfsurvrates <- dfmoves %>%
@@ -301,26 +302,3 @@ ggplot() +
   scale_color_manual(values = c("gray90", "gray10")) +
   geom_text(data = dfvertices, aes(x, y, label = name2, size), color = "gray50") +
   ggtitle("Red: white captures black | Blue: black captures white")
-
-#####' ### Bonus content ####
-#' All pieces just because we can
-dfpaths <- dfpaths %>%
-  mutate(piece = factor(piece, levels = piece_lvls),
-         piece_color = ifelse(str_extract(piece, "\\d") %in% c("1", "2"), "white", "black"),
-         piece_color = ifelse(str_detect(piece, "White"), "white", piece_color))
-
-ggplot() +
-  geom_tile(data = dfboard, aes(x, y, fill = cc)) +
-  geom_curve(data = dfpaths %>% filter(x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = 0.50, angle = -45, alpha = 0.02) +
-  geom_curve(data = dfpaths %>% filter(!x_gt_y_equal_xy_sign),
-             aes(x = x.from, y = y.from, xend = x.to, yend = y.to, color = piece_color),
-             position = position_jitter(width = 0.2, height = 0.2),
-             curvature = -0.50, angle = 45, alpha = 0.02) +
-  scale_fill_manual(values =  c("gray40", "gray60")) +
-  scale_color_manual(values =  c("black", "white")) +
-  facet_wrap(~piece, nrow = 4, ncol = 8) +
-  coord_equal() +
-  theme(strip.background = element_blank())
