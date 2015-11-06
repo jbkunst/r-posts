@@ -1,45 +1,17 @@
-#' ---
-#' title: "What we ask about R in SO"
-#' author: "Joshua Kunst"
-#' output:
-#'  html_document:
-#'    toc: false
-#'    keep_md: yes
-#' categories: R
-#' layout: post
-#' featured_image: /images/rchess-a-chess-package-for-r/featured_image-1.jpg
-#' ---
+# What we ask about R in SO
+Joshua Kunst  
 
-#+ echo=FALSE, message=FALSE, warning=FALSE
-rm(list = ls())
-library("httr")
-library("plyr")
-library("dplyr")
-library("tidyr")
-library("ggplot2")
-library("showtext") 
-library("zoo")
-library("lubridate")
 
-knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev = "CairoPNG", fig.width = 8)
 
-font.add.google("Lato", "myfont")
-showtext.auto()
+> When you're down and troubled <br/>
+> And you need a **coding** hand <br/>
+> And nothing, nothing is going right <br/>
+> Open a **browser** and **type** of this <br/>
+> And the first match will be there <br/>
+> To brighten up even your darkest night.
 
-theme_set(theme_minimal(base_family = "myfont") +
-            theme(legend.position = "none",
-                  text = element_text(size = 10),
-                  title = element_text(size = 12)))
 
-# From https://api.stackexchange.com/docs/questions
-
-#'> When you're down and troubled <br/>
-#'> And you need a **coding** hand <br/>
-#'> And nothing, nothing is going right <br/>
-#'> Open a **browser** and **type** of this <br/>
-#'> And the first match will be there <br/>
-#'> To brighten up even your darkest night.
-
+```r
 ##### Question List
 question_donwload <- function(verbose = FALSE, tag = "r", site = "stackoverflow"){
   
@@ -84,7 +56,35 @@ qlist <- readRDS("qlist.Rds")
 # Examine a element in the list:
 x <- sample(qlist, size = )[[1]]
 str(x)
+```
 
+```
+## List of 13
+##  $ tags              :List of 2
+##   ..$ : chr "r"
+##   ..$ : chr "csv"
+##  $ owner             :List of 7
+##   ..$ reputation   : int 36
+##   ..$ user_id      : int 3706726
+##   ..$ user_type    : chr "registered"
+##   ..$ accept_rate  : int 100
+##   ..$ profile_image: chr "https://www.gravatar.com/avatar/63e01472024e94f365e53dc2e386ed78?s=128&d=identicon&r=PG&f=1"
+##   ..$ display_name : chr "souravsarkar59"
+##   ..$ link         : chr "http://stackoverflow.com/users/3706726/souravsarkar59"
+##  $ is_answered       : logi TRUE
+##  $ view_count        : int 71
+##  $ accepted_answer_id: int 24241636
+##  $ answer_count      : int 1
+##  $ score             : int 2
+##  $ last_activity_date: int 1402914735
+##  $ creation_date     : int 1402914393
+##  $ last_edit_date    : int 1402914735
+##  $ question_id       : int 24241557
+##  $ link              : chr "http://stackoverflow.com/questions/24241557/delete-csv-files-having-less-than-10-entries-from-a-particular-directory-in-r"
+##  $ title             : chr "Delete csv files having less than 10 entries from a particular directory in R"
+```
+
+```r
 namestoselc <- lapply(x, class) %>%
   dplyr::as_data_frame() %>% 
   gather(name, class) %>% 
@@ -109,7 +109,11 @@ df_qst %>%
   ggplot(aes(creation_month, n)) + 
   geom_smooth() +
   ggtitle("Some title testing font")
+```
 
+![](readme_files/figure-html/unnamed-chunk-2-1.png) 
+
+```r
 # Dataframe with question_id, question_tag
 df_qtag <- ldply(qlist, function(x){
   # x <- sample(qlist, size = 1)[[1]]
@@ -154,8 +158,13 @@ df_qtag22 <- df_qtag2 %>%
   summarise(date = max(date)) %>% 
   left_join(df_qtag2 %>% select(question_tag, date, rank)) %>% 
   mutate(date = date + months(1))
+```
 
+```
+## Joining by: c("question_tag", "date")
+```
 
+```r
 pcks_cols <- c("ggplot2" = "red", "dplyr" = "#71a5d1",
                "shiny" = "blue", "rstudio" = "#71a5d1",
                "data.table" = "darkred")
@@ -173,8 +182,15 @@ ggplot(df_qtag2, aes(date, y = rank, group = question_tag, color = question_tag)
   geom_text(data = df_qtag22, aes(label = question_tag), hjust = -0, size = 4) + 
   scale_color_manual(values = cols) +
   ggtitle("Top tags by quarters")
+```
 
-#' * http://stackoverflow.com/questions/21571703/format-date-as-year-quarter
-#' * http://stackoverflow.com/questions/15170777/add-a-rank-column-to-a-data-frame
+![](readme_files/figure-html/unnamed-chunk-2-2.png) 
 
+* http://stackoverflow.com/questions/21571703/format-date-as-year-quarter
+* http://stackoverflow.com/questions/15170777/add-a-rank-column-to-a-data-frame
 
+---
+title: "readme.R"
+author: "jkunst"
+date: "Fri Nov 06 18:29:40 2015"
+---
