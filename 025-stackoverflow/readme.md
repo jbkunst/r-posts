@@ -1,4 +1,4 @@
-# What we ask about R in SO
+# What we ask in Stackoverflow
 Joshua Kunst  
 
 
@@ -10,187 +10,161 @@ Joshua Kunst
 > And the first match will be there <br/>
 > To brighten up even your darkest night.
 
+### The Data ####
+
+If you want the SO data you can found at least 2 options:
+
+1. The StackEchange Data explorer. [link](https://data.stackexchange.com/stackoverflow/query/new)
+2. Stack Exchange Data Dump. (link)(https://archive.org/download/stackexchange).
+
+The first case you can make any query but you are limited you obtain only 50,000 rows via csv download file.
+The second option you can download all the dump :) but it comes in xml format (?!). So I decided use the 
+second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R) 
+to parse the 27GB xml file to load the data what I need into a sqlite data base.
+
 
 ```r
-##### Question List
-question_donwload <- function(verbose = FALSE, tag = "r", site = "stackoverflow"){
-  
-  t0 <- Sys.time()
-  
-  api_url <- "https://api.stackexchange.com/2.2/questions"
-  key <- "ifpYG3FCatEyPyX8AqkVCA(("
-  qlist <- list()
-  carry_on <- TRUE
-  actual_page <- 1
-  
-  while (carry_on) {
-    data <- api_url %>%
-      GET(query = list(site = site, tagged = tag, page = actual_page, key = key,
-                       sort = "creation", pagesize = 100, order = "desc")) %>% 
-      content()
-    
-    if (verbose & actual_page %% 500 == 0)
-      message("page: ",actual_page ," | quota remaining: ", data$quota_remaining)
-    
-    qlist[[actual_page]] <- data$items
-    
-    actual_page <- actual_page + 1
-    
-    carry_on <- data$has_more
-    
-  }
-  
-  qlist <- unlist(qlist, recursive = FALSE)
-  
-  t1 <- Sys.time() - t0
-  message(length(qlist), " question downloaded in ",
-          round(t1,2), " ", attr(t1, "units")) 
-  
-  qlist 
-  
-}
-# qlist <- question_donwload()
-qlist <- readRDS("qlist.Rds")
+db <- src_sqlite("~/so-db.sqlite")
 
-#### Questions Dataframe
-# Examine a element in the list:
-x <- sample(qlist, size = )[[1]]
-str(x)
+dfqst <- tbl(db, "questions")
+head(dfqst)
 ```
 
-```
-## List of 13
-##  $ tags              :List of 2
-##   ..$ : chr "r"
-##   ..$ : chr "csv"
-##  $ owner             :List of 7
-##   ..$ reputation   : int 36
-##   ..$ user_id      : int 3706726
-##   ..$ user_type    : chr "registered"
-##   ..$ accept_rate  : int 100
-##   ..$ profile_image: chr "https://www.gravatar.com/avatar/63e01472024e94f365e53dc2e386ed78?s=128&d=identicon&r=PG&f=1"
-##   ..$ display_name : chr "souravsarkar59"
-##   ..$ link         : chr "http://stackoverflow.com/users/3706726/souravsarkar59"
-##  $ is_answered       : logi TRUE
-##  $ view_count        : int 71
-##  $ accepted_answer_id: int 24241636
-##  $ answer_count      : int 1
-##  $ score             : int 2
-##  $ last_activity_date: int 1402914735
-##  $ creation_date     : int 1402914393
-##  $ last_edit_date    : int 1402914735
-##  $ question_id       : int 24241557
-##  $ link              : chr "http://stackoverflow.com/questions/24241557/delete-csv-files-having-less-than-10-entries-from-a-particular-directory-in-r"
-##  $ title             : chr "Delete csv files having less than 10 entries from a particular directory in R"
-```
+
+
+id   creationdate              score   viewcount   title                                                                          tags                                      
+---  ------------------------  ------  ----------  -----------------------------------------------------------------------------  ------------------------------------------
+4    2008-07-31T21:42:52.667   358     24247       When setting a form's opacity should I use a decimal or double?                <c#><winforms><type-conversion><opacity>  
+6    2008-07-31T22:08:08.620   156     11840       Why doesn't the percentage width child in absolutely positioned parent work?   <html><css><css3><internet-explorer-7>    
+9    2008-07-31T23:40:59.743   1023    265083      How do I calculate someone's age in C#?                                        <c#><.net><datetime>                      
+11   2008-07-31T23:55:37.967   890     96670       How do I calculate relative time?                                              <c#><datetime><datediff>                  
+13   2008-08-01T00:42:38.903   357     99233       Determining a web user's time zone                                             <html><browser><timezone><timezoneoffset> 
+14   2008-08-01T00:59:11.177   228     66007       Difference between Math.Floor() and Math.Truncate()                            <.net>                                    
 
 ```r
-namestoselc <- lapply(x, class) %>%
-  dplyr::as_data_frame() %>% 
-  gather(name, class) %>% 
-  filter(class != "list" & name != "link") %>%
-  .$name %>% 
-  as.character()
-
-df_qst <- ldply(qlist, function(x){
-  # x <- sample(qlist, size = 1)[[1]]
-  x[ which(names(x) %in% namestoselc)] %>% 
-    as_data_frame()
-}, .progress = "win")
-
-df_qst <- tbl_df(df_qst) %>% 
-  mutate(creation_date = as.POSIXct(creation_date, origin = "1970-01-01"),
-         last_activity_date = as.POSIXct(last_activity_date, origin = "1970-01-01"),
-         creation_month = format(creation_date, "%Y-%m-01") %>% as.Date())
-
-
-df_qst %>% 
-  count(creation_month) %>% 
-  ggplot(aes(creation_month, n)) + 
-  geom_smooth() +
-  ggtitle("Some title testing font")
+dftags <- tbl(db, "questions_tags")
+head(dftags)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-2-1.png) 
+
+
+id     tag           
+-----  --------------
+1005   linux         
+1005   unix          
+1005   vi            
+1010   c#            
+1010   asp.net       
+1024   ruby-on-rails 
+
+### Top Tags by Year ####
+
 
 ```r
-# Dataframe with question_id, question_tag
-df_qtag <- ldply(qlist, function(x){
-  # x <- sample(qlist, size = 1)[[1]]
-  tags <- x$tags %>% unlist()
-  if (length(tags) > 1) {
-    data_frame(question_tag = tags,
-               question_id = x$question_id)  
-  }
-}, .progress = "win")
+dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
 
-df_qtag <- tbl_df(df_qtag)
-df_qtag <- df_qtag %>% filter(question_tag != "r")
-df_qtag <- df_qtag %>% 
-  left_join(df_qst %>% select(question_id, creation_date),
-            by = "question_id")
+dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
 
-as.yearhalf <- function(date){
-  # inspired in as.yearqrt
-  date <- as.Date(date)
-  m <- ifelse(month(date) <= 6, 1, 7)
-  month(date) <- m
-  date
-}
+dftags3 <- dftags2 %>% 
+  group_by(creationyear, tag) %>% 
+  summarize(count = n()) %>% 
+  arrange(creationyear, -count) %>% 
+  collect()
 
-df_qtag2 <- df_qtag %>% 
-  mutate(date = as.yearqtr(creation_date)) %>% 
-  group_by(date, question_tag) %>% 
-  summarize(tag_date_count = n()) %>% 
-  ungroup() %>% 
-  arrange(date, -tag_date_count) %>% 
-  group_by(date) %>% 
+tops <- 30
+dftags4 <- dftags3 %>% 
+  group_by(creationyear) %>% 
   mutate(rank = row_number()) %>% 
   ungroup() %>%
-  filter(rank <= 12) %>% 
-  filter(year(date) >= 2010) %>% 
-  mutate(date = as.Date(date), rank = factor(rank, levels = 12:1))
+  filter(rank <= tops) %>% 
+  mutate(rank = factor(rank, levels = rev(seq(tops))),
+         creationyear = as.numeric(creationyear))
+
+dftags5 <- dftags4 %>% 
+  filter(creationyear == max(creationyear)) %>% 
+  mutate(creationyear = as.numeric(creationyear) + 0.25)
   
-
-df_qtag22 <- df_qtag2 %>%
-  filter(question_tag %in% df_qtag2$question_tag) %>% 
-  group_by(question_tag) %>% 
-  summarise(date = max(date)) %>% 
-  left_join(df_qtag2 %>% select(question_tag, date, rank)) %>% 
-  mutate(date = date + months(1))
+tags_tags <- dftags4 %>%
+  count(tag) %>%
+  filter(n > 3) %>% # have at least 3 appearances
+  filter(tag %in% dftags5$tag) %>% # top tags in 2015
+  .$tag
 ```
 
+Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go 
+up or down.
+
+
+```r
+dflms <- dftags4 %>% 
+  filter(tag %in% tags_tags) %>% 
+  group_by(tag) %>% 
+  do(model = lm(as.numeric(rank) ~ creationyear, data = .)) %>% 
+  mutate(slope = coefficients(model)[2]) %>% 
+  filter(abs(slope) > 1) %>% 
+  arrange(slope)
+
+dflms
 ```
-## Joining by: c("question_tag", "date")
+
+
+
+tag          model                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  slope
+-----------  ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  ----------
+asp.net      4282.214, -2.119048, -0.1666667, 0.952381, -0.9285714, 1.190476, -1.690476, 0.4285714, -0.452381, 0.6666667, -55.86144, -13.733, -0.9573602, 1.28515, -1.47234, 0.7701706, 0.01268093, 1.255191, 2, 27.16667, 25.04762, 22.92857, 20.80952, 18.69048, 16.57143, 14.45238, 12.33333, 0, 1, -2.828427, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, -5689.381, 6.480741, 0.09038881, -0.06391454, -0.2182179, -0.3725212, -0.5268246, -0.6811279, 1.353553, 1.244692, 1, 2, 1e-07, 2, 6, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 27, 26, 22, 22, 17, 17, 14, 13, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015    -2.119048
+sql-server   3578.643, -1.77381, 5.166667, 1.940476, -2.285714, -6.511905, -4.738095, 0.03571429, 3.809524, 2.583333, -30.05204, -11.4956, -3.67818, -7.831114, -5.984049, -1.136983, 2.710083, 1.557148, 2, 16.83333, 15.05952, 13.28571, 11.5119, 9.738095, 7.964286, 6.190476, 4.416667, 0, 1, -2.828427, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, -5689.381, 6.480741, 0.09038881, -0.06391454, -0.2182179, -0.3725212, -0.5268246, -0.6811279, 1.353553, 1.244692, 1, 2, 1e-07, 2, 6, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 22, 17, 11, 5, 5, 8, 10, 7, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015             -1.773810
+xml          3167.929, -1.571429, 1.5, -1.928571, -1.357143, 1.214286, 0.7857143, 0.3571429, -0.07142857, -0.5, -19.79899, -10.18402, -1.580444, 0.7033293, -0.0128972, -0.7291237, -1.44535, -2.161577, 2, 12.5, 10.92857, 9.357143, 7.785714, 6.214286, 4.642857, 3.071429, 1.5, 0, 1, -2.828427, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, -5689.381, 6.480741, 0.09038881, -0.06391454, -0.2182179, -0.3725212, -0.5268246, -0.6811279, 1.353553, 1.244692, 1, 2, 1e-07, 2, 6, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 14, 9, 8, 9, 7, 5, 3, 1, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015                         -1.571429
+android      -2159.333, 1.085714, -1.952381, 1.961905, 0.8761905, -0.2095238, -0.2952381, -0.3809524, -62.87024, 4.541869, 1.556758, 0.9808484, 1.404939, 1.82903, 2, 22.95238, 24.0381, 25.12381, 26.20952, 27.29524, 28.38095, 0, 1, -2.44949, 0.4082483, 0.4082483, 0.4082483, 0.4082483, 0.4082483, -4929.598, 4.1833, -0.0537243, -0.29277, -0.5318157, -0.7708615, 1.408248, 1.185321, 1, 2, 1e-07, 2, 4, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 21, 26, 26, 26, 27, 28, 2010, 2011, 2012, 2013, 2014, 2015                                                                                                                                             1.085714
+jquery       -2826.75, 1.416667, -8.916667, 3.666667, 5.25, 2.833333, 1.416667, 2.769941e-13, -1.416667, -2.833333, -64.70027, 9.181049, 7.143661, 5.47028, 4.796899, 4.123518, 3.450137, 2.776757, 2, 17.91667, 19.33333, 20.75, 22.16667, 23.58333, 25, 26.41667, 27.83333, 0, 1, -2.828427, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, -5689.381, 6.480741, 0.09038881, -0.06391454, -0.2182179, -0.3725212, -0.5268246, -0.6811279, 1.353553, 1.244692, 1, 2, 1e-07, 2, 6, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 9, 23, 26, 25, 25, 25, 25, 25, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015                         1.416667
+json         -3414.7, 1.7, -1.7, 1.6, 1.9, -1.8, -16.5, -3.801316, 1.497704, -3.171259, 2, 5.7, 7.4, 9.1, 10.8, 0, 1, -2, 0.5, 0.5, 0.5, -4027, -2.236068, 0.4472136, 0.8944272, 1.5, 1, 1, 2, 1e-07, 2, 2, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 4, 9, 11, 9, 2012, 2013, 2014, 2015                                                                                                                                                                                                                                                                                                                                                                        1.700000
+css          -3695.571, 1.845238, -1.666667, 0.4880952, 0.6428571, -0.202381, 1.952381, 0.1071429, 0.2619048, -1.583333, -45.60839, 11.95851, 1.011138, 0.2803769, 2.549616, 0.8188555, 1.088095, -0.6426659, 2, 9.666667, 11.5119, 13.35714, 15.20238, 17.04762, 18.89286, 20.7381, 22.58333, 0, 1, -2.828427, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, 0.3535534, -5689.381, 6.480741, 0.09038881, -0.06391454, -0.2182179, -0.3725212, -0.5268246, -0.6811279, 1.353553, 1.244692, 1, 2, 1e-07, 2, 6, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 8, 12, 14, 15, 19, 19, 21, 21, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015        1.845238
+arrays       -5425.2, 2.7, -1.2, 2.1, -0.6, -0.3, -22.5, -6.037384, -1.318034, -2.136068, 2, 7.2, 9.9, 12.6, 15.3, 0, 1, -2, 0.5, 0.5, 0.5, -4027, -2.236068, 0.4472136, 0.8944272, 1.5, 1, 1, 2, 1e-07, 2, 2, lm(formula = as.numeric(rank) ~ creationyear, data = .), as.numeric(rank) ~ creationyear, 6, 12, 12, 15, 2012, 2013, 2014, 2015                                                                                                                                                                                                                                                                                                                                                                   2.700000
+
+What we see? *asp.net* is goind down in rank and arrays w
+
+
+```r
+colors <- c("asp.net" = "#6a40fd",
+            "r" = "#198ce7", "css" = "#563d7c",
+            "javascript" = "#f1e05a", "json" = "#f1e05a",
+            "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
+
+othertags <- dftags4 %>% distinct(tag) %>% filter(!tag %in% names(colors)) %>% .$tag
+
+colors <- c(colors, setNames(rep("gray", length(othertags)), othertags))
+
+# I call this: *The metro-style-rank-tag plot*.
 ```
 
 ```r
-pcks_cols <- c("ggplot2" = "red", "dplyr" = "#71a5d1",
-               "shiny" = "blue", "rstudio" = "#71a5d1",
-               "data.table" = "darkred")
-
-other_pcks <- df_qtag22$question_tag[!df_qtag22$question_tag %in% names(pcks_cols)]
-
-other_pcks_cols <- rep("gray80", length(other_pcks))
-names(other_pcks_cols) <- other_pcks
-cols <- c(pcks_cols, other_pcks_cols)
-
-ggplot(df_qtag2, aes(date, y = rank, group = question_tag, color = question_tag)) + 
-  geom_line(size = 2) +
-  geom_point(size = 4) +
-  geom_point(size = 2, color = "white") + 
-  geom_text(data = df_qtag22, aes(label = question_tag), hjust = -0, size = 4) + 
-  scale_color_manual(values = cols) +
-  ggtitle("Top tags by quarters")
+ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) + 
+  geom_line(size = 1.7, alpha = 0.25) +
+  geom_line(size = 2.5, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
+  geom_point(size = 4, alpha = 0.25) +
+  geom_point(size = 4, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
+  geom_point(size = 1.75, color = "white") +
+  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 5) + 
+  scale_color_manual(values = colors) +
+  ggtitle("Top Tags by Year") + xlab("Year") +
+  xlim(NA, unique(dftags5$creationyear) + 0.5)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-2-2.png) 
+![](readme_files/figure-html/unnamed-chunk-6-1.png) 
 
-* http://stackoverflow.com/questions/21571703/format-date-as-year-quarter
-* http://stackoverflow.com/questions/15170777/add-a-rank-column-to-a-data-frame
+```r
+# https://github.com/hadley/dplyr/issues/950
+rm(db)
+gc()
+```
+
+             used   (Mb)   gc trigger   (Mb)   max used   (Mb)
+-------  --------  -----  -----------  -----  ---------  -----
+Ncells     639784   17.1      1168576   31.3     940480   25.2
+Vcells    1045854    8.0      1761831   13.5    1730925   13.3
+
 
 ---
 title: "readme.R"
 author: "jkunst"
-date: "Fri Nov 06 18:29:40 2015"
+date: "Wed Nov 11 17:44:26 2015"
 ---

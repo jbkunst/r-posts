@@ -1,5 +1,5 @@
 #' ---
-#' title: "What we ask in SO"
+#' title: "What we ask in Stackoverflow"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -7,31 +7,29 @@
 #'    keep_md: yes
 #' categories: R
 #' layout: post
-#' featured_image: /images/rchess-a-chess-package-for-r/featured_image-1.jpg
+#' featured_image: https://www.sac.edu/StudentServices/InternationalStudents/Calendar%20of%20Events/questions-and-answers.jpg
 #' ---
 
 #+ echo=FALSE, message=FALSE, warning=FALSE
+#### setup ws packages ####
 rm(list = ls())
-library("stringr")
-library("rvest")
-library("readr")
-library("plyr")
 library("dplyr")
-library("tidyr")
 library("ggplot2")
-library("showtext") 
-library("zoo")
-library("lubridate")
+library("showtext")
+library("printr")
 
 knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev = "CairoPNG", fig.width = 8)
 
-font.add.google("Lato", "myfont")
-showtext.auto()
+# font.add.google("Lato", "myfont")
+# showtext.auto()
 
 theme_set(theme_minimal(base_family = "myfont") +
             theme(legend.position = "none",
-                  text = element_text(size = 10),
+                  text = element_text(size = 10, colour = "#616161"),
                   title = element_text(size = 12)))
+
+#### post ####
+#' Have you
 
 
 #'> When you're down and troubled <br/>
@@ -42,195 +40,131 @@ theme_set(theme_minimal(base_family = "myfont") +
 #'> To brighten up even your darkest night.
 #'
 
-urls_data <- c(
-  "https://data.stackexchange.com/stackoverflow/csv/497945",
-  "https://data.stackexchange.com/stackoverflow/csv/497932",
-  "https://data.stackexchange.com/stackoverflow/csv/497931",
-  "https://data.stackexchange.com/stackoverflow/csv/497930",
-  "https://data.stackexchange.com/stackoverflow/csv/497900",
-  "https://data.stackexchange.com/stackoverflow/csv/497929")
+#' 1. [The Data](#the-data)
+#' 1. [Top Tags by Year](#top-tags-by-year)
+#' 1. [Bonus](#bonus)
 
-dfqst <- ldply(urls_data, read_csv, .progress = "win")
+#####' ### The Data ####
+#'
+#' If you want the SO data you can found at least 2 options:
+#' 
+#' 1. The StackEchange Data explorer. [link](https://data.stackexchange.com/stackoverflow/query/new)
+#' 2. Stack Exchange Data Dump. (link)(https://archive.org/download/stackexchange).
+#' 
+#' The first case you can make any query but you are limited you obtain only 50,000 rows via csv download file.
+#' The second option you can download all the dump :) but it comes in xml format (?!). So I decided use the 
+#' second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R) 
+#' to parse the 27GB xml file to load the data what I need into a sqlite data base.
 
-dfqst <- tbl_df(dfqst) %>% 
-  setNames(names(.) %>% tolower())
+db <- src_sqlite("~/so-db.sqlite")
 
-dftags <- adply(dfqst %>% select(id, creationdate, tags), .margins = 1, function(x){
-  # x <- sample_n(dfqst %>% select(id, CreationDate, Tags), size = 1)
-  tags <- str_split(x$tags, "<|>") %>% 
-    unlist() %>% 
-    setdiff(c("", "r"))
-  data_frame(tag = tags)
-}, .progress = "win") %>% tbl_df() %>% select(-tags)
+dfqst <- tbl(db, "questions")
+head(dfqst)
 
 
-dftagsmonth <- dftags %>% 
-  mutate(creationdatemonth = as.yearmon(creationdate)) %>% 
-  group_by(creationdatemonth, tag) %>% 
-  summarise(count = n()) %>% 
-  ungroup() %>% 
-  mutate(creationdatemonth = as.Date(creationdatemonth))
+dftags <- tbl(db, "questions_tags")
+head(dftags)
 
-toptags <- dftagsmonth %>%
-  count(tag) %>% 
-  filter(n >= length(unique(dftagsmonth$creationdatemonth))/2) %>%
-  .$tag
 
-dftagsmonth <- dftagsmonth %>%
-  filter(tag %in% toptags)
+#####' ### Top Tags by Year ####
+#' Well, it's almost end of year and we can talk about all what happened in the year. So, let's
+#' look about the change across the years (including this one!) in the top tags at stackoverflow.
+#' 
+#' We need to calculate the year and then make count grouping by *creationyear* and *tag*, then 
+#' use *row_number* function to make the rank by year and filter by the first 30 places.
+dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
 
-# top last tags
-dftagsmonthlasttops <- dftagsmonth %>% 
-  filter(creationdatemonth == max(creationdatemonth)) %>% 
-  arrange(desc(count)) %>% 
-  head(10) %>% 
-  mutate(color = c("red", "green", "darkred", "blue", "darkgreen",
-                   "yellow", ""))
-  
+dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
 
-toptop_tags <- c("ggplot2" = "red",
-                 "plot" = "darkolivegreen2",
-                 "data.table" = "darkred",
-                 "shiny" = "blue",
-                 "data.frame" = "darkolivegreen2"
-                 "dplyr" = "darkblue", "rstudio" = "#71a5d1",
-                 "data.table" = "darkred",
-                 # base/generic R
-                  "function" = "darkolivegreen2",
-                 "data.frame" = "darkolivegreen2", "regex" = "darkolivegreen2",
-                 "matrix" = "darkolivegreen2")
+dftags3 <- dftags2 %>% 
+  group_by(creationyear, tag) %>% 
+  summarize(count = n()) %>% 
+  arrange(creationyear, -count) %>% 
+  collect()
 
-dftagsmonthnames <- dftagsmonth %>% 
-  filter(creationdatemonth == max(creationdatemonth)) %>% 
-  arrange(desc(count)) %>% 
-  head(10) %>% 
-  mutate(creationdatemonth = creationdatemonth + months(2))
+#' In the previous code we need to collect becuase we can't use *row_number* vía *tbl* source.
 
-ggplot() + 
-  geom_smooth(aes(creationdatemonth, y = count, group =  tag),
-              data = dftagsmonth %>% filter(!tag %in% names(toptop_tags)),
-              size = 0.2, se = FALSE, alpha = 0.2, color = "gray") +
-  geom_smooth(aes(creationdatemonth, y = count, group =  tag, color =  tag),
-              data = dftagsmonth %>% filter(tag %in% names(toptop_tags)),
-              size = 2, se = FALSE, alpha = 0.5) + 
-  scale_color_manual(values = toptop_tags) +
-  theme(legend.position = "bottom") + 
-  ggtitle("")
-  
-  
-
-df_qtag2 <- df_qtag %>% 
-  mutate(date = as.yearqtr(creation_date)) %>% 
-  group_by(date, question_tag) %>% 
-  summarize(tag_date_count = n()) %>% 
-  ungroup() %>% 
-  arrange(date, -tag_date_count) %>% 
-  group_by(date) %>% 
+tops <- 30
+dftags4 <- dftags3 %>% 
+  group_by(creationyear) %>% 
   mutate(rank = row_number()) %>% 
   ungroup() %>%
-  filter(rank <= 12) %>% 
-  filter(year(date) >= 2010) %>% 
-  mutate(date = as.Date(date), rank = factor(rank, levels = 12:1))
+  filter(rank <= tops) %>% 
+  mutate(rank = factor(rank, levels = rev(seq(tops))),
+         creationyear = as.numeric(creationyear))
 
+#' Lets took the first 5 places this year. Nothing new.
 
-df_qtag22 <- df_qtag2 %>%
-  filter(question_tag %in% df_qtag2$question_tag) %>% 
-  group_by(question_tag) %>% 
-  summarise(date = max(date)) %>% 
-  left_join(df_qtag2 %>% select(question_tag, date, rank)) %>% 
-  mutate(date = date + months(1))
-## Joining by: c("question_tag", "date")
-pcks_cols <- c("ggplot2" = "red", "dplyr" = "#71a5d1",
-               "shiny" = "blue", "rstudio" = "#71a5d1",
-               "data.table" = "darkred")
+dftags4 %>% filter(creationyear == 2015) %>% head(5)
 
-other_pcks <- df_qtag22$question_tag[!df_qtag22$question_tag %in% names(pcks_cols)]
+#' The next data frame is to get the name at the end of the lines for our first plot.
 
-other_pcks_cols <- rep("gray80", length(other_pcks))
-names(other_pcks_cols) <- other_pcks
-cols <- c(pcks_cols, other_pcks_cols)
+dftags5 <- dftags4 %>% 
+  filter(creationyear == max(creationyear)) %>% 
+  mutate(creationyear = as.numeric(creationyear) + 0.25)
 
-ggplot(df_qtag2, aes(date, y = rank, group = question_tag, color = question_tag)) + 
-  geom_line(size = 2) +
-  geom_point(size = 4) +
-  geom_point(size = 2, color = "white") + 
-  geom_text(data = df_qtag22, aes(label = question_tag), hjust = -0, size = 4) + 
-  scale_color_manual(values = cols) +
-  ggtitle("Top tags by quarters")
+dftags6 <- dftags4 %>% 
+  filter(creationyear == min(creationyear)) %>% 
+  mutate(creationyear = as.numeric(creationyear) - 0.25)
 
-#' * http://meta.stackoverflow.com/questions/295508/download-stack-overflow-database
-#' * http://stackoverflow.com/questions/21571703/format-date-as-year-quarter
-#' * http://stackoverflow.com/questions/15170777/add-a-rank-column-to-a-data-frame
-
-
-
-
-
-############################
-############################
-############################
-############################
-############################
-
-
-
-##### Question List
-question_donwload <- function(verbose = TRUE, max.pages = 9999, site = "stackoverflow"){
+#' Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go 
+#' up or down. First let's consider the top *tags* in this year with at least 3 appearances:
   
-  t0 <- Sys.time()
-  
-  api_url <- "https://api.stackexchange.com/2.2/questions"
-  key <- "ifpYG3FCatEyPyX8AqkVCA(("
-  qlist <- list()
-  carry_on <- TRUE
-  actual_page <- 1
-  
-  while (carry_on) {
-    data <- api_url %>%
-      GET(query = list(site = site, page = actual_page, key = key,
-                       sort = "creation", pagesize = 100, order = "desc")) %>% 
-      content()
-    
-    if (verbose & actual_page %% 500 == 0)
-      message("page: ",actual_page ," | quota remaining: ", data$quota_remaining)
-    
-    qlist[[actual_page]] <- data$items
-    
-    actual_page <- actual_page + 1
-    
-    carry_on <- data$has_more
-    
-    if (actual_page > max.pages)
-      carry_on <- FALSE
-    
-  }
-  
-  qlist <- unlist(qlist, recursive = FALSE)
-  
-  t1 <- Sys.time() - t0
-  message(length(qlist), " question downloaded in ",
-          round(t1,2), " ", attr(t1, "units")) 
-  
-  qlist 
-  
-}
-# qlist <- question_donwload()
-qlist <- readRDS("qlist.Rds")
+tags_tags <- dftags4 %>%
+  count(tag) %>%
+  filter(n > 3) %>% # have at least 3 appearances
+  filter(tag %in% dftags5$tag) %>% # top tags in 2015
+  .$tag
 
-#### Questions Dataframe
-# Examine a element in the list:
-x <- sample(qlist, size = )[[1]]
-str(x)
+dflms <- dftags4 %>% 
+  filter(tag %in% tags_tags) %>% 
+  group_by(tag) %>% 
+  do(model = lm(as.numeric(rank) ~ creationyear, data = .)) %>% 
+  mutate(slope = coefficients(model)[2]) %>% 
+  filter(abs(slope) > 1) %>% 
+  arrange(slope) %>% 
+  select(-model)
 
-namestoselc <- lapply(x, class) %>%
-  dplyr::as_data_frame() %>% 
-  gather(name, class) %>% 
-  filter(class != "list" & name != "link") %>%
-  .$name %>% 
-  as.character()
+dflms
 
-df_qst <- ldply(qlist, function(x){
-  # x <- sample(qlist, size = 1)[[1]]
-  x[ which(names(x) %in% namestoselc)] %>% 
-    as_data_frame()
-}, .progress = "win")
+#' Mmm! What we see? *asp.net* is goind down in rank and *arraystag* is going top. Now let's 
+#' get some color for the hono
+
+colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascript" = "#f1e05a",
+            "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
+
+othertags <- dftags4 %>% distinct(tag) %>% filter(!tag %in% names(colors)) %>% .$tag
+
+colors <- c(colors, setNames(rep("gray", length(othertags)), othertags))
+
+#' Now the fun part! I call this  **The subway-style-rank-tag plot: the past and the future**.
+#+ fig.height = 7, fig.width = 9
+ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) + 
+  geom_line(size = 1.7, alpha = 0.25) +
+  geom_line(size = 2.5, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
+  geom_point(size = 4, alpha = 0.25) +
+  geom_point(size = 4, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
+  geom_point(size = 1.75, color = "white") +
+  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 5) + 
+  geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 5) + 
+  scale_color_manual(values = colors) +
+  ggtitle("Top Tags by Year in Stackoverflow") + xlab("Year") +
+  xlim(unique(dftags6$creationyear) - 0.5, unique(dftags5$creationyear) + 0.5)
+
+#' We can see the technologies like android, json are going up in popularity this days, same as all web/mobile 
+#' technologies like android, java (via android), css, html, nodejs, swift, ios, objective-c, etc. 
+#' By other hand the *xml* and *asp.net* (änd *.net*, *visual-studio*) tags aren't popular in this 
+#' days comparing previous years (obviously a top 30 tag in SO means popular yet!).
+#' 
+#' Other fact to mention is the popularity of the *r* tag (yay!) the only tag (with python maybe) with the 
+#' datascience essence.
+#' 
+#' And well, xml is xml and it's have been replaced by json (is my guess).
+
+# https://github.com/hadley/dplyr/issues/950
+rm(db)
+gc()
+
+#####' ### Bonus ####
+#' Some questions I readed for write this post
+#' 
