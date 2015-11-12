@@ -23,15 +23,13 @@ knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev =
 # font.add.google("Lato", "myfont")
 # showtext.auto()
 
-theme_set(theme_minimal(base_family = "myfont") +
+theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
             theme(legend.position = "none",
-                  text = element_text(size = 10, colour = "#616161"),
-                  title = element_text(size = 12)))
+                  text = element_text(colour = "#616161")))
 
 #### post ####
 #' Have you
-
-
+#' 
 #'> When you're down and troubled <br/>
 #'> And you need a **coding** hand <br/>
 #'> And nothing, nothing is going right <br/>
@@ -39,11 +37,10 @@ theme_set(theme_minimal(base_family = "myfont") +
 #'> And the first match will be there <br/>
 #'> To brighten up even your darkest night.
 #'
-
 #' 1. [The Data](#the-data)
 #' 1. [Top Tags by Year](#top-tags-by-year)
 #' 1. [Bonus](#bonus)
-
+#' 
 #####' ### The Data ####
 #'
 #' If you want the SO data you can found at least 2 options:
@@ -82,7 +79,7 @@ dftags3 <- dftags2 %>%
   arrange(creationyear, -count) %>% 
   collect()
 
-#' In the previous code we need to collect becuase we can't use *row_number* vía *tbl* source.
+#' In the previous code we need to collect becuase we can't use *row_number* via *tbl* source.
 
 tops <- 30
 dftags4 <- dftags3 %>% 
@@ -137,29 +134,36 @@ othertags <- dftags4 %>% distinct(tag) %>% filter(!tag %in% names(colors)) %>% .
 
 colors <- c(colors, setNames(rep("gray", length(othertags)), othertags))
 
-#' Now the fun part! I call this  **The subway-style-rank-tag plot: the past and the future**.
-#+ fig.height = 7, fig.width = 9
+#' Now the fun part! I call this  **The subway-style-rank-year-tag plot: the past and the future**.
+#+ fig.height = 7, fig.width = 10
 ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) + 
   geom_line(size = 1.7, alpha = 0.25) +
   geom_line(size = 2.5, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
   geom_point(size = 4, alpha = 0.25) +
   geom_point(size = 4, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
   geom_point(size = 1.75, color = "white") +
-  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 5) + 
-  geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 5) + 
+  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 4.5) + 
+  geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 4.5) + 
   scale_color_manual(values = colors) +
-  ggtitle("Top Tags by Year in Stackoverflow") + xlab("Year") +
-  xlim(unique(dftags6$creationyear) - 0.5, unique(dftags5$creationyear) + 0.5)
+  ggtitle("The subway-style-rank-year-tag plot:\nPast and the Future") +
+  xlab("Top Tags by Year in Stackoverflow") +
+  scale_x_continuous(breaks= seq(min(dftags4$creationyear)-2,
+                                 max(dftags4$creationyear) + 2),
+                     limits = c(min(dftags4$creationyear) - 1.0,
+                                max(dftags4$creationyear) + 0.5))
 
-#' We can see the technologies like android, json are going up in popularity this days, same as all web/mobile 
-#' technologies like android, java (via android), css, html, nodejs, swift, ios, objective-c, etc. 
-#' By other hand the *xml* and *asp.net* (änd *.net*, *visual-studio*) tags aren't popular in this 
+
+
+#' We can see the technologies like android, json are now more "popular" this days, same as all web/mobile 
+#' technologies like java (via android), css, html, nodejs, swift, ios, objective-c, etc. 
+#' By other hand the *xml* and *asp.net* (and *.net*, *visual-studio*) tags aren't popular in this 
 #' days comparing previous years (obviously a top 30 tag in SO means popular yet!).
 #' 
-#' Other fact to mention is the popularity of the *r* tag (yay!) the only tag (with python maybe) with the 
-#' datascience essence.
+#' Other important fact to mention is the popularity of the *r* tag (yay!). The only tag besides python
+#' with the datascience essence. 
 #' 
-#' And well, xml is xml and it's have been replaced by json (is my guess).
+#' And finally is interesting see how xml is going down and json s going up. It seems xml has been replaced
+#'  by json gradually.
 
 # https://github.com/hadley/dplyr/issues/950
 rm(db)
