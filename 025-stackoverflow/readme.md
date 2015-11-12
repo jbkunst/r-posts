@@ -54,14 +54,14 @@ head(dftags)
 
 
 
-id      tag         
-------  ------------
-10006   wcf         
-10006   silverlight 
-10006   compression 
-10006   gzip        
-10038   javascript  
-10038   animation   
+id     tag           
+-----  --------------
+1005   linux         
+1005   unix          
+1005   vi            
+1010   c#            
+1010   asp.net       
+1024   ruby-on-rails 
 
 ### Top Tags by Year ####
 Well, it's almost end of year and we can talk about all what happened in the year. So, let's
@@ -217,10 +217,10 @@ rm(db)
 gc()
 ```
 
-             used   (Mb)   gc trigger   (Mb)   max used   (Mb)
--------  --------  -----  -----------  -----  ---------  -----
-Ncells     619352   33.1      1073225   57.4     984024   52.6
-Vcells    1505575   11.5      2437831   18.6    2062387   15.8
+            used   (Mb)   gc trigger   (Mb)   max used   (Mb)
+-------  -------  -----  -----------  -----  ---------  -----
+Ncells    619407   16.6      1168576   31.3     940480   25.2
+Vcells    998726    7.7      1761315   13.5    1756945   13.5
 
 ### Bonus ####
 Some questions I readed for write this post
@@ -228,6 +228,6 @@ Some questions I readed for write this post
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Thu Nov 12 01:31:15 2015"
+author: "jkunst"
+date: "Thu Nov 12 10:16:26 2015"
 ---

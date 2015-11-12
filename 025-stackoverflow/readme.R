@@ -27,7 +27,7 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
             theme(legend.position = "none",
                   text = element_text(colour = "#616161")))
 
-#### post ####
+#### Post ####
 #' Have you
 #' 
 #'> When you're down and troubled <br/>
@@ -39,8 +39,10 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #'
 #' 1. [The Data](#the-data)
 #' 1. [Top Tags by Year](#top-tags-by-year)
+#' 1. [The Topics this Year](#the-topics-this-year)
 #' 1. [Bonus](#bonus)
 #' 
+
 #####' ### The Data ####
 #'
 #' If you want the SO data you can found at least 2 options:
@@ -62,9 +64,8 @@ head(dfqst)
 dftags <- tbl(db, "questions_tags")
 head(dftags)
 
-
 #####' ### Top Tags by Year ####
-#' Well, it's almost end of year and we can talk about all what happened in the year. So, let's
+#' Well, it's almost end of year and we can talk about summaries and what happened this year. So, let's
 #' look about the change across the years (including this one!) in the top tags at stackoverflow.
 #' 
 #' We need to calculate the year and then make count grouping by *creationyear* and *tag*, then 
@@ -79,9 +80,11 @@ dftags3 <- dftags2 %>%
   arrange(creationyear, -count) %>% 
   collect()
 
-#' In the previous code we need to collect becuase we can't use *row_number* via *tbl* source.
+#' In the previous code we need to collect becuase we can't use *row_number* via *tbl* source
+#' (or at leart I don't know how to do it yet).
 
 tops <- 30
+
 dftags4 <- dftags3 %>% 
   group_by(creationyear) %>% 
   mutate(rank = row_number()) %>% 
@@ -94,7 +97,7 @@ dftags4 <- dftags3 %>%
 
 dftags4 %>% filter(creationyear == 2015) %>% head(5)
 
-#' The next data frame is to get the name at the end of the lines for our first plot.
+#' The next data frames is to get the name at the start and end of the lines for our first plot.
 
 dftags5 <- dftags4 %>% 
   filter(creationyear == max(creationyear)) %>% 
@@ -105,7 +108,8 @@ dftags6 <- dftags4 %>%
   mutate(creationyear = as.numeric(creationyear) - 0.25)
 
 #' Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go 
-#' up or down. First let's consider the top *tags* in this year with at least 3 appearances:
+#' up or down. Maybe this is a very simply and non correct approach but it's good to explore
+#' the trends. Let's consider the top *tags* in this year with at least 3 appearances:
   
 tags_tags <- dftags4 %>%
   count(tag) %>%
@@ -118,14 +122,16 @@ dflms <- dftags4 %>%
   group_by(tag) %>% 
   do(model = lm(as.numeric(rank) ~ creationyear, data = .)) %>% 
   mutate(slope = coefficients(model)[2]) %>% 
-  filter(abs(slope) > 1) %>% 
   arrange(slope) %>% 
-  select(-model)
+  select(-model) %>% 
+  mutate(trend = cut(slope, breaks = c(-Inf, -1, 1, Inf), labels = c("-", "=", "+")),
+         slope = round(slope, 2)) %>% 
+  arrange(desc(slope))
 
-dflms
+dflms %>% filter(trend != "=")
 
-#' Mmm! What we see? *asp.net* is goind down in rank and *arraystag* is going top. Now let's 
-#' get some color for the hono
+#' Mmm! What we see? *asp.net* is goind down in rank and *arrays* is going up Now let's 
+#' get some color for remark the most interesting results.
 
 colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascript" = "#f1e05a",
             "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
@@ -147,28 +153,51 @@ ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) +
   scale_color_manual(values = colors) +
   ggtitle("The subway-style-rank-year-tag plot:\nPast and the Future") +
   xlab("Top Tags by Year in Stackoverflow") +
-  scale_x_continuous(breaks= seq(min(dftags4$creationyear)-2,
+  scale_x_continuous(breaks = seq(min(dftags4$creationyear) - 2,
                                  max(dftags4$creationyear) + 2),
                      limits = c(min(dftags4$creationyear) - 1.0,
                                 max(dftags4$creationyear) + 0.5))
 
-
-
-#' We can see the technologies like android, json are now more "popular" this days, same as all web/mobile 
+#' First of all: *javascript* is the top nowadays but let's focus in the chages of places: 
+#' We can see the technologies like android, json are now  more "popular" this days, same as all web/mobile 
 #' technologies like java (via android), css, html, nodejs, swift, ios, objective-c, etc. 
-#' By other hand the *xml* and *asp.net* (and *.net*, *visual-studio*) tags aren't popular in this 
-#' days comparing previous years (obviously a top 30 tag in SO means popular yet!).
+#' By other hand the *xml* and *asp.net* and friends (*.net*, *visual-studio*) tags aren't popular in this 
+#' days comparing previous years, obviously a top 30 tag in SO means popular yet! buy these tags are becoming
+#' less poppular every year.
 #' 
-#' Other important fact to mention is the popularity of the *r* tag (yay!). The only tag besides python
-#' with the datascience essence. 
+#' Other important fact to mention is the popularity of the *r* tag (yay!).
 #' 
 #' And finally is interesting see how xml is going down and json s going up. It seems xml has been replaced
-#'  by json gradually.
+#' by json gradually.
+#' 
 
-# https://github.com/hadley/dplyr/issues/950
-rm(db)
-gc()
+#+ echo=FALSE
+rm(dflms, dftags2, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
+#####' ### The Topics this Year ####
+#' 
+#' We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
+#' and may be this questions belong to a family or group of questions. So lets find the 
+#' topics/cluster/families/communities in all these questions.
+#' 
+#' The firs approach we'll test it be use [*resolution*](https://github.com/analyxcompany/resolution) package
+#' to find communities in a network.
+#' 
+
+dftag2015 <- dftags2 %>%
+  filter(creationyear == "2015") %>%
+  select(id, tag)
+
+dftag2 <- dftag2015 %>%
+  left_join(dftag2015 %>% select(tag2 = tag, id)) %>% 
+  filter(tag < tag2) %>% 
+  count(tag, tag2) %>% 
+  collect()
+
+
+
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
+#' * [Transposing a dataframe maintaining the first column as heading](http://stackoverflow.com/questions/7970179/transposing-a-dataframe-maintaining-the-first-column-as-heading).
+#' 
 #' 
