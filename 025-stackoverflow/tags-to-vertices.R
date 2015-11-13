@@ -1,10 +1,11 @@
 set.seed(1)
-nrow <- 10
-id <- sample(1:5, size = nrow, replace = TRUE)
+nrow <- 5
+id <- sample(1:3, size = nrow, replace = TRUE)
 tag <- sample(letters[1:4], size = nrow, replace = TRUE)
 
 
-df <- data_frame(id, tag)
+df <- data_frame(id, tag) %>% arrange(id, tag)
+df
 df %>% count(tag) %>% arrange(desc(n))
 
 

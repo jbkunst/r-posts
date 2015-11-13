@@ -190,7 +190,7 @@ dftag2015 <- dftags2 %>%
 
 dftag2 <- dftag2015 %>%
   left_join(dftag2015 %>% select(tag2 = tag, id), by = "id") %>% 
-  filter(tag <= tag2) %>% 
+  filter(tag < tag2) %>% 
   count(tag, tag2) %>% 
   collect() %>% 
   ungroup() %>% 
@@ -205,8 +205,8 @@ dfval <- rbind(dftag2 %>% count(tag) %>% arrange(desc(n)),
   summarise(n = sum(n)) %>% 
   arrange(desc(n))
 
-dfval %>% filter(tag == "javascript")
-# dftag2015 %>% count(tag) %>% arrange(desc(n))
+dfval
+dftag2015 %>% count(tag) %>% arrange(desc(n))
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
