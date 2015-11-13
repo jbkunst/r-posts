@@ -172,7 +172,8 @@ ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) +
 #' 
 
 #+ echo=FALSE
-rm(dflms, dftags2, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
+# rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
+
 #####' ### The Topics this Year ####
 #' 
 #' We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
@@ -188,13 +189,24 @@ dftag2015 <- dftags2 %>%
   select(id, tag)
 
 dftag2 <- dftag2015 %>%
-  left_join(dftag2015 %>% select(tag2 = tag, id)) %>% 
-  filter(tag < tag2) %>% 
+  left_join(dftag2015 %>% select(tag2 = tag, id), by = "id") %>% 
+  filter(tag <= tag2) %>% 
   count(tag, tag2) %>% 
-  collect()
+  collect() %>% 
+  ungroup() %>% 
+  arrange(desc(n))
 
+head(dftag2)
 
+dfval <- rbind(dftag2 %>% count(tag) %>% arrange(desc(n)),
+               dftag2 %>% count(tag = tag2) %>% arrange(desc(n))) %>% 
+  tbl_df() %>% 
+  group_by(tag) %>%
+  summarise(n = sum(n)) %>% 
+  arrange(desc(n))
 
+dfval %>% filter(tag == "javascript")
+# dftag2015 %>% count(tag) %>% arrange(desc(n))
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
