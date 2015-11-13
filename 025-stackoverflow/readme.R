@@ -50,26 +50,26 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #' 1. The StackEchange Data explorer. [link](https://data.stackexchange.com/stackoverflow/query/new)
 #' 2. Stack Exchange Data Dump. (link)(https://archive.org/download/stackexchange).
 #' 
-#' The first case you can make any query but you are limited you obtain only 50,000 rows via csv download file.
-#' The second option you can download all the dump :) but it comes in xml format (?!). So I decided use the 
+#' The first case you can make any query but you are limited you obtain only 50,000 rows via csv file.
+#' The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the 
 #' second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R) 
-#' to parse the 27GB xml file to load the data what I need into a sqlite data base.
-
+#' to parse the 27GB xml file to extrack only the questions and load the data into a sqlite data base.
 db <- src_sqlite("~/so-db.sqlite")
 
 dfqst <- tbl(db, "questions")
+nrow(dfqst) %>% prettyNum(big.mark = ",")
 head(dfqst)
 
-
 dftags <- tbl(db, "questions_tags")
+nrow(dftags) %>% prettyNum(big.mark = ",")
 head(dftags)
 
 #####' ### Top Tags by Year ####
-#' Well, it's almost end of year and we can talk about summaries and what happened this year. So, let's
-#' look about the change across the years (including this one!) in the top tags at stackoverflow.
+#' Well, it's almost end of year and we can talk about summaries about what happened this year. 
+#' So, let's look about the changes in the top tags at stackoverflow
 #' 
-#' We need to calculate the year and then make count grouping by *creationyear* and *tag*, then 
-#' use *row_number* function to make the rank by year and filter by the first 30 places.
+#' We need count grouping by *creationyear* and *tag*, then use *row_number* function to make the rank by
+#' year and filter by the first 30 places.
 dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
 
 dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
@@ -81,8 +81,7 @@ dftags3 <- dftags2 %>%
   collect()
 
 #' In the previous code we need to collect becuase we can't use *row_number* via *tbl* source
-#' (or at leart I don't know how to do it yet).
-
+#' (or at least I don't know how to do it yet).
 tops <- 30
 
 dftags4 <- dftags3 %>% 
@@ -94,11 +93,9 @@ dftags4 <- dftags3 %>%
          creationyear = as.numeric(creationyear))
 
 #' Lets took the first 5 places this year. Nothing new.
-
 dftags4 %>% filter(creationyear == 2015) %>% head(5)
 
 #' The next data frames is to get the name at the start and end of the lines for our first plot.
-
 dftags5 <- dftags4 %>% 
   filter(creationyear == max(creationyear)) %>% 
   mutate(creationyear = as.numeric(creationyear) + 0.25)
@@ -108,9 +105,8 @@ dftags6 <- dftags4 %>%
   mutate(creationyear = as.numeric(creationyear) - 0.25)
 
 #' Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go 
-#' up or down. Maybe this is a very simply and non correct approach but it's good to explore
+#' up or down across the years. Maybe this is a very simply and non correct approach but it's good to explore
 #' the trends. Let's consider the top *tags* in this year with at least 3 appearances:
-  
 tags_tags <- dftags4 %>%
   count(tag) %>%
   filter(n > 3) %>% # have at least 3 appearances
@@ -130,9 +126,8 @@ dflms <- dftags4 %>%
 
 dflms %>% filter(trend != "=")
 
-#' Mmm! What we see? *asp.net* is goind down in rank and *arrays* is going up Now let's 
+#' Mmm! What we see? *asp.net* is goind down and *arrays* is going up Now let's 
 #' get some color for remark the most interesting results.
-
 colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascript" = "#f1e05a",
             "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
 
@@ -158,55 +153,74 @@ ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) +
                      limits = c(min(dftags4$creationyear) - 1.0,
                                 max(dftags4$creationyear) + 0.5))
 
-#' First of all: *javascript* is the top nowadays but let's focus in the chages of places: 
-#' We can see the technologies like android, json are now  more "popular" this days, same as all web/mobile 
-#' technologies like java (via android), css, html, nodejs, swift, ios, objective-c, etc. 
-#' By other hand the *xml* and *asp.net* and friends (*.net*, *visual-studio*) tags aren't popular in this 
-#' days comparing previous years, obviously a top 30 tag in SO means popular yet! buy these tags are becoming
-#' less poppular every year.
+#' First of all: *javascript* is the top tag nowadays nothing new yet so let's focus in the changes of places: 
+#' We can see the web/mobile technologies like android, json are now  more "popular" this days, same as 
+#' css, html, nodejs, swift, ios, objective-c, etc. By other hand the *xml* and *asp.net* and friends 
+#' (*.net*, *visual-studio*) tags aren't popular this year comparing with the previous years, but hey! Obviously 
+#' a top 30 tag in SO means popular yet! but we need to remark these tags are becoming less popular every year.
 #' 
-#' Other important fact to mention is the popularity of the *r* tag (yay!).
+#' Other important fact to mention is the increased popularity of the *r* tag (yay!).
 #' 
-#' And finally is interesting see how xml is going down and json s going up. It seems xml has been replaced
-#' by json gradually.
+#' And finally is interesting see how xml is going down and json s going up. It seems xml is being replaced
+#' by json format gradually.
 #' 
-
 #+ echo=FALSE
-# rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
+rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
 
 #####' ### The Topics this Year ####
 #' 
 #' We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
-#' and may be this questions belong to a family or group of questions. So lets find the 
+#' and maybe this questions belong to a family or group of questions. So let's find the 
 #' topics/cluster/families/communities in all these questions.
 #' 
 #' The firs approach we'll test it be use [*resolution*](https://github.com/analyxcompany/resolution) package
 #' to find communities in a network.
 #' 
+library("igraph")
+library("ForceAtlas2")
 
-dftag2015 <- dftags2 %>%
+dftagpair <- dftags2 %>%
   filter(creationyear == "2015") %>%
-  select(id, tag)
-
-dftag2 <- dftag2015 %>%
-  left_join(dftag2015 %>% select(tag2 = tag, id), by = "id") %>% 
+  select(id, tag) %>% 
+  left_join(. %>% select(tag2 = tag, id), by = "id") %>% 
   filter(tag < tag2) %>% 
   count(tag, tag2) %>% 
-  collect() %>% 
   ungroup() %>% 
   arrange(desc(n))
 
-head(dftag2)
+# dftag2015 <- collect(dftag2015)
+# dftagpair <- collect(dftagpair)
+# save(dftag2015, dftagpair, file = "nets_df.RData")
+# load("nets_df.RData")
 
-dfval <- rbind(dftag2 %>% count(tag) %>% arrange(desc(n)),
-               dftag2 %>% count(tag = tag2) %>% arrange(desc(n))) %>% 
-  tbl_df() %>% 
-  group_by(tag) %>%
-  summarise(n = sum(n)) %>% 
-  arrange(desc(n))
+quantile(dftagpair$n, seq(.9999, 1, length.out = 10))
 
-dfval
-dftag2015 %>% count(tag) %>% arrange(desc(n))
+q <- quantile(dftag2$n, .99)
+
+dftag3 <- dftag2 %>% 
+  filter(n >= q) %>% 
+  rename(weight = n)
+
+g <- graph.data.frame(dftag3, directed = FALSE)
+
+plot(g)
+
+fc <- cluster_fast_greedy(g)
+
+members <- membership(fc)
+dfmembers <- data_frame(member = names(members), cluster = members)
+
+dfmembers %>% count(cluster) %>% arrange(desc(n))
+
+
+dfmembers %>% filter(cluster == 3) %>% View()
+
+dfmembers %>% filter(cluster == (dfmembers %>% filter(member == "ggplot2") %>% .$cluster)) %>% View()
+
+
+dfmembers %>% filter(member == "r")
+
+
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
