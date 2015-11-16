@@ -176,51 +176,90 @@ rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops
 #' The firs approach we'll test it be use [*resolution*](https://github.com/analyxcompany/resolution) package
 #' to find communities in a network.
 #' 
-library("igraph")
-library("ForceAtlas2")
-
-dftagpair <- dftags2 %>%
+dftags20150 <- dftags2 %>%
   filter(creationyear == "2015") %>%
-  select(id, tag) %>% 
-  left_join(. %>% select(tag2 = tag, id), by = "id") %>% 
+  select(id, tag)
+  
+dfedge <- dftags20150 %>% 
+  left_join(dftags20150 %>% select(tag2 = tag, id), by = "id") %>% 
   filter(tag < tag2) %>% 
   count(tag, tag2) %>% 
   ungroup() %>% 
-  arrange(desc(n))
+  arrange(desc(n)) %>% 
+  rename(weight = n) %>% 
+  collect()
 
-# dftag2015 <- collect(dftag2015)
-# dftagpair <- collect(dftagpair)
-# save(dftag2015, dftagpair, file = "nets_df.RData")
+head(dfedge)
+
+dfvert <- dftags20150 %>%
+  group_by(tag) %>%
+  summarise(size = n()) %>% 
+  ungroup() %>% 
+  arrange(desc(size)) %>% 
+  collect()
+  
+head(dfvert)
+
+# # a checkpoint!
+# save(dfedge, dfvert, file = "nets_df.RData")
 # load("nets_df.RData")
+library("visNetwork")
+library("igraph")
+library("resolution")
 
-quantile(dftagpair$n, seq(.9999, 1, length.out = 10))
+quantile(dfedge$weight, seq(.999, 1, length.out = 10))
 
-q <- quantile(dftag2$n, .99)
+# q <- quantile(dfedge$weight, .99985)
+q <-  quantile(dfedge$weight, .9999)
 
-dftag3 <- dftag2 %>% 
-  filter(n >= q) %>% 
-  rename(weight = n)
+dfedge2 <- dfedge %>%
+  filter(weight > q) %>% 
+  rename(from = tag, to = tag2, value = weight) %>% 
+  mutate(value = log(value))
 
-g <- graph.data.frame(dftag3, directed = FALSE)
-
-plot(g)
-
-fc <- cluster_fast_greedy(g)
-
-members <- membership(fc)
-dfmembers <- data_frame(member = names(members), cluster = members)
-
-dfmembers %>% count(cluster) %>% arrange(desc(n))
-
-
-dfmembers %>% filter(cluster == 3) %>% View()
-
-dfmembers %>% filter(cluster == (dfmembers %>% filter(member == "ggplot2") %>% .$cluster)) %>% View()
+dfvert2 <- dfvert %>% 
+  filter(tag %in% c(dfedge2$from, dfedge2$to)) %>% 
+  # mutate(size = 25) %>% 
+  mutate(value = log(size)/max(log(size))*25 + 5,
+         label = tag, title = tag) %>% 
+  rename(id = seq(nrow(.))) %>% 
+  select(id, label, value)
 
 
-dfmembers %>% filter(member == "r")
+g <- graph.data.frame(dfedge2 %>% rename(weight = value), directed = FALSE)
 
 
+c <- cluster_resolution(g, directed=FALSE, t = 1, RandomOrder = TRUE, rep = 3)
+print(c, max.print=999999)
+
+c$membership  # A numeric vector, one value for each vertex, the id of its community.
+c$memberships # It returns all the obtained results in matrix where columns corespond to the vertices and rows to the repetitions.
+c$modularity  # Vector of modularity for each reperitions.
+c$names       # Names od nodes.
+c$vcount      # How many communities have been founded.
+c$algorithm   # The name of the algorithm that was used to calculate the community structure
+print(c)      # Prints a short summary.
+membership(c) # The (best) membership vector, which had the highest value of modularity.
+modularity(c) # The highest modularity value.
+length(c)     # The number of communities.
+sizes(c)      # Returns the community sizes, in the order of their ids.
+algorithm(c)  # The name of the algorithm that was used to calculate the community structure.
+
+
+head(dfedge2)
+head(dfvert2)
+
+dfvert2 %>% filter(id == "r")
+dfvert2 %>% filter(id == "ggplot2")
+
+
+visNetwork(dfvert2, dfedge2, height = "500px", width = "100%") %>% 
+  visPhysics(solver="barnesHut",
+             barnesHut=list(gravitationalConstant= -80000, springConstant= 0.001, springLength= 200), stabilization = FALSE) %>%
+  visInteraction(tooltipDelay = 200, hideEdgesOnDrag= TRUE) %>%
+  visOptions(highlightNearest = TRUE) %>% 
+  visNodes(shape="dot", scaling = list(min = 5, max = 80), font = list(size = 50)) %>%
+  visEdges(width = 0.15, color = list(inherit = 'from'), smooth = list(type = 'continuous'))
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
