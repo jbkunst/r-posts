@@ -186,16 +186,15 @@ dfedge <- dftags20150 %>%
   count(tag, tag2) %>% 
   ungroup() %>% 
   arrange(desc(n)) %>% 
-  rename(weight = n) %>% 
   collect()
 
 head(dfedge)
 
 dfvert <- dftags20150 %>%
   group_by(tag) %>%
-  summarise(size = n()) %>% 
+  summarise(n = n()) %>% 
   ungroup() %>% 
-  arrange(desc(size)) %>% 
+  arrange(desc(n)) %>% 
   collect()
   
 head(dfvert)
@@ -203,31 +202,50 @@ head(dfvert)
 # # a checkpoint!
 # save(dfedge, dfvert, file = "nets_df.RData")
 # load("nets_df.RData")
+
+#' First of all, to explorer we will remove 
+quantile(dfedge$n, seq(.999, 1, length.out = 10))
+
+# q <- quantile(dfedge$weight, .99985)
+q <-  quantile(dfedge$n, .999)
+
+# http://dataknowledge.github.io/visNetwork/edges.html
 library("visNetwork")
+edges <- dfedge %>%
+  filter(n > q) %>% 
+  rename(from = tag, to = tag2, width = n) 
+
+nodes <- dfvert %>% 
+  filter(tag %in% edges$from,  tag %in% edges$to) %>% 
+  mutate(id = seq(nrow(.))) %>% 
+  rename(label = tag, value = n) %>% 
+  select(id, label, value)
+
+g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
+plot(g,
+     layout = layout.fruchterman.reingold,
+     vertex.size = log(betweenness(g))/log(max(betweenness(g)))*9,
+     vertex.label.cex = 0.8)
+
+
+visNetwork(dfvert2, dfedge2, height = "500px", width = "100%") %>% 
+  visPhysics(solver="barnesHut",
+             barnesHut=list(gravitationalConstant= -80000, springConstant= 0.001, springLength= 200), stabilization = FALSE) %>%
+  visInteraction(tooltipDelay = 200, hideEdgesOnDrag= TRUE) %>%
+  visOptions(highlightNearest = TRUE) %>% 
+  visNodes(shape="dot", scaling = list(min = 5, max = 80), font = list(size = 50)) %>%
+  visEdges(width = 0.15, color = list(inherit = 'from'), smooth = list(type = 'continuous'))
+
+
+#' Now to plot
+
 library("igraph")
 library("resolution")
 
-quantile(dfedge$weight, seq(.999, 1, length.out = 10))
-
-# q <- quantile(dfedge$weight, .99985)
-q <-  quantile(dfedge$weight, .9999)
-
-dfedge2 <- dfedge %>%
-  filter(weight > q) %>% 
-  rename(from = tag, to = tag2, value = weight) %>% 
-  mutate(value = log(value))
-
-dfvert2 <- dfvert %>% 
-  filter(tag %in% c(dfedge2$from, dfedge2$to)) %>% 
-  # mutate(size = 25) %>% 
-  mutate(value = log(size)/max(log(size))*25 + 5,
-         label = tag, title = tag) %>% 
-  rename(id = seq(nrow(.))) %>% 
-  select(id, label, value)
-
-
 g <- graph.data.frame(dfedge2 %>% rename(weight = value), directed = FALSE)
 
+
+ebc <- edge.betweenness.community(g, directed = FALSE)
 
 c <- cluster_resolution(g, directed=FALSE, t = 1, RandomOrder = TRUE, rep = 3)
 print(c, max.print=999999)
@@ -251,15 +269,6 @@ head(dfvert2)
 
 dfvert2 %>% filter(id == "r")
 dfvert2 %>% filter(id == "ggplot2")
-
-
-visNetwork(dfvert2, dfedge2, height = "500px", width = "100%") %>% 
-  visPhysics(solver="barnesHut",
-             barnesHut=list(gravitationalConstant= -80000, springConstant= 0.001, springLength= 200), stabilization = FALSE) %>%
-  visInteraction(tooltipDelay = 200, hideEdgesOnDrag= TRUE) %>%
-  visOptions(highlightNearest = TRUE) %>% 
-  visNodes(shape="dot", scaling = list(min = 5, max = 80), font = list(size = 50)) %>%
-  visEdges(width = 0.15, color = list(inherit = 'from'), smooth = list(type = 'continuous'))
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
