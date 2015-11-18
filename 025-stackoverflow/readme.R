@@ -13,6 +13,7 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
+# devtools::install_github("ropensci/plotly")
 library("dplyr")
 library("ggplot2")
 library("showtext")
@@ -28,14 +29,24 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
                   text = element_text(colour = "#616161")))
 
 #### Post ####
-#' Have you
+#' How many times you have an error in your code, query, etc and you don't have the solution? How many 
+#' time in these cases you open your *favorite browser* and search in your *favorite search engine* and type 
+#' (I mean copy/paste) that error and you click in the first result you get and then you don't feel alone
+#' in this planet: "other person had the same problem/question/error as you", and finally, a little bit down you 
+#' see the most voted answer and YES it was a so simple mistake/fix. Well, this happens to me several times a week.
 #' 
+#' Stackoverflow is the biggest site of Q&A that means have a lot of data and fortunately we can get it.
+#' 
+#' Aps! (original) thoughts come to my mind and it come in verse form (not in a haiku form):
+#'  
 #'> When you're down and troubled <br/>
 #'> And you need a **coding** hand <br/>
 #'> And nothing, nothing is going right <br/>
-#'> Open a **browser** and **type** of this <br/>
+#'> Open a **browser** and **type** about this <br/>
 #'> And the first match will be there <br/>
 #'> To brighten up even your darkest night.
+#'
+#' Well, now to code.
 #'
 #' 1. [The Data](#the-data)
 #' 1. [Top Tags by Year](#top-tags-by-year)
@@ -137,12 +148,12 @@ colors <- c(colors, setNames(rep("gray", length(othertags)), othertags))
 
 #' Now the fun part! I call this  **The subway-style-rank-year-tag plot: the past and the future**.
 #+ fig.height = 7, fig.width = 10
-ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) + 
-  geom_line(size = 1.7, alpha = 0.25) +
+p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) + 
+  geom_line(size = 1.7, alpha = 0.25, data = dftags4) +
   geom_line(size = 2.5, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
-  geom_point(size = 4, alpha = 0.25) +
+  geom_point(size = 4, alpha = 0.25, data = dftags4) +
   geom_point(size = 4, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
-  geom_point(size = 1.75, color = "white") +
+  geom_point(size = 1.75, color = "white", data = dftags4) +
   geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 4.5) + 
   geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 4.5) + 
   scale_color_manual(values = colors) +
@@ -152,12 +163,14 @@ ggplot(dftags4, aes(creationyear, y = rank, group = tag, color = tag)) +
                                  max(dftags4$creationyear) + 2),
                      limits = c(min(dftags4$creationyear) - 1.0,
                                 max(dftags4$creationyear) + 0.5))
+p
 
-#' First of all: *javascript* is the top tag nowadays nothing new yet so let's focus in the changes of places: 
-#' We can see the web/mobile technologies like android, json are now  more "popular" this days, same as 
-#' css, html, nodejs, swift, ios, objective-c, etc. By other hand the *xml* and *asp.net* and friends 
-#' (*.net*, *visual-studio*) tags aren't popular this year comparing with the previous years, but hey! Obviously 
-#' a top 30 tag in SO means popular yet! but we need to remark these tags are becoming less popular every year.
+#' First of all: *javascript*, the language of the web, is the top tag nowadays. This is nothing new yet 
+#' so let's focus in the changes of places.We can see the web/mobile technologies like android, json are now  
+#' more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand 
+#' the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing 
+#' with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark 
+#' these tags are becoming less popular every year.
 #' 
 #' Other important fact to mention is the increased popularity of the *r* tag (yay!).
 #' 
@@ -203,72 +216,67 @@ head(dfvert)
 # save(dfedge, dfvert, file = "nets_df.RData")
 # load("nets_df.RData")
 
+
 #' First of all, to explorer we will remove 
 quantile(dfedge$n, seq(.999, 1, length.out = 10))
 
 # q <- quantile(dfedge$weight, .99985)
 q <-  quantile(dfedge$n, .999)
+q <-  quantile(dfedge$n, .9995)
+q
 
-# http://dataknowledge.github.io/visNetwork/edges.html
-library("visNetwork")
+library("igraph")
+library("ForceAtlas2")
+library("resolution")
+library("viridisLite")
+
+
 edges <- dfedge %>%
   filter(n > q) %>% 
   rename(from = tag, to = tag2, width = n) 
 
 nodes <- dfvert %>% 
-  filter(tag %in% edges$from,  tag %in% edges$to) %>% 
+  filter(tag %in% c(edges$from, edges$to)) %>% 
   mutate(id = seq(nrow(.))) %>% 
   rename(label = tag, value = n) %>% 
   select(id, label, value)
 
+# The igraph part
 g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
-plot(g,
-     layout = layout.fruchterman.reingold,
-     vertex.size = log(betweenness(g))/log(max(betweenness(g)))*9,
-     vertex.label.cex = 0.8)
+lout <- layout.forceatlas2(g, plotstep = 0)
+lout <- layout.fruchterman.reingold(g)
+c <- cluster_resolution(g, directed = FALSE, t = 1, RandomOrder = TRUE, rep = 4)
+c
+
+# Add the igraph part
+nodes <- nodes %>% 
+  left_join(data_frame(label = names(membership(c)),
+                       cluster = membership(c)),
+            by = "label")
+  
+nodes <- nodes %>% mutate(x = lout[, 1], y = lout[, 2])
+  
+
+edges <- edges %>% 
+  left_join(nodes %>% select(from = label, x.from = x, y.from = y), by = "from") %>% 
+  left_join(nodes %>% select(to = label, x.to = x, y.to = y), by = "to")
 
 
-visNetwork(dfvert2, dfedge2, height = "500px", width = "100%") %>% 
-  visPhysics(solver="barnesHut",
-             barnesHut=list(gravitationalConstant= -80000, springConstant= 0.001, springLength= 200), stabilization = FALSE) %>%
-  visInteraction(tooltipDelay = 200, hideEdgesOnDrag= TRUE) %>%
-  visOptions(highlightNearest = TRUE) %>% 
-  visNodes(shape="dot", scaling = list(min = 5, max = 80), font = list(size = 50)) %>%
-  visEdges(width = 0.15, color = list(inherit = 'from'), smooth = list(type = 'continuous'))
+clusters <- nodes %>%
+  group_by(cluster) %>% 
+  summarise(cluster_size = n(), value_max = max(value)) %>% 
+  left_join(nodes %>% select(representer = label, value_max = value)) %>% 
+  arrange(desc(cluster_size))
+
+clusters
 
 
-#' Now to plot
-
-library("igraph")
-library("resolution")
-
-g <- graph.data.frame(dfedge2 %>% rename(weight = value), directed = FALSE)
+ggplot() +
+  geom_point(data = nodes, aes(x, y, color = factor(cluster), size = value), alpha = 0.5) + 
+  scale_size_area(max_size = 20) +
+  geom_segment(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to), alpha = 0.1) 
 
 
-ebc <- edge.betweenness.community(g, directed = FALSE)
-
-c <- cluster_resolution(g, directed=FALSE, t = 1, RandomOrder = TRUE, rep = 3)
-print(c, max.print=999999)
-
-c$membership  # A numeric vector, one value for each vertex, the id of its community.
-c$memberships # It returns all the obtained results in matrix where columns corespond to the vertices and rows to the repetitions.
-c$modularity  # Vector of modularity for each reperitions.
-c$names       # Names od nodes.
-c$vcount      # How many communities have been founded.
-c$algorithm   # The name of the algorithm that was used to calculate the community structure
-print(c)      # Prints a short summary.
-membership(c) # The (best) membership vector, which had the highest value of modularity.
-modularity(c) # The highest modularity value.
-length(c)     # The number of communities.
-sizes(c)      # Returns the community sizes, in the order of their ids.
-algorithm(c)  # The name of the algorithm that was used to calculate the community structure.
-
-
-head(dfedge2)
-head(dfvert2)
-
-dfvert2 %>% filter(id == "r")
-dfvert2 %>% filter(id == "ggplot2")
 
 #####' ### Bonus ####
 #' Some questions I readed for write this post
