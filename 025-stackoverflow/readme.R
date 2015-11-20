@@ -54,7 +54,7 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #' 1. [Bonus](#bonus)
 #' 
 
-#####' ### The Data ####
+####' ### The Data ####
 #'
 #' If you want the SO data you can found at least 2 options:
 #' 
@@ -75,7 +75,7 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 # nrow(dftags) %>% prettyNum(big.mark = ",")
 # head(dftags)
 
-#####' ### Top Tags by Year ####
+####' ### Top Tags by Year ####
 #' Well, it's almost end of year and we can talk about summaries about what happened this year. 
 #' So, let's look about the changes in the top tags at stackoverflow
 #' 
@@ -180,7 +180,7 @@ p
 #+ echo=FALSE
 rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
 
-#####' ### The Topics this Year ####
+####' ### The Topics this Year ####
 #' 
 #' We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
 #' and maybe this questions belong to a family or group of questions. So let's find the 
@@ -194,6 +194,7 @@ rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops
 #' *Let the extraction/transformation data/game begin!*:
 #'    
 library("igraph")
+library("ForceAtlas2")
 library("resolution")
 library("viridis")
 
@@ -225,29 +226,27 @@ head(dfvert)
 # rm(list=ls());
 load("nets_df.RData")
 
-#' First of all, to explorer we will remove 
-quantile(dfedge$n, seq(.999, 1, length.out = 10))
-
-# q <- quantile(dfedge$n, .99985)
-q <- quantile(dfedge$n, .9995)
-q
-
-edges <- dfedge %>%
-  filter(n > q) %>% 
-  rename(from = tag, to = tag2, width = n) 
+first_n <- 100
 
 nodes <- dfvert %>% 
-  filter(tag %in% c(edges$from, edges$to)) %>% 
+  head(first_n) %>% 
   mutate(id = seq(nrow(.))) %>% 
   rename(label = tag, value = n) %>% 
   select(id, label, value)
 
+edges <- dfedge %>%
+  filter(tag %in% nodes$label, tag2 %in% nodes$label) %>% 
+  rename(from = tag, to = tag2, width = n) 
+
+# nodes %>% filter(label %in% c("r", "ggplot2"))
+
 # The igraph part
 g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
+pr <- page.rank(g)$vector
 
 set.seed(123)
-lout <- layout.fruchterman.reingold(g)
-# lout <- layout.forceatlas2(g, gravity = 5)
+# lout <- layout.fruchterman.reingold(g)
+lout <- layout.forceatlas2(g, plotstep = 0, gravity = 10)
 c <- cluster_resolution(g, directed = FALSE)
 
 #' Add data
@@ -262,6 +261,9 @@ nodes <- nodes %>%
   left_join(data_frame(label = names(betweenness(g)),
                        betweenness = betweenness(g) + 1),
             by = "label") %>% 
+  left_join(data_frame(label = names(pr), pagerank = pr),
+            by = "label") %>% 
+  # title case
   mutate(labeltitle = gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", label, perl = TRUE))
 
 # Show the firts 10 tag ordering by size to show the topics in the every group
@@ -288,30 +290,31 @@ clusters <- nodes %>%
 
 ggplot() +
   # nodes
-  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = value), alpha = 0.5) + 
+  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = pagerank), alpha = 0.5) + 
   scale_size_area(max_size = 4) + 
   # edges
-  geom_segment(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to), alpha = 0.05, size = 0.1) + 
+  geom_curve(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             alpha = 0.1, size = 0.1, color = "white") + 
   # text 
   geom_text(data = nodes %>% filter(label %in% c(head(nodes$label, 15), clusters$representer)),
-            aes(x, y, label = labeltitle), size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5) + 
+            aes(x, y, label = labeltitle),
+            size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5, color = "white") + 
   # theme
   scale_color_viridis(discrete = TRUE) +
   ggthemes::theme_map() + 
-  theme(legend.position = "none") +
+  theme(legend.position = "none", panel.background = element_rect(fill = "black")) + 
   ggtitle("The haired spagetthi plot")
 
 
 
-#' I was expectin somethin like this Maybe the next picture is what I fell about this plot:
+#' I was expecting something like this Maybe the next picture is what I fell about this plot:
 #' 
 #' ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 #' 
 #' Let's try to made some changes:
 #' 
 
-
-#####' ### Bonus ####
+####' ### Bonus ####
 #' Some questions I readed for write this post:
 #' 
 #' * [Transposing a dataframe maintaining the first column as heading](http://stackoverflow.com/questions/7970179/transposing-a-dataframe-maintaining-the-first-column-as-heading).
@@ -320,6 +323,7 @@ ggplot() +
 #' * [Capitalize the first letter of both words in a two word string](http://stackoverflow.com/questions/6364783/capitalize-the-first-letter-of-both-words-in-a-two-word-string)
 #' * http://stackoverflow.com/questions/17918330/how-to-directly-read-an-image-file-from-a-url-address-in-r
 #' 
+
 ####' ### References ####
 #' 
 #' * [Finding communities in networks with R and igraph](http://www.sixhat.net/finding-communities-in-networks-with-r-and-igraph.html)

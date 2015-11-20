@@ -292,6 +292,7 @@ library("igraph")
 ```
 
 ```r
+library("ForceAtlas2")
 library("resolution")
 library("viridis")
 
@@ -352,50 +353,28 @@ head(dfvert)
 # save(dfedge, dfvert, file = "nets_df.RData")
 # rm(list=ls());
 load("nets_df.RData")
-```
 
-First of all, to explorer we will remove 
-
-
-```r
-quantile(dfedge$n, seq(.999, 1, length.out = 10))
-```
-
-```
-##      99.9%  99.91111%  99.92222%  99.93333%  99.94444%  99.95556% 
-##   485.0000   540.8018   593.5766   670.3513   782.0000   917.9009 
-##  99.96667%  99.97778%  99.98889%       100% 
-##  1159.0270  1564.0540  2643.2252 57970.0000
-```
-
-```r
-# q <- quantile(dfedge$n, .99985)
-q <- quantile(dfedge$n, .9995)
-q
-```
-
-```
-## 99.95% 
-##    841
-```
-
-```r
-edges <- dfedge %>%
-  filter(n > q) %>% 
-  rename(from = tag, to = tag2, width = n) 
+first_n <- 100
 
 nodes <- dfvert %>% 
-  filter(tag %in% c(edges$from, edges$to)) %>% 
+  head(first_n) %>% 
   mutate(id = seq(nrow(.))) %>% 
   rename(label = tag, value = n) %>% 
   select(id, label, value)
 
+edges <- dfedge %>%
+  filter(tag %in% nodes$label, tag2 %in% nodes$label) %>% 
+  rename(from = tag, to = tag2, width = n) 
+
+# nodes %>% filter(label %in% c("r", "ggplot2"))
+
 # The igraph part
 g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
+pr <- page.rank(g)$vector
 
 set.seed(123)
-lout <- layout.fruchterman.reingold(g)
-# lout <- layout.forceatlas2(g, gravity = 5)
+# lout <- layout.fruchterman.reingold(g)
+lout <- layout.forceatlas2(g, plotstep = 0, gravity = 10)
 c <- cluster_resolution(g, directed = FALSE)
 ```
 
@@ -414,6 +393,9 @@ nodes <- nodes %>%
   left_join(data_frame(label = names(betweenness(g)),
                        betweenness = betweenness(g) + 1),
             by = "label") %>% 
+  left_join(data_frame(label = names(pr), pagerank = pr),
+            by = "label") %>% 
+  # title case
   mutate(labeltitle = gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", label, perl = TRUE))
 
 # Show the firts 10 tag ordering by size to show the topics in the every group
@@ -430,66 +412,41 @@ groups
 ```
 
 ```
-## $`2`
-##  [1] "python"     "c++"        "c"          "regex"      "linux"     
-##  [6] "django"     "string"     "windows"    "bash"       "python-2.7"
-## 
-## $`5`
-##  [1] "ios"                "swift"              "objective-c"       
-##  [4] "xcode"              "iphone"             "osx"               
-##  [7] "facebook"           "parse.com"          "uitableview"       
-## [10] "facebook-graph-api"
-## 
-## $`6`
-##  [1] "javascript"        "jquery"            "html"             
-##  [4] "css"               "angularjs"         "json"             
-##  [7] "node.js"           "ajax"              "twitter-bootstrap"
-## [10] "html5"            
-## 
-## $`8`
-##  [1] "php"        "mysql"      "sql"        "arrays"     "sql-server"
-##  [6] "wordpress"  "database"   "oracle"     "apache"     "laravel"   
-## 
-## $`13`
-##  [1] "java"           "android"        "xml"            "spring"        
-##  [5] "eclipse"        "multithreading" "algorithm"      "cordova"       
-##  [9] "rest"           "android-studio"
-## 
-## $`15`
-##  [1] "c#"                 "asp.net"            "asp.net-mvc"       
-##  [4] ".net"               "wpf"                "vb.net"            
-##  [7] "entity-framework"   "visual-studio"      "visual-studio-2013"
-## [10] "winforms"          
-## 
-## $`11`
-## [1] "ruby-on-rails"   "ruby"            "ruby-on-rails-4" "heroku"         
-## [5] "activerecord"    "ruby-on-rails-3" "rspec"           "devise"         
-## 
-## $`10`
-## [1] "r"          "plot"       "ggplot2"    "shiny"      "data.frame"
-## [6] "dplyr"     
-## 
-## $`14`
-## [1] "excel"         "vba"           "excel-vba"     "ms-access"    
-## [5] "excel-formula"
-## 
 ## $`1`
-## [1] "amazon-web-services" "amazon-s3"           "amazon-ec2"         
+##  [1] "javascript"        "jquery"            "html"             
+##  [4] "css"               "angularjs"         "ajax"             
+##  [7] "twitter-bootstrap" "html5"             "image"            
+## [10] "css3"             
 ## 
 ## $`3`
-## [1] "actionscript-3" "flash"         
+##  [1] "php"         "mysql"       "wordpress"   "database"    "apache"     
+##  [6] "laravel"     "forms"       "symfony2"    ".htaccess"   "codeigniter"
 ## 
 ## $`4`
-## [1] "git"    "github"
+##  [1] "python"  "c++"     "arrays"  "r"       "c"       "regex"   "linux"  
+##  [8] "django"  "string"  "windows"
+## 
+## $`5`
+##  [1] "java"           "android"        "json"           "xml"           
+##  [5] "spring"         "eclipse"        "multithreading" "facebook"      
+##  [9] "scala"          "cordova"       
 ## 
 ## $`7`
-## [1] "matlab" "matrix"
+##  [1] "c#"          "sql"         "asp.net"     "sql-server"  "asp.net-mvc"
+##  [6] ".net"        "wpf"         "vb.net"      "oracle"      "postgresql" 
+## 
+## $`8`
+## [1] "ios"         "swift"       "objective-c" "xcode"       "iphone"     
+## [6] "osx"         "parse.com"   "uitableview"
+## 
+## $`2`
+## [1] "node.js"             "mongodb"             "amazon-web-services"
+## 
+## $`6`
+## [1] "ruby-on-rails"   "ruby"            "ruby-on-rails-4"
 ## 
 ## $`9`
-## [1] "jsf"        "primefaces"
-## 
-## $`12`
-## [1] "scala"        "apache-spark"
+## [1] "excel"     "vba"       "excel-vba"
 ```
 
 ```r
@@ -505,23 +462,25 @@ clusters <- nodes %>%
 
 ggplot() +
   # nodes
-  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = value), alpha = 0.5) + 
+  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = pagerank), alpha = 0.5) + 
   scale_size_area(max_size = 4) + 
   # edges
-  geom_segment(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to), alpha = 0.05, size = 0.1) + 
+  geom_curve(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             alpha = 0.1, size = 0.1, color = "white") + 
   # text 
   geom_text(data = nodes %>% filter(label %in% c(head(nodes$label, 15), clusters$representer)),
-            aes(x, y, label = labeltitle), size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5) + 
+            aes(x, y, label = labeltitle),
+            size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5, color = "white") + 
   # theme
   scale_color_viridis(discrete = TRUE) +
   ggthemes::theme_map() + 
-  theme(legend.position = "none") +
+  theme(legend.position = "none", panel.background = element_rect(fill = "black")) + 
   ggtitle("The haired spagetthi plot")
 ```
 
-![](readme_files/figure-html/unnamed-chunk-13-1.png) 
+![](readme_files/figure-html/unnamed-chunk-12-1.png) 
 
-I was expectin somethin like this Maybe the next picture is what I fell about this plot:
+I was expecting something like this Maybe the next picture is what I fell about this plot:
 
 ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 
@@ -544,5 +503,5 @@ Some questions I readed for write this post:
 ---
 title: "readme.R"
 author: "jkunst"
-date: "Thu Nov 19 19:28:14 2015"
+date: "Fri Nov 20 16:34:25 2015"
 ---
