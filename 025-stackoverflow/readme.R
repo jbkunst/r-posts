@@ -13,13 +13,13 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
-# devtools::install_github("ropensci/plotly")
 library("dplyr")
 library("ggplot2")
 library("showtext")
 library("printr")
 
-knitr::opts_chunk$set(warning = FALSE, cache = FALSE, fig.showtext = TRUE, dev = "CairoPNG", fig.width = 8)
+knitr::opts_chunk$set(error = TRUE, warning = FALSE, cache = FALSE, fig.showtext = TRUE,
+                      dev = "CairoPNG", fig.width = 8)
 
 # font.add.google("Lato", "myfont")
 # showtext.auto()
@@ -54,28 +54,28 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #' 1. [Bonus](#bonus)
 #' 
 
-#####' ### The Data ####
+####' ### The Data ####
 #'
 #' If you want the SO data you can found at least 2 options:
 #' 
-#' 1. The StackEchange Data explorer. [link](https://data.stackexchange.com/stackoverflow/query/new)
-#' 2. Stack Exchange Data Dump. (link)(https://archive.org/download/stackexchange).
+#' 1. [The StackEchange Data explorer](https://data.stackexchange.com/stackoverflow/query/new).
+#' 2. S[tack Exchange Data Dump](https://archive.org/download/stackexchange).
 #' 
 #' The first case you can make any query but you are limited you obtain only 50,000 rows via csv file.
 #' The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the 
 #' second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R) 
 #' to parse the 27GB xml file to extrack only the questions and load the data into a sqlite data base.
-db <- src_sqlite("~/so-db.sqlite")
+# db <- src_sqlite("~/so-db.sqlite")
+# 
+# dfqst <- tbl(db, "questions")
+# nrow(dfqst) %>% prettyNum(big.mark = ",")
+# head(dfqst)
+# 
+# dftags <- tbl(db, "questions_tags")
+# nrow(dftags) %>% prettyNum(big.mark = ",")
+# head(dftags)
 
-dfqst <- tbl(db, "questions")
-nrow(dfqst) %>% prettyNum(big.mark = ",")
-head(dfqst)
-
-dftags <- tbl(db, "questions_tags")
-nrow(dftags) %>% prettyNum(big.mark = ",")
-head(dftags)
-
-#####' ### Top Tags by Year ####
+####' ### Top Tags by Year ####
 #' Well, it's almost end of year and we can talk about summaries about what happened this year. 
 #' So, let's look about the changes in the top tags at stackoverflow
 #' 
@@ -180,15 +180,24 @@ p
 #+ echo=FALSE
 rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
 
-#####' ### The Topics this Year ####
+####' ### The Topics this Year ####
 #' 
 #' We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
 #' and maybe this questions belong to a family or group of questions. So let's find the 
 #' topics/cluster/families/communities in all these questions.
 #' 
-#' The firs approach we'll test it be use [*resolution*](https://github.com/analyxcompany/resolution) package
-#' to find communities in a network.
+#' The approach we'll test is inspired by [Tagoverflow](http://stared.github.io/tagoverflow/) a nice app by 
+#' [Piotr Migdał](http://migdal.wikidot.com/) and [Marta Czarnocka-Cieciura](http://martaczc.deviantart.com/). To
+#' find the communiest we use/test the [igraph]() package and the [resolution](github.com/analyxcompany/resolution)
+#' which is a R implementation of [Laplacian Dynamics and Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf). 
 #' 
+#' *Let the extraction/transformation data/game begin!*:
+#'    
+library("igraph")
+library("ForceAtlas2")
+library("resolution")
+library("viridis")
+
 dftags20150 <- dftags2 %>%
   filter(creationyear == "2015") %>%
   select(id, tag)
@@ -214,72 +223,108 @@ head(dfvert)
 
 # # a checkpoint!
 # save(dfedge, dfvert, file = "nets_df.RData")
-# load("nets_df.RData")
+# rm(list=ls());
+load("nets_df.RData")
 
-
-#' First of all, to explorer we will remove 
-quantile(dfedge$n, seq(.999, 1, length.out = 10))
-
-# q <- quantile(dfedge$weight, .99985)
-q <-  quantile(dfedge$n, .999)
-q <-  quantile(dfedge$n, .9995)
-q
-
-library("igraph")
-library("ForceAtlas2")
-library("resolution")
-library("viridisLite")
-
-
-edges <- dfedge %>%
-  filter(n > q) %>% 
-  rename(from = tag, to = tag2, width = n) 
+first_n <- 100
 
 nodes <- dfvert %>% 
-  filter(tag %in% c(edges$from, edges$to)) %>% 
+  head(first_n) %>% 
   mutate(id = seq(nrow(.))) %>% 
   rename(label = tag, value = n) %>% 
   select(id, label, value)
 
+edges <- dfedge %>%
+  filter(tag %in% nodes$label, tag2 %in% nodes$label) %>% 
+  rename(from = tag, to = tag2, width = n) 
+
+# nodes %>% filter(label %in% c("r", "ggplot2"))
+
 # The igraph part
 g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
-lout <- layout.forceatlas2(g, plotstep = 0)
-lout <- layout.fruchterman.reingold(g)
-c <- cluster_resolution(g, directed = FALSE, t = 1, RandomOrder = TRUE, rep = 4)
-c
+pr <- page.rank(g)$vector
 
-# Add the igraph part
-nodes <- nodes %>% 
+set.seed(123)
+# lout <- layout.fruchterman.reingold(g)
+lout <- layout.forceatlas2(g, plotstep = 0, gravity = 10)
+c <- cluster_resolution(g, directed = FALSE)
+
+#' Add data
+nodes <- nodes %>%
+  # add layout
+  mutate(x = lout[, 1], y = lout[, 2]) %>% 
+  # add cluster 
   left_join(data_frame(label = names(membership(c)),
                        cluster = membership(c)),
-            by = "label")
-  
-nodes <- nodes %>% mutate(x = lout[, 1], y = lout[, 2])
-  
+            by = "label") %>% 
+  # add betweenness
+  left_join(data_frame(label = names(betweenness(g)),
+                       betweenness = betweenness(g) + 1),
+            by = "label") %>% 
+  left_join(data_frame(label = names(pr), pagerank = pr),
+            by = "label") %>% 
+  # title case
+  mutate(labeltitle = gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", label, perl = TRUE))
+
+# Show the firts 10 tag ordering by size to show the topics in the every group
+groups <- nodes %>% 
+  group_by(cluster) %>% 
+  mutate(order_in_cluster = row_number(-value)) %>% 
+  ungroup() %>%
+  filter(order_in_cluster <= 10) %>% 
+  {split(.$label, .$cluster)}
+
+sizes <- purrr::map(groups, length) %>% unlist() %>% order(decreasing = TRUE)
+groups <- groups[sizes]
+groups
 
 edges <- edges %>% 
   left_join(nodes %>% select(from = label, x.from = x, y.from = y), by = "from") %>% 
   left_join(nodes %>% select(to = label, x.to = x, y.to = y), by = "to")
 
-
 clusters <- nodes %>%
   group_by(cluster) %>% 
   summarise(cluster_size = n(), value_max = max(value)) %>% 
-  left_join(nodes %>% select(representer = label, value_max = value)) %>% 
-  arrange(desc(cluster_size))
-
-clusters
-
+  left_join(nodes %>% select(representer = label, value_max = value), by = "value_max") %>% 
+  arrange(desc(cluster_size)) 
 
 ggplot() +
-  geom_point(data = nodes, aes(x, y, color = factor(cluster), size = value), alpha = 0.5) + 
-  scale_size_area(max_size = 20) +
-  geom_segment(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to), alpha = 0.1) 
+  # nodes
+  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = pagerank), alpha = 0.5) + 
+  scale_size_area(max_size = 4) + 
+  # edges
+  geom_curve(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
+             alpha = 0.1, size = 0.1, color = "white") + 
+  # text 
+  geom_text(data = nodes %>% filter(label %in% c(head(nodes$label, 15), clusters$representer)),
+            aes(x, y, label = labeltitle),
+            size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5, color = "white") + 
+  # theme
+  scale_color_viridis(discrete = TRUE) +
+  ggthemes::theme_map() + 
+  theme(legend.position = "none", panel.background = element_rect(fill = "black")) + 
+  ggtitle("The haired spagetthi plot")
 
 
 
-#####' ### Bonus ####
-#' Some questions I readed for write this post
+#' I was expecting something like this Maybe the next picture is what I fell about this plot:
+#' 
+#' ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
+#' 
+#' Let's try to made some changes:
+#' 
+
+####' ### Bonus ####
+#' Some questions I readed for write this post:
+#' 
 #' * [Transposing a dataframe maintaining the first column as heading](http://stackoverflow.com/questions/7970179/transposing-a-dataframe-maintaining-the-first-column-as-heading).
+#' * [Split a vector into chunks in R](http://stackoverflow.com/questions/3318333/split-a-vector-into-chunks-in-r)
+#' * [What are the differences between community detection algorithms in igraph?](http://stackoverflow.com/questions/9471906/what-are-the-differences-between-community-detection-algorithms-in-igraph)
+#' * [Capitalize the first letter of both words in a two word string](http://stackoverflow.com/questions/6364783/capitalize-the-first-letter-of-both-words-in-a-two-word-string)
+#' * http://stackoverflow.com/questions/17918330/how-to-directly-read-an-image-file-from-a-url-address-in-r
 #' 
+
+####' ### References ####
 #' 
+#' * [Finding communities in networks with R and igraph](http://www.sixhat.net/finding-communities-in-networks-with-r-and-igraph.html)
+#' * [Adjacency matrix plots with R and ggplot2](http://matthewlincoln.net/2014/12/20/adjacency-matrix-plots-with-r-and-ggplot2.html)
