@@ -3,16 +3,16 @@ Joshua Kunst
 
 
 
-How many times you have an error in your code, query, etc and you don't have the solution? How many 
-time in these cases you open your *favorite browser* and search in your *favorite search engine* and type 
+How many times you have an error in your code, query, etc and you don't have the solution? How many
+time in these cases you open your *favorite browser* and search in your *favorite search engine* and type
 (I mean copy/paste) that error and you click in the first result you get and then you don't feel alone
-in this planet: "other person had the same problem/question/error as you", and finally, a little bit down you 
+in this planet: "other person had the same problem/question/error as you", and finally, a little bit down you
 see the most voted answer and YES it was a so simple mistake/fix. Well, this happens to me several times a week.
 
 Stackoverflow is the biggest site of Q&A that means have a lot of data and fortunately we can get it.
 
 Aps! (original) thoughts come to my mind and it come in verse form (not in a haiku form):
- 
+
 > When you're down and troubled <br/>
 > And you need a **coding** hand <br/>
 > And nothing, nothing is going right <br/>
@@ -32,11 +32,11 @@ Well, now to code.
 If you want the SO data you can found at least 2 options:
 
 1. [The StackEchange Data explorer](https://data.stackexchange.com/stackoverflow/query/new).
-2. S[tack Exchange Data Dump](https://archive.org/download/stackexchange).
+2. [Stack Exchange Data Dump](https://archive.org/download/stackexchange).
 
 The first case you can make any query but you are limited you obtain only 50,000 rows via csv file.
-The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the 
-second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R) 
+The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the
+second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R)
 to parse the 27GB xml file to extrack only the questions and load the data into a sqlite data base.
 
 
@@ -53,7 +53,7 @@ to parse the 27GB xml file to extrack only the questions and load the data into 
 ```
 
 ### Top Tags by Year ####
-Well, it's almost end of year and we can talk about summaries about what happened this year. 
+Well, it's almost end of year and we can talk about summaries about what happened this year.
 So, let's look about the changes in the top tags at stackoverflow
 
 We need count grouping by *creationyear* and *tag*, then use *row_number* function to make the rank by
@@ -77,10 +77,10 @@ dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
 ```
 
 ```r
-dftags3 <- dftags2 %>% 
-  group_by(creationyear, tag) %>% 
-  summarize(count = n()) %>% 
-  arrange(creationyear, -count) %>% 
+dftags3 <- dftags2 %>%
+  group_by(creationyear, tag) %>%
+  summarize(count = n()) %>%
+  arrange(creationyear, -count) %>%
   collect()
 ```
 
@@ -95,11 +95,11 @@ In the previous code we need to collect becuase we can't use *row_number* via *t
 ```r
 tops <- 30
 
-dftags4 <- dftags3 %>% 
-  group_by(creationyear) %>% 
-  mutate(rank = row_number()) %>% 
+dftags4 <- dftags3 %>%
+  group_by(creationyear) %>%
+  mutate(rank = row_number()) %>%
   ungroup() %>%
-  filter(rank <= tops) %>% 
+  filter(rank <= tops) %>%
   mutate(rank = factor(rank, levels = rev(seq(tops))),
          creationyear = as.numeric(creationyear))
 ```
@@ -123,8 +123,8 @@ The next data frames is to get the name at the start and end of the lines for ou
 
 
 ```r
-dftags5 <- dftags4 %>% 
-  filter(creationyear == max(creationyear)) %>% 
+dftags5 <- dftags4 %>%
+  filter(creationyear == max(creationyear)) %>%
   mutate(creationyear = as.numeric(creationyear) + 0.25)
 ```
 
@@ -133,8 +133,8 @@ dftags5 <- dftags4 %>%
 ```
 
 ```r
-dftags6 <- dftags4 %>% 
-  filter(creationyear == min(creationyear)) %>% 
+dftags6 <- dftags4 %>%
+  filter(creationyear == min(creationyear)) %>%
   mutate(creationyear = as.numeric(creationyear) - 0.25)
 ```
 
@@ -142,7 +142,7 @@ dftags6 <- dftags4 %>%
 ## Error in eval(expr, envir, enclos): object 'dftags4' not found
 ```
 
-Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go 
+Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go
 up or down across the years. Maybe this is a very simply and non correct approach but it's good to explore
 the trends. Let's consider the top *tags* in this year with at least 3 appearances:
 
@@ -160,15 +160,15 @@ tags_tags <- dftags4 %>%
 ```
 
 ```r
-dflms <- dftags4 %>% 
-  filter(tag %in% tags_tags) %>% 
-  group_by(tag) %>% 
-  do(model = lm(as.numeric(rank) ~ creationyear, data = .)) %>% 
-  mutate(slope = coefficients(model)[2]) %>% 
-  arrange(slope) %>% 
-  select(-model) %>% 
+dflms <- dftags4 %>%
+  filter(tag %in% tags_tags) %>%
+  group_by(tag) %>%
+  do(model = lm(as.numeric(rank) ~ creationyear, data = .)) %>%
+  mutate(slope = coefficients(model)[2]) %>%
+  arrange(slope) %>%
+  select(-model) %>%
   mutate(trend = cut(slope, breaks = c(-Inf, -1, 1, Inf), labels = c("-", "=", "+")),
-         slope = round(slope, 2)) %>% 
+         slope = round(slope, 2)) %>%
   arrange(desc(slope))
 ```
 
@@ -184,7 +184,7 @@ dflms %>% filter(trend != "=")
 ## Error in eval(expr, envir, enclos): object 'dflms' not found
 ```
 
-Mmm! What we see? *asp.net* is goind down and *arrays* is going up Now let's 
+Mmm! What we see? *asp.net* is goind down and *arrays* is going up Now let's
 get some color for remark the most interesting results.
 
 
@@ -211,14 +211,14 @@ Now the fun part! I call this  **The subway-style-rank-year-tag plot: the past a
 
 
 ```r
-p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) + 
+p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) +
   geom_line(size = 1.7, alpha = 0.25, data = dftags4) +
   geom_line(size = 2.5, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
   geom_point(size = 4, alpha = 0.25, data = dftags4) +
   geom_point(size = 4, data = dftags4 %>% filter(tag %in% names(colors)[colors != "gray"])) +
   geom_point(size = 1.75, color = "white", data = dftags4) +
-  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 4.5) + 
-  geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 4.5) + 
+  geom_text(data = dftags5, aes(label = tag), hjust = -0, size = 4.5) +
+  geom_text(data = dftags6, aes(label = tag), hjust = 1, size = 4.5) +
   scale_color_manual(values = colors) +
   ggtitle("The subway-style-rank-year-tag plot:\nPast and the Future") +
   xlab("Top Tags by Year in Stackoverflow") +
@@ -240,11 +240,11 @@ p
 ## Error in eval(expr, envir, enclos): object 'p' not found
 ```
 
-First of all: *javascript*, the language of the web, is the top tag nowadays. This is nothing new yet 
-so let's focus in the changes of places.We can see the web/mobile technologies like android, json are now  
-more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand 
-the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing 
-with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark 
+First of all: *javascript*, the language of the web, is the top tag nowadays. This is nothing new yet
+so let's focus in the changes of places.We can see the web/mobile technologies like android, json are now
+more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand
+the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing
+with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark
 these tags are becoming less popular every year.
 
 Other important fact to mention is the increased popularity of the *r* tag (yay!).
@@ -257,17 +257,17 @@ by json format gradually.
 
 ### The Topics this Year ####
 
-We know, for example, some question are tag by *database*, other are tagged with *sql* or *server* 
-and maybe this questions belong to a family or group of questions. So let's find the 
-topics/cluster/families/communities in all these questions.
+We know, for example, some question are tag by *database*, other are tagged with *sql* or *mysql*
+and maybe this questions belong to a family or group of questions. So let's find the
+topics/cluster/families/communities in all 2015 questions.
 
-The approach we'll test is inspired by [Tagoverflow](http://stared.github.io/tagoverflow/) a nice app by 
+The approach we'll test is inspired by [Tagoverflow](http://stared.github.io/tagoverflow/) a nice app by
 [Piotr Migdal](http://migdal.wikidot.com/) and [Marta Czarnocka-Cieciura](http://martaczc.deviantart.com/). To
 find the communiest we use/test the [igraph]() package and the [resolution](github.com/analyxcompany/resolution)
-which is a R implementation of [Laplacian Dynamics and Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf). 
+which is a R implementation of [Laplacian Dynamics and Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf).
 
 *Let the extraction/transformation data/game begin!*:
-   
+
 
 
 ```r
@@ -292,9 +292,8 @@ library("igraph")
 ```
 
 ```r
-library("ForceAtlas2")
 library("resolution")
-library("viridis")
+library("networkD3")
 
 dftags20150 <- dftags2 %>%
   filter(creationyear == "2015") %>%
@@ -306,12 +305,12 @@ dftags20150 <- dftags2 %>%
 ```
 
 ```r
-dfedge <- dftags20150 %>% 
-  left_join(dftags20150 %>% select(tag2 = tag, id), by = "id") %>% 
-  filter(tag < tag2) %>% 
-  count(tag, tag2) %>% 
-  ungroup() %>% 
-  arrange(desc(n)) %>% 
+dfedge <- dftags20150 %>%
+  left_join(dftags20150 %>% select(tag2 = tag, id), by = "id") %>%
+  filter(tag < tag2) %>%
+  count(tag, tag2) %>%
+  ungroup() %>%
+  arrange(desc(n)) %>%
   collect()
 ```
 
@@ -330,9 +329,9 @@ head(dfedge)
 ```r
 dfvert <- dftags20150 %>%
   group_by(tag) %>%
-  summarise(n = n()) %>% 
-  ungroup() %>% 
-  arrange(desc(n)) %>% 
+  summarise(n = n()) %>%
+  ungroup() %>%
+  arrange(desc(n)) %>%
   collect()
 ```
 
@@ -348,33 +347,30 @@ head(dfvert)
 ## Error in head(dfvert): object 'dfvert' not found
 ```
 
+
 ```r
-# # a checkpoint!
-# save(dfedge, dfvert, file = "nets_df.RData")
-# rm(list=ls());
-load("nets_df.RData")
+first_n <- 75
+```
 
-first_n <- 100
+To reduce the calculation times and we will use the fisrt 75 top tags.
+Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
+algorithm to find groups.
 
-nodes <- dfvert %>% 
-  head(first_n) %>% 
-  mutate(id = seq(nrow(.))) %>% 
-  rename(label = tag, value = n) %>% 
-  select(id, label, value)
+
+```r
+nodes <- dfvert %>%
+  head(first_n) %>%
+  mutate(id = seq(nrow(.))) %>%
+  rename(label = tag) %>%
+  select(id, label, n)
 
 edges <- dfedge %>%
-  filter(tag %in% nodes$label, tag2 %in% nodes$label) %>% 
-  rename(from = tag, to = tag2, width = n) 
-
-# nodes %>% filter(label %in% c("r", "ggplot2"))
+  filter(tag %in% nodes$label, tag2 %in% nodes$label) %>%
+  rename(from = tag, to = tag2)
 
 # The igraph part
-g <- graph.data.frame(edges %>% rename(weight = width), directed = FALSE)
+g <- graph.data.frame(edges %>% rename(weight = n), directed = FALSE)
 pr <- page.rank(g)$vector
-
-set.seed(123)
-# lout <- layout.fruchterman.reingold(g)
-lout <- layout.forceatlas2(g, plotstep = 0, gravity = 10)
 c <- cluster_resolution(g, directed = FALSE)
 ```
 
@@ -383,27 +379,16 @@ Add data
 
 ```r
 nodes <- nodes %>%
-  # add layout
-  mutate(x = lout[, 1], y = lout[, 2]) %>% 
-  # add cluster 
   left_join(data_frame(label = names(membership(c)),
                        cluster = membership(c)),
-            by = "label") %>% 
-  # add betweenness
-  left_join(data_frame(label = names(betweenness(g)),
-                       betweenness = betweenness(g) + 1),
-            by = "label") %>% 
-  left_join(data_frame(label = names(pr), pagerank = pr),
-            by = "label") %>% 
-  # title case
-  mutate(labeltitle = gsub("(^|[[:space:]])([[:alpha:]])", "\\1\\U\\2", label, perl = TRUE))
+            by = "label")
 
 # Show the firts 10 tag ordering by size to show the topics in the every group
-groups <- nodes %>% 
-  group_by(cluster) %>% 
-  mutate(order_in_cluster = row_number(-value)) %>% 
+groups <- nodes %>%
+  group_by(cluster) %>%
+  mutate(order_in_cluster = row_number(-n)) %>%
   ungroup() %>%
-  filter(order_in_cluster <= 10) %>% 
+  filter(order_in_cluster <= 10) %>%
   {split(.$label, .$cluster)}
 
 sizes <- purrr::map(groups, length) %>% unlist() %>% order(decreasing = TRUE)
@@ -412,77 +397,76 @@ groups
 ```
 
 ```
-## $`1`
-##  [1] "javascript"        "jquery"            "html"             
-##  [4] "css"               "angularjs"         "ajax"             
-##  [7] "twitter-bootstrap" "html5"             "image"            
-## [10] "css3"             
-## 
-## $`3`
-##  [1] "php"         "mysql"       "wordpress"   "database"    "apache"     
-##  [6] "laravel"     "forms"       "symfony2"    ".htaccess"   "codeigniter"
-## 
 ## $`4`
 ##  [1] "python"  "c++"     "arrays"  "r"       "c"       "regex"   "linux"  
 ##  [8] "django"  "string"  "windows"
 ## 
 ## $`5`
 ##  [1] "java"           "android"        "json"           "xml"           
-##  [5] "spring"         "eclipse"        "multithreading" "facebook"      
-##  [9] "scala"          "cordova"       
+##  [5] "spring"         "eclipse"        "multithreading" "git"           
+##  [9] "image"          "facebook"      
 ## 
 ## $`7`
 ##  [1] "c#"          "sql"         "asp.net"     "sql-server"  "asp.net-mvc"
 ##  [6] ".net"        "wpf"         "vb.net"      "oracle"      "postgresql" 
 ## 
+## $`1`
+## [1] "javascript"        "jquery"            "html"             
+## [4] "css"               "angularjs"         "ajax"             
+## [7] "twitter-bootstrap" "html5"             "css3"             
+## 
+## $`3`
+## [1] "php"       "mysql"     "wordpress" "database"  "apache"    "laravel"  
+## [7] "forms"     "symfony2"  ".htaccess"
+## 
 ## $`8`
 ## [1] "ios"         "swift"       "objective-c" "xcode"       "iphone"     
-## [6] "osx"         "parse.com"   "uitableview"
-## 
-## $`2`
-## [1] "node.js"             "mongodb"             "amazon-web-services"
+## [6] "osx"        
 ## 
 ## $`6`
 ## [1] "ruby-on-rails"   "ruby"            "ruby-on-rails-4"
 ## 
 ## $`9`
 ## [1] "excel"     "vba"       "excel-vba"
+## 
+## $`2`
+## [1] "node.js" "mongodb"
 ```
 
 ```r
+nodes <- nodes %>% 
+  rename(size = n) %>% 
+  mutate(size = round(30*size/max(size)))
+
 edges <- edges %>% 
-  left_join(nodes %>% select(from = label, x.from = x, y.from = y), by = "from") %>% 
-  left_join(nodes %>% select(to = label, x.to = x, y.to = y), by = "to")
-
-clusters <- nodes %>%
-  group_by(cluster) %>% 
-  summarise(cluster_size = n(), value_max = max(value)) %>% 
-  left_join(nodes %>% select(representer = label, value_max = value), by = "value_max") %>% 
-  arrange(desc(cluster_size)) 
-
-ggplot() +
-  # nodes
-  geom_point(data = nodes, aes(x, y, colour = factor(cluster), size = pagerank), alpha = 0.5) + 
-  scale_size_area(max_size = 4) + 
-  # edges
-  geom_curve(data = edges, aes(x = x.from, y = y.from, xend = x.to, yend = y.to),
-             alpha = 0.1, size = 0.1, color = "white") + 
-  # text 
-  geom_text(data = nodes %>% filter(label %in% c(head(nodes$label, 15), clusters$representer)),
-            aes(x, y, label = labeltitle),
-            size = 4, hjust = -0.1, vjust = -0.1, alpha = 0.5, color = "white") + 
-  # theme
-  scale_color_viridis(discrete = TRUE) +
-  ggthemes::theme_map() + 
-  theme(legend.position = "none", panel.background = element_rect(fill = "black")) + 
-  ggtitle("The haired spagetthi plot")
+  left_join(nodes %>% select(from = label, id), by = "from") %>% 
+  rename(source = id) %>%
+  left_join(nodes %>% select(to = label, id), by = "to") %>% 
+  rename(target = id) %>% 
+  mutate(value = round(30*n^2/max(n^2)) + 1,
+         source = source - 1,
+         target = target - 1) %>% 
+  arrange(desc(value)) %>% 
+  head(nrow(nodes)*2)
 ```
 
-![](readme_files/figure-html/unnamed-chunk-12-1.png) 
+<link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
 
-I was expecting something like this Maybe the next picture is what I fell about this plot:
 
-![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
+```r
+forceNetwork(Links = edges, Nodes = nodes,
+             Source = "source", Target = "target", Value = "value",
+             NodeID = "label", Group = "cluster",
+             opacity = 1, linkColour = "#BBB",
+             linkDistance = 50, charge = -100,
+             zoom = TRUE,  fontFamily = "Lato")
+```
+
+<!--html_preserve--><div id="htmlwidget-2660" style="width:768px;height:480px;" class="forceNetwork"></div>
+<script type="application/json" data-for="htmlwidget-2660">{"x":{"links":{"source":[0,9,7,7,2,11,12,8,8,9,9,17,0,25,32,24,7,5,25,0,13,1,8,33,4,11,8,28,3,30,51,28,0,9,6,54,15,38,41,25,2,7,9,16,15,4,72,6,15,5,14,0,37,52,21,1,63,3,17,1,5,1,1,56,3,19,12,55,7,4,44,20,2,73,17,71,2,9,1,2,12,53,71,1,37,38,2,48,0,24,4,19,55,37,55,17,15,3,4,4,15,9,6,1,59,63,20,1,4,30,25,2,2,0,1,2,4,25,72,64,56,4,55,12,7,15,30,15,69,9,0,5,6,63,15,2,0,10,0,3,17,12,12,7,63,56,32,21,30,7],"target":[5,7,0,5,1,3,0,14,19,0,5,4,3,5,4,16,3,3,0,22,23,34,36,6,42,13,56,40,31,4,40,51,21,35,49,3,3,0,1,3,69,35,63,66,0,67,1,74,1,35,36,35,11,13,3,70,7,68,30,29,21,21,46,19,13,36,7,3,38,23,22,10,64,6,0,53,29,38,11,41,5,3,3,39,13,5,21,27,26,66,0,14,0,3,7,5,20,26,29,13,10,3,26,26,13,38,27,0,21,5,7,0,8,16,65,60,5,21,34,0,14,46,5,21,11,21,0,6,1,31,44,31,39,0,39,3,11,43,31,29,45,22,9,31,5,36,17,6,67,58],"value":[31,13,12,6,6,6,5,5,5,4,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"nodes":{"name":["javascript","java","android","php","c#","jquery","python","html","ios","css","c++","mysql","angularjs","sql","swift","arrays","ruby-on-rails","asp.net","r","objective-c","c","json","node.js","sql-server","ruby","ajax","regex","linux","excel","xml","asp.net-mvc","wordpress",".net","django","spring","twitter-bootstrap","xcode","database","html5","string","vba","eclipse","wpf","windows","mongodb","vb.net","multithreading","matlab","bash","python-2.7","git","excel-vba","oracle","apache","laravel","forms","iphone","osx","image","postgresql","facebook","scala","algorithm","css3","cordova","rest","ruby-on-rails-4","entity-framework","symfony2","android-studio","maven",".htaccess","hibernate","list","python-3.x"],"group":[1,5,5,3,7,1,4,1,8,1,4,3,1,7,8,4,6,7,4,8,4,5,2,7,6,1,4,4,9,5,7,3,7,4,5,1,8,3,1,4,9,5,7,4,2,7,5,4,4,4,5,9,7,3,3,3,8,8,5,7,5,5,4,1,5,5,6,7,3,5,5,3,5,4,4]},"options":{"NodeID":"label","Group":"cluster","colourScale":"d3.scale.category20()","fontSize":7,"fontFamily":"Lato","clickTextSize":17.5,"linkDistance":50,"linkWidth":"function(d) { return Math.sqrt(d.value); }","charge":-100,"linkColour":"#BBB","opacity":1,"zoom":true,"legend":false,"nodesize":false,"radiusCalculation":" Math.sqrt(d.nodesize)+6","bounded":false,"opacityNoHover":0,"clickAction":null}},"evals":[]}</script><!--/html_preserve-->
+
+
+ ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 
 Let's try to made some changes:
 
@@ -493,7 +477,7 @@ Some questions I readed for write this post:
 * [Split a vector into chunks in R](http://stackoverflow.com/questions/3318333/split-a-vector-into-chunks-in-r)
 * [What are the differences between community detection algorithms in igraph?](http://stackoverflow.com/questions/9471906/what-are-the-differences-between-community-detection-algorithms-in-igraph)
 * [Capitalize the first letter of both words in a two word string](http://stackoverflow.com/questions/6364783/capitalize-the-first-letter-of-both-words-in-a-two-word-string)
-* http://stackoverflow.com/questions/17918330/how-to-directly-read-an-image-file-from-a-url-address-in-r
+* [R: simple multiplication causes integer overflow](http://stackoverflow.com/questions/17650803/r-simple-multiplication-causes-integer-overflow).
 
 ### References ####
 
@@ -503,5 +487,5 @@ Some questions I readed for write this post:
 ---
 title: "readme.R"
 author: "jkunst"
-date: "Fri Nov 20 16:34:25 2015"
+date: "Mon Nov 23 18:34:16 2015"
 ---
