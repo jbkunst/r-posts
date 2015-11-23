@@ -187,7 +187,7 @@ rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops
 #' topics/cluster/families/communities in all these questions.
 #' 
 #' The approach we'll test is inspired by [Tagoverflow](http://stared.github.io/tagoverflow/) a nice app by 
-#' [Piotr Migdał](http://migdal.wikidot.com/) and [Marta Czarnocka-Cieciura](http://martaczc.deviantart.com/). To
+#' [Piotr Migdal](http://migdal.wikidot.com/) and [Marta Czarnocka-Cieciura](http://martaczc.deviantart.com/). To
 #' find the communiest we use/test the [igraph]() package and the [resolution](github.com/analyxcompany/resolution)
 #' which is a R implementation of [Laplacian Dynamics and Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf). 
 #' 
