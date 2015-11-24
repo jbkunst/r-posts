@@ -38,7 +38,7 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #'
 #' Stackoverflow is the biggest site of Q&A that means have a lot of data and fortunately we can get it.
 #'
-#' Aps! (original) thoughts come to my mind and it come in verse form (not in a haiku form):
+#' *Original* thoughts come to my mind and it come in verse form (not in a haiku way):
 #'
 #'> When you're down and troubled <br/>
 #'> And you need a **coding** hand <br/>
@@ -65,23 +65,20 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #' The first case you can make any query but you are limited you obtain only 50,000 rows via csv file.
 #' The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the
 #' second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R)
-#' to parse the 27GB xml file to extrack only the questions and load the data into a sqlite data base.
-# db <- src_sqlite("~/so-db.sqlite")
-# 
-# dfqst <- tbl(db, "questions")
-# nrow(dfqst) %>% prettyNum(big.mark = ",")
-# head(dfqst)
-# 
-# dftags <- tbl(db, "questions_tags")
-# nrow(dftags) %>% prettyNum(big.mark = ",")
-# head(dftags)
+#' to parse the 27GB xml file to extract only the questions and load the data into a sqlite data base.
+#+ eval=FALSE
+db <- src_sqlite("~/so-db.sqlite")
+
+dfqst <- tbl(db, "questions")
+
+dftags <- tbl(db, "questions_tags")
 
 ####' ### Top Tags by Year ####
 #' Well, it's almost end of year and we can talk about summaries about what happened this year.
-#' So, let's look about the changes in the top tags at stackoverflow
-#'
-#' We need count grouping by *creationyear* and *tag*, then use *row_number* function to make the rank by
-#' year and filter by the first 30 places.
+#' So, let's look about the changes in the top tags at stackoverflow.
+#' We need count grouping by *creationyear* and *tag*, then use *row_number* function to make 
+#' the rank by year and filter by the first 30 places.
+#+ eval=FALSE
 dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
 
 dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
@@ -94,6 +91,7 @@ dftags3 <- dftags2 %>%
 
 #' In the previous code we need to collect becuase we can't use *row_number* via *tbl* source
 #' (or at least I don't know how to do it yet).
+#+ eval=FALSE
 tops <- 30
 
 dftags4 <- dftags3 %>%
@@ -103,6 +101,11 @@ dftags4 <- dftags3 %>%
   filter(rank <= tops) %>%
   mutate(rank = factor(rank, levels = rev(seq(tops))),
          creationyear = as.numeric(creationyear))
+
+#+ echo=FALSE
+# checkpoint
+# save(dftags4, file = "top_tags_by_year.RData")
+load(file = "top_tags_by_year.RData")
 
 #' Lets took the first 5 places this year. Nothing new.
 dftags4 %>% filter(creationyear == 2015) %>% head(5)
@@ -121,7 +124,7 @@ dftags6 <- dftags4 %>%
 #' the trends. Let's consider the top *tags* in this year with at least 3 appearances:
 tags_tags <- dftags4 %>%
   count(tag) %>%
-  filter(n > 3) %>% # have at least 3 appearances
+  filter(n >= 3) %>% # have at least 3 appearances
   filter(tag %in% dftags5$tag) %>% # top tags in 2015
   .$tag
 
@@ -138,8 +141,18 @@ dflms <- dftags4 %>%
 
 dflms %>% filter(trend != "=")
 
-#' Mmm! What we see? *asp.net* is goind down and *arrays* is going up Now let's
-#' get some color for remark the most interesting results.
+#' Yay! it's not coincidence (may be yes because I choose tag with 3 or more appearances): R have a
+#' a big increase in the las 3 years, The reason can be probably the datascience boom and how the data
+#' have become somethig more important in technologies. Today everything is being measured. Other reason
+#' is becuase R it's awesome. 
+#' 
+#' I'm not sure why the *arrays* have a similiar trend. This tag is a generic one because all programing
+#' lenguages  arrays. My first guess is this a *web*'s colaterlal effect. In javascript
+#' you need to know how handle data (usually the response to an ajax request is a json object which is
+#' parsed into dict, arrays and/or list) to make you web interactive.
+#'  
+#' What else we see? *asp.net* same as *xml*. Now let's
+#' get some color to stand out the most interesting results.
 colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascript" = "#f1e05a",
             "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
 
@@ -171,17 +184,12 @@ p
 #' more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand
 #' the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing
 #' with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark
-#' these tags are becoming less popular every year.
+#' these tags are becoming less popular every year. In the same context is interesting see is how *xml* is 
+#' going down and *json* s going up. It seems xml is being replaced by json format gradually. The same 
+#' effect could be in *.net* with the rest of the webframeworks like ror, django, php frameworks. 
+#' 
+#' The new technoligies are replacing the old ones.
 #'
-#' Other important fact to mention is the increased popularity of the *r* tag (yay!).
-#'
-#' And finally is interesting see how xml is going down and json s going up. It seems xml is being replaced
-#' by json format gradually.
-#'
-#+ echo=FALSE
-# save(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops, file = "top_tags_by_year.RData")
-load(file = "top_tags_by_year.RData")
-# rm(dflms, dftags3, dftags4, dftags5, dftags6, tags_tags, colors, othertags, tops)
 
 ####' ### The Topics this Year ####
 #'
@@ -196,10 +204,11 @@ load(file = "top_tags_by_year.RData")
 #'
 #' *Let the extraction/transformation data/game begin!*:
 #'
-library("igraph")
+suppressPackageStartupMessages(library("igraph"))
 library("resolution")
 library("networkD3")
 
+#+ eval=FALSE
 dftags20150 <- dftags2 %>%
   filter(creationyear == "2015") %>%
   select(id, tag)
@@ -212,16 +221,12 @@ dfedge <- dftags20150 %>%
   arrange(desc(n)) %>%
   collect()
 
-head(dfedge)
-
 dfvert <- dftags20150 %>%
   group_by(tag) %>%
   summarise(n = n()) %>%
   ungroup() %>%
   arrange(desc(n)) %>%
   collect()
-
-head(dfvert)
 
 #+ echo=FALSE
 # # a checkpoint!
@@ -230,11 +235,11 @@ head(dfvert)
 load("nets_df.RData")
 #+ echo=TRUE
 
-first_n <- 70
+first_n <- 75
 
-#' To reduce the calculation times and we will use the fisrt `r first_n` top tags.
+#' To reduce the calculation times and to talk generally we will use the fisrt `r first_n` top tags.
 #' Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
-#' algorithm to find groups.
+#' algorithm to find groups. Sounds relative easy.
 
 nodes <- dfvert %>%
   head(first_n) %>%
@@ -242,64 +247,148 @@ nodes <- dfvert %>%
   rename(label = tag) %>%
   select(id, label, n)
 
+head(nodes)
+
 edges <- dfedge %>%
   filter(tag %in% nodes$label, tag2 %in% nodes$label) %>%
   rename(from = tag, to = tag2)
 
-# The igraph part
+head(edges)
+
+#' So, now create the igraph object and get the cluster via this method:
 g <- graph.data.frame(edges %>% rename(weight = n), directed = FALSE)
 pr <- page.rank(g)$vector
 c <- cluster_resolution(g, directed = FALSE)
+V(g)$comm <- membership(c)
 
-#' Add data
+
+
+#' Add data to the nodes:
 nodes <- nodes %>%
   left_join(data_frame(label = names(membership(c)),
-                       cluster = membership(c)),
+                       cluster = as.character(membership(c))),
             by = "label")
 
-# Show the firts 10 tag ordering by size to show the topics in the every group
-groups <- nodes %>%
-  group_by(cluster) %>%
-  mutate(order_in_cluster = row_number(-n)) %>%
-  ungroup() %>%
-  filter(order_in_cluster <= 10) %>%
-  {split(.$label, .$cluster)}
+#' Let's view some tags and size of each cluster. 
+clusters <- nodes %>% 
+  group_by(cluster) %>% 
+  do({data_frame(top_tags = paste(head(.$label), collapse = ", "))}) %>%
+  ungroup() %>% 
+  left_join(nodes %>% 
+              group_by(cluster) %>% 
+              arrange(desc(n)) %>% 
+              summarise(n_tags = n(), n_qst = sum(n)) %>%
+              ungroup(),
+            by = "cluster") %>% 
+  arrange(desc(n_qst))
 
-sizes <- purrr::map(groups, function(x) { 
-  print(unlist(x))
-  }) %>% unlist() %>% order(decreasing = TRUE)
-groups <- groups[sizes]
-groups
+clusters
+
+#' Mmm! The results from the algorithm make sense (at least for me). 
+#' There are a big cluster about *web-front* things. The second one is the big
+#' *java/android* we mentioned previously. The 3th is about general programming:
+#' nice languages/topic are here. Then the windows topic questions: the *.net* tags. Then appear
+#' the *web-backend*: a lot of *database* and *php* tags. Finally appear the
+#' *ios-dev* topic. So now let's name the cluster, plot them and check if it helps to
+#' get an idea how the top tags in SO are related to each other.
+#'  
+#' The next names may be not the right, for 
+#' example if the cluster number 3 I'll name it as *backend* but the tag 6 is backend
+#' oriented too also in the cluster number 4 there is the *django* tag a big webframework
+#' for python. So, is not the perfect naming but I guess is a good start point.
+#' 
+clusters <- clusters %>% 
+  mutate(cluster_name = c("Frontend", "Java-Android", "Programming",
+                          "asp", "Backend", "ios-dev", "Ruby",
+                          "excel-visual", "node-mongo"))
+
 
 nodes <- nodes %>% 
-  rename(size = n) %>% 
-  mutate(size = round(30*size/max(size)))
+  mutate(nn2 = round(30*n ^ 2/max(n ^ 2)) + 1) %>% 
+  left_join(clusters %>% select(cluster, cluster_name),
+            by = "cluster") %>% 
+  mutate(cluster_order = seq(nrow(.)))
 
 edges <- edges %>% 
   left_join(nodes %>% select(from = label, id), by = "from") %>% 
   rename(source = id) %>%
   left_join(nodes %>% select(to = label, id), by = "to") %>% 
   rename(target = id) %>% 
-  mutate(value = round(30*n^2/max(n^2)) + 1,
+  mutate(ne2 = round(30*n ^ 3/max(n ^ 3)) + 1,
          source = source - 1,
          target = target - 1) %>% 
-  arrange(desc(value)) %>% 
-  head(nrow(nodes)*1.5)
+  arrange(desc(n)) %>% 
+  head(nrow(nodes)*1.5) # this is to reduce the edges to plot
+
+colorrange <- viridisLite::viridis(nrow(clusters)) %>% 
+  stringr::str_sub(1, 7) %>% 
+  paste0("'", ., "'", collapse = ", ") %>% 
+  paste0("[", ., "]")
+
+colordomain <- clusters$cluster_name %>% 
+  paste0("'", ., "'", collapse = ", ") %>% 
+  paste0("[", ., "]")
+
+color_scale <- "d3.scale.ordinal().domain(%s).range(%s)" %>% 
+  sprintf(colordomain, colorrange)
+
 
 #' <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
 forceNetwork(Links = edges, Nodes = nodes,
-             Source = "source", Target = "target", Value = "value",
-             NodeID = "label", Group = "cluster",
-             opacity = 1, linkColour = "#BBB", 
+             Source = "source", Target = "target",
+             NodeID = "label", Group = "cluster_name",
+             Value = "ne2", linkWidth = JS("function(d) { return Math.sqrt(d.value);}"),
+             Nodesize = "nn2", radiusCalculation = JS("Math.sqrt(d.nodesize)+6"),
+             colourScale = color_scale,
+             opacity = 1, linkColour = "#BBB", legend = TRUE, 
              linkDistance = 50, charge = -100, bounded = TRUE,
-             opacityNoHover = TRUE,
-             zoom = TRUE,  fontFamily = "Lato")
+             fontFamily = "Lato")
 
 #'
-#'  ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
+#' ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 #'
-#' Let's try to made some changes:
-#'
+library("ggplot2")
+node_list <- get.data.frame(g, what = "vertices") %>% 
+  tbl_df()
+
+# Determine a community for each edge. If two nodes belong to the
+# same community, label the edge with that community. If not,
+# the edge community value is 'NA'
+edge_list <- get.data.frame(g, what = "edges") %>%
+  tbl_df() %>% 
+  inner_join(node_list %>% select(name, comm), by = c("from" = "name")) %>%
+  inner_join(node_list %>% select(name, comm), by = c("to" = "name")) %>%
+  mutate(group = ifelse(comm.x == comm.y, comm.x, NA) %>% factor())
+
+# Create a character vector containing every node name
+all_nodes <- sort(node_list$name)
+
+name_order <- (node_list %>% arrange(comm))$name
+
+# Adjust the 'to' and 'from' factor levels so they are equal
+# to this complete list of node names
+# Reorder edge_list "from" and "to" factor levels based on
+# this new name_order
+plot_data <- edge_list %>% mutate(
+  to = factor(to, levels = rev(name_order)),
+  from = factor(from, levels = name_order))
+
+#+ fig.height = 9, fig.width = 9
+p2 <- ggplot(plot_data, aes(x = from, y = to, fill = group, alpha = log(weight))) +
+  geom_tile() +
+#   geom_hline(yintercept = length(name_order) - which(name_order=="r") + 1,
+#              size = 2, alpha = 0.2) +
+#   geom_vline(xintercept = which(name_order=="r") - 1,
+#              size = 2, alpha = 0.2) + 
+  scale_x_discrete(drop = FALSE) +
+  scale_y_discrete(drop = FALSE) +
+  coord_equal() + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 270, hjust = 0),
+        legend.position = "none") 
+p2
+
+  
 
 ####' ### Bonus ####
 #' Some questions I readed for write this post:

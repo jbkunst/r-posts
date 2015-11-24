@@ -11,7 +11,7 @@ see the most voted answer and YES it was a so simple mistake/fix. Well, this hap
 
 Stackoverflow is the biggest site of Q&A that means have a lot of data and fortunately we can get it.
 
-Aps! (original) thoughts come to my mind and it come in verse form (not in a haiku form):
+*Original* thoughts come to my mind and it come in verse form (not in a haiku way):
 
 > When you're down and troubled <br/>
 > And you need a **coding** hand <br/>
@@ -37,55 +37,34 @@ If you want the SO data you can found at least 2 options:
 The first case you can make any query but you are limited you obtain only 50,000 rows via csv file.
 The second option you can download all the dump :) but it comes in xml format (:S?!). So I decided use the
 second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R)
-to parse the 27GB xml file to extrack only the questions and load the data into a sqlite data base.
+to parse the 27GB xml file to extract only the questions and load the data into a sqlite data base.
 
 
 ```r
-# db <- src_sqlite("~/so-db.sqlite")
-# 
-# dfqst <- tbl(db, "questions")
-# nrow(dfqst) %>% prettyNum(big.mark = ",")
-# head(dfqst)
-# 
-# dftags <- tbl(db, "questions_tags")
-# nrow(dftags) %>% prettyNum(big.mark = ",")
-# head(dftags)
+db <- src_sqlite("~/so-db.sqlite")
+
+dfqst <- tbl(db, "questions")
+
+dftags <- tbl(db, "questions_tags")
 ```
 
 ### Top Tags by Year ####
 Well, it's almost end of year and we can talk about summaries about what happened this year.
-So, let's look about the changes in the top tags at stackoverflow
-
-We need count grouping by *creationyear* and *tag*, then use *row_number* function to make the rank by
-year and filter by the first 30 places.
+So, let's look about the changes in the top tags at stackoverflow.
+We need count grouping by *creationyear* and *tag*, then use *row_number* function to make 
+the rank by year and filter by the first 30 places.
 
 
 ```r
 dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dfqst' not found
-```
-
-```r
 dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
-```
 
-```
-## Error in left_join(dftags, dfqst %>% select(id, creationyear), by = "id"): object 'dftags' not found
-```
-
-```r
 dftags3 <- dftags2 %>%
   group_by(creationyear, tag) %>%
   summarize(count = n()) %>%
   arrange(creationyear, -count) %>%
   collect()
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'dftags2' not found
 ```
 
 In the previous code we need to collect becuase we can't use *row_number* via *tbl* source
@@ -104,9 +83,6 @@ dftags4 <- dftags3 %>%
          creationyear = as.numeric(creationyear))
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags3' not found
-```
 
 Lets took the first 5 places this year. Nothing new.
 
@@ -115,9 +91,15 @@ Lets took the first 5 places this year. Nothing new.
 dftags4 %>% filter(creationyear == 2015) %>% head(5)
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
-```
+
+
+ creationyear  tag            count  rank 
+-------------  -----------  -------  -----
+         2015  javascript    177412  1    
+         2015  java          153231  2    
+         2015  android       123557  3    
+         2015  php           123109  4    
+         2015  c#            109692  5    
 
 The next data frames is to get the name at the start and end of the lines for our first plot.
 
@@ -126,20 +108,10 @@ The next data frames is to get the name at the start and end of the lines for ou
 dftags5 <- dftags4 %>%
   filter(creationyear == max(creationyear)) %>%
   mutate(creationyear = as.numeric(creationyear) + 0.25)
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
-```
-
-```r
 dftags6 <- dftags4 %>%
   filter(creationyear == min(creationyear)) %>%
   mutate(creationyear = as.numeric(creationyear) - 0.25)
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
 ```
 
 Now, let's do a simply regresion model model *rank ~ year* to know if a tag's rank go
@@ -150,16 +122,10 @@ the trends. Let's consider the top *tags* in this year with at least 3 appearanc
 ```r
 tags_tags <- dftags4 %>%
   count(tag) %>%
-  filter(n > 3) %>% # have at least 3 appearances
+  filter(n >= 3) %>% # have at least 3 appearances
   filter(tag %in% dftags5$tag) %>% # top tags in 2015
   .$tag
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
-```
-
-```r
 dflms <- dftags4 %>%
   filter(tag %in% tags_tags) %>%
   group_by(tag) %>%
@@ -170,22 +136,36 @@ dflms <- dftags4 %>%
   mutate(trend = cut(slope, breaks = c(-Inf, -1, 1, Inf), labels = c("-", "=", "+")),
          slope = round(slope, 2)) %>%
   arrange(desc(slope))
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
-```
-
-```r
 dflms %>% filter(trend != "=")
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'dflms' not found
-```
 
-Mmm! What we see? *asp.net* is goind down and *arrays* is going up Now let's
-get some color for remark the most interesting results.
+
+tag           slope  trend 
+-----------  ------  ------
+r              4.50  +     
+arrays         2.70  +     
+css            1.85  +     
+json           1.70  +     
+jquery         1.42  +     
+android        1.09  +     
+xml           -1.57  -     
+sql-server    -1.77  -     
+asp.net       -2.12  -     
+
+Yay! it's not coincidence (may be yes because I choose tag with 3 or more appearances): R have a
+a big increase in the las 3 years, The reason can be probably the datascience boom and how the data
+have become somethig more important in technologies. Today everything is being measured. Other reason
+is becuase R it's awesome. 
+
+I'm not sure why the *arrays* have a similiar trend. This tag is a generic one because all programing
+lenguages  arrays. My first guess is this a *web*'s colaterlal effect. In javascript
+you need to know how handle data (usually the response to an ajax request is a json object which is
+parsed into dict, arrays and/or list) to make you web interactive.
+ 
+What else we see? *asp.net* same as *xml*. Now let's
+get some color to stand out the most interesting results.
 
 
 ```r
@@ -193,18 +173,8 @@ colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascri
             "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
 
 othertags <- dftags4 %>% distinct(tag) %>% filter(!tag %in% names(colors)) %>% .$tag
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags4' not found
-```
-
-```r
 colors <- c(colors, setNames(rep("gray", length(othertags)), othertags))
-```
-
-```
-## Error in setNames(rep("gray", length(othertags)), othertags): object 'othertags' not found
 ```
 
 Now the fun part! I call this  **The subway-style-rank-year-tag plot: the past and the future**.
@@ -226,34 +196,21 @@ p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) +
                                  max(dftags4$creationyear) + 2),
                      limits = c(min(dftags4$creationyear) - 1.0,
                                 max(dftags4$creationyear) + 0.5))
-```
-
-```
-## Error in do.call("layer", list(mapping = mapping, data = data, stat = stat, : object 'dftags4' not found
-```
-
-```r
 p
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'p' not found
-```
+![](readme_files/figure-html/unnamed-chunk-10-1.png) 
 
 First of all: *javascript*, the language of the web, is the top tag nowadays. This is nothing new yet
 so let's focus in the changes of places.We can see the web/mobile technologies like android, json are now
 more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand
 the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing
 with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark
-these tags are becoming less popular every year.
+these tags are becoming less popular every year. In the same context is interesting see is how *xml* is 
+going down and *json* s going up. It seems xml is being replaced by json format gradually. The same 
+effect could be in *.net* with the rest of the webframeworks like ror, django, php frameworks. 
 
-Other important fact to mention is the increased popularity of the *r* tag (yay!).
-
-And finally is interesting see how xml is going down and json s going up. It seems xml is being replaced
-by json format gradually.
-
-
-
+The new technoligies are replacing the old ones.
 
 ### The Topics this Year ####
 
@@ -271,40 +228,16 @@ which is a R implementation of [Laplacian Dynamics and Multiscale Modular Struct
 
 
 ```r
-library("igraph")
-```
-
-```
-## 
-## Attaching package: 'igraph'
-## 
-## The following objects are masked from 'package:dplyr':
-## 
-##     %>%, as_data_frame, groups, union
-## 
-## The following objects are masked from 'package:stats':
-## 
-##     decompose, spectrum
-## 
-## The following object is masked from 'package:base':
-## 
-##     union
+suppressPackageStartupMessages(library("igraph"))
+library("resolution")
+library("networkD3")
 ```
 
 ```r
-library("resolution")
-library("networkD3")
-
 dftags20150 <- dftags2 %>%
   filter(creationyear == "2015") %>%
   select(id, tag)
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags2' not found
-```
-
-```r
 dfedge <- dftags20150 %>%
   left_join(dftags20150 %>% select(tag2 = tag, id), by = "id") %>%
   filter(tag < tag2) %>%
@@ -312,21 +245,7 @@ dfedge <- dftags20150 %>%
   ungroup() %>%
   arrange(desc(n)) %>%
   collect()
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags20150' not found
-```
-
-```r
-head(dfedge)
-```
-
-```
-## Error in head(dfedge): object 'dfedge' not found
-```
-
-```r
 dfvert <- dftags20150 %>%
   group_by(tag) %>%
   summarise(n = n()) %>%
@@ -335,26 +254,14 @@ dfvert <- dftags20150 %>%
   collect()
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'dftags20150' not found
-```
 
 ```r
-head(dfvert)
+first_n <- 75
 ```
 
-```
-## Error in head(dfvert): object 'dfvert' not found
-```
-
-
-```r
-first_n <- 70
-```
-
-To reduce the calculation times and we will use the fisrt 70 top tags.
+To reduce the calculation times and to talk generally we will use the fisrt 75 top tags.
 Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
-algorithm to find groups.
+algorithm to find groups. Sounds relative easy.
 
 
 ```r
@@ -364,85 +271,142 @@ nodes <- dfvert %>%
   rename(label = tag) %>%
   select(id, label, n)
 
+head(nodes)
+```
+
+
+
+ id  label              n
+---  -----------  -------
+  1  javascript    177412
+  2  java          153231
+  3  android       123557
+  4  php           123109
+  5  c#            109692
+  6  jquery         92621
+
+```r
 edges <- dfedge %>%
   filter(tag %in% nodes$label, tag2 %in% nodes$label) %>%
   rename(from = tag, to = tag2)
 
-# The igraph part
+head(edges)
+```
+
+
+
+from         to                n
+-----------  -----------  ------
+javascript   jquery        57970
+css          html          37135
+html         javascript    35404
+html         jquery        24438
+android      java          24134
+mysql        php           22531
+
+So, now create the igraph object and get the cluster via this method:
+
+
+```r
 g <- graph.data.frame(edges %>% rename(weight = n), directed = FALSE)
 pr <- page.rank(g)$vector
 c <- cluster_resolution(g, directed = FALSE)
+V(g)$comm <- membership(c)
 ```
 
-Add data
+Add data to the nodes:
 
 
 ```r
 nodes <- nodes %>%
   left_join(data_frame(label = names(membership(c)),
-                       cluster = membership(c)),
+                       cluster = as.character(membership(c))),
             by = "label")
-
-# Show the firts 10 tag ordering by size to show the topics in the every group
-groups <- nodes %>%
-  group_by(cluster) %>%
-  mutate(order_in_cluster = row_number(-n)) %>%
-  ungroup() %>%
-  filter(order_in_cluster <= 10) %>%
-  {split(.$label, .$cluster)}
-
-sizes <- purrr::map(groups, length) %>% unlist() %>% order(decreasing = TRUE)
-groups <- groups[sizes]
-groups
 ```
 
-```
-## $`4`
-##  [1] "java"    "android" "python"  "c++"     "arrays"  "r"       "c"      
-##  [8] "json"    "regex"   "linux"  
-## 
-## $`6`
-##  [1] "c#"          "sql"         "asp.net"     "sql-server"  "asp.net-mvc"
-##  [6] ".net"        "wpf"         "vb.net"      "oracle"      "postgresql" 
-## 
-## $`1`
-## [1] "javascript"        "jquery"            "html"             
-## [4] "css"               "angularjs"         "ajax"             
-## [7] "twitter-bootstrap" "html5"             "css3"             
-## 
-## $`3`
-## [1] "php"       "mysql"     "wordpress" "database"  "apache"    "laravel"  
-## [7] "forms"     "symfony2" 
-## 
-## $`7`
-## [1] "ios"         "swift"       "objective-c" "xcode"       "iphone"     
-## [6] "osx"        
-## 
-## $`5`
-## [1] "ruby-on-rails"   "ruby"            "ruby-on-rails-4"
-## 
-## $`8`
-## [1] "excel"     "vba"       "excel-vba"
-## 
-## $`2`
-## [1] "node.js" "mongodb"
-```
+Let's view some tags and size of each cluster. 
+
 
 ```r
+clusters <- nodes %>% 
+  group_by(cluster) %>% 
+  do({data_frame(top_tags = paste(head(.$label), collapse = ", "))}) %>%
+  ungroup() %>% 
+  left_join(nodes %>% 
+              group_by(cluster) %>% 
+              arrange(desc(n)) %>% 
+              summarise(n_tags = n(), n_qst = sum(n)) %>%
+              ungroup(),
+            by = "cluster") %>% 
+  arrange(desc(n_qst))
+
+clusters
+```
+
+
+
+cluster   top_tags                                            n_tags    n_qst
+--------  -------------------------------------------------  -------  -------
+1         javascript, jquery, html, css, angularjs, ajax           9   513489
+5         java, android, json, xml, spring, eclipse               16   432171
+4         python, c++, arrays, r, c, regex                        16   360488
+7         c#, sql, asp.net, sql-server, asp.net-mvc, .net         11   280690
+3         php, mysql, wordpress, database, apache, laravel         9   249254
+8         ios, swift, objective-c, xcode, iphone, osx              6   163449
+6         ruby-on-rails, ruby, ruby-on-rails-4                     3    57126
+9         excel, vba, excel-vba                                    3    39925
+2         node.js, mongodb                                         2    37374
+
+Mmm! The results from the algorithm make sense (at least for me). 
+There are a big cluster about *web-front* things. The second one is the big
+*java/android* we mentioned previously. The 3th is about general programming:
+nice languages/topic are here. Then the windows topic questions: the *.net* tags. Then appear
+the *web-backend*: a lot of *database* and *php* tags. Finally appear the
+*ios-dev* topic. So now let's name the cluster, plot them and check if it helps to
+get an idea how the top tags in SO are related to each other.
+ 
+The next names may be not the right, for 
+example if the cluster number 3 I'll name it as *backend* but the tag 6 is backend
+oriented too also in the cluster number 4 there is the *django* tag a big webframework
+for python. So, is not the perfect naming but I guess is a good start point.
+
+
+
+```r
+clusters <- clusters %>% 
+  mutate(cluster_name = c("Frontend", "Java-Android", "Programming",
+                          "asp", "Backend", "ios-dev", "Ruby",
+                          "excel-visual", "node-mongo"))
+
+
 nodes <- nodes %>% 
-  rename(size = n) %>% 
-  mutate(size = round(30*size/max(size)))
+  mutate(nn2 = round(30*n ^ 2/max(n ^ 2)) + 1) %>% 
+  left_join(clusters %>% select(cluster, cluster_name),
+            by = "cluster") %>% 
+  mutate(cluster_order = seq(nrow(.)))
 
 edges <- edges %>% 
   left_join(nodes %>% select(from = label, id), by = "from") %>% 
   rename(source = id) %>%
   left_join(nodes %>% select(to = label, id), by = "to") %>% 
   rename(target = id) %>% 
-  mutate(value = round(30*n^2/max(n^2)) + 1,
+  mutate(ne2 = round(30*n ^ 3/max(n ^ 3)) + 1,
          source = source - 1,
          target = target - 1) %>% 
-  arrange(desc(value)) %>% 
-  head(nrow(nodes)*1.5)
+  arrange(desc(n)) %>% 
+  head(nrow(nodes)*1.5) # this is to reduce the edges to plot
+
+colorrange <- viridisLite::viridis(nrow(clusters)) %>% 
+  stringr::str_sub(1, 7) %>% 
+  paste0("'", ., "'", collapse = ", ") %>% 
+  paste0("[", ., "]")
+
+colordomain <- clusters$cluster_name %>% 
+  paste0("'", ., "'", collapse = ", ") %>% 
+  paste0("[", ., "]")
+
+color_scale <- "d3.scale.ordinal().domain(%s).range(%s)" %>% 
+  sprintf(colordomain, colorrange)
 ```
 
 <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
@@ -450,21 +414,69 @@ edges <- edges %>%
 
 ```r
 forceNetwork(Links = edges, Nodes = nodes,
-             Source = "source", Target = "target", Value = "value",
-             NodeID = "label", Group = "cluster",
-             opacity = 1, linkColour = "#BBB", 
+             Source = "source", Target = "target",
+             NodeID = "label", Group = "cluster_name",
+             Value = "ne2", linkWidth = JS("function(d) { return Math.sqrt(d.value);}"),
+             Nodesize = "nn2", radiusCalculation = JS("Math.sqrt(d.nodesize)+6"),
+             colourScale = color_scale,
+             opacity = 1, linkColour = "#BBB", legend = TRUE, 
              linkDistance = 50, charge = -100, bounded = TRUE,
-             opacityNoHover = TRUE,
-             zoom = TRUE,  fontFamily = "Lato")
+             fontFamily = "Lato")
 ```
 
-<!--html_preserve--><div id="htmlwidget-7271" style="width:768px;height:480px;" class="forceNetwork"></div>
-<script type="application/json" data-for="htmlwidget-7271">{"x":{"links":{"source":[0,9,7,7,2,11,12,8,8,9,9,17,0,25,32,24,7,5,25,0,13,1,8,33,4,11,8,28,3,30,51,28,0,9,6,54,15,38,41,25,2,7,9,16,15,4,15,5,14,0,37,52,21,63,3,17,1,5,1,1,56,3,19,12,55,7,4,44,20,2,17,2,9,1,2,12,53,1,37,38,2,48,0,24,4,19,55,37,55,17,15,3,4,4,15,9,6,1,59,63,20,1,4,30,25],"target":[5,7,0,5,1,3,0,14,19,0,5,4,3,5,4,16,3,3,0,22,23,34,36,6,42,13,56,40,31,4,40,51,21,35,49,3,3,0,1,3,69,35,63,66,0,67,1,35,36,35,11,13,3,7,68,30,29,21,21,46,19,13,36,7,3,38,23,22,10,64,0,29,38,11,41,5,3,39,13,5,21,27,26,66,0,14,0,3,7,5,20,26,29,13,10,3,26,26,13,38,27,0,21,5,7],"value":[31,13,12,6,6,6,5,5,5,4,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"nodes":{"name":["javascript","java","android","php","c#","jquery","python","html","ios","css","c++","mysql","angularjs","sql","swift","arrays","ruby-on-rails","asp.net","r","objective-c","c","json","node.js","sql-server","ruby","ajax","regex","linux","excel","xml","asp.net-mvc","wordpress",".net","django","spring","twitter-bootstrap","xcode","database","html5","string","vba","eclipse","wpf","windows","mongodb","vb.net","multithreading","matlab","bash","python-2.7","git","excel-vba","oracle","apache","laravel","forms","iphone","osx","image","postgresql","facebook","scala","algorithm","css3","cordova","rest","ruby-on-rails-4","entity-framework","symfony2","android-studio"],"group":[1,4,4,3,6,1,4,1,7,1,4,3,1,6,7,4,5,6,4,7,4,4,2,6,5,1,4,4,8,4,6,3,6,4,4,1,7,3,1,4,8,4,6,4,2,6,4,4,4,4,4,8,6,3,3,3,7,7,4,6,4,4,4,1,4,4,5,6,3,4]},"options":{"NodeID":"label","Group":"cluster","colourScale":"d3.scale.category20()","fontSize":7,"fontFamily":"Lato","clickTextSize":17.5,"linkDistance":50,"linkWidth":"function(d) { return Math.sqrt(d.value); }","charge":-100,"linkColour":"#BBB","opacity":1,"zoom":true,"legend":false,"nodesize":false,"radiusCalculation":" Math.sqrt(d.nodesize)+6","bounded":true,"opacityNoHover":true,"clickAction":null}},"evals":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-9165" style="width:768px;height:480px;" class="forceNetwork"></div>
+<script type="application/json" data-for="htmlwidget-9165">{"x":{"links":{"source":[0,9,7,7,2,11,12,8,8,9,9,17,0,25,32,24,7,5,25,0,13,1,8,33,4,11,8,28,3,30,51,28,0,9,6,54,15,38,41,25,2,7,9,16,15,4,72,6,15,5,14,0,37,52,21,1,63,3,17,1,5,1,1,56,3,19,12,55,7,4,44,20,2,73,17,71,2,9,1,2,12,53,71,1,37,38,2,48,0,24,4,19,55,37,55,17,15,3,4,4,15,9,6,1,59,63,20,1,4,30,25,2],"target":[5,7,0,5,1,3,0,14,19,0,5,4,3,5,4,16,3,3,0,22,23,34,36,6,42,13,56,40,31,4,40,51,21,35,49,3,3,0,1,3,69,35,63,66,0,67,1,74,1,35,36,35,11,13,3,70,7,68,30,29,21,21,46,19,13,36,7,3,38,23,22,10,64,6,0,53,29,38,11,41,5,3,3,39,13,5,21,27,26,66,0,14,0,3,7,5,20,26,29,13,10,3,26,26,13,38,27,0,21,5,7,0],"value":[31,9,8,3,3,3,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"nodes":{"name":["javascript","java","android","php","c#","jquery","python","html","ios","css","c++","mysql","angularjs","sql","swift","arrays","ruby-on-rails","asp.net","r","objective-c","c","json","node.js","sql-server","ruby","ajax","regex","linux","excel","xml","asp.net-mvc","wordpress",".net","django","spring","twitter-bootstrap","xcode","database","html5","string","vba","eclipse","wpf","windows","mongodb","vb.net","multithreading","matlab","bash","python-2.7","git","excel-vba","oracle","apache","laravel","forms","iphone","osx","image","postgresql","facebook","scala","algorithm","css3","cordova","rest","ruby-on-rails-4","entity-framework","symfony2","android-studio","maven",".htaccess","hibernate","list","python-3.x"],"group":["Frontend","Java-Android","Java-Android","Backend","asp","Frontend","Programming","Frontend","ios-dev","Frontend","Programming","Backend","Frontend","asp","ios-dev","Programming","Ruby","asp","Programming","ios-dev","Programming","Java-Android","node-mongo","asp","Ruby","Frontend","Programming","Programming","excel-visual","Java-Android","asp","Backend","asp","Programming","Java-Android","Frontend","ios-dev","Backend","Frontend","Programming","excel-visual","Java-Android","asp","Programming","node-mongo","asp","Java-Android","Programming","Programming","Programming","Java-Android","excel-visual","asp","Backend","Backend","Backend","ios-dev","ios-dev","Java-Android","asp","Java-Android","Java-Android","Programming","Frontend","Java-Android","Java-Android","Ruby","asp","Backend","Java-Android","Java-Android","Backend","Java-Android","Programming","Programming"],"nodesize":[31,23,16,15,12,9,9,8,6,4,4,4,3,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"options":{"NodeID":"label","Group":"cluster_name","colourScale":"d3.scale.ordinal().domain(['Frontend', 'Java-Android', 'Programming', 'asp', 'Backend', 'ios-dev', 'Ruby', 'excel-visual', 'node-mongo']).range(['#440154', '#472D7B', '#3B528B', '#2C728E', '#21908C', '#28AE80', '#5DC963', '#ABDC32', '#FDE725'])","fontSize":7,"fontFamily":"Lato","clickTextSize":17.5,"linkDistance":50,"linkWidth":"function(d) { return Math.sqrt(d.value);}","charge":-100,"linkColour":"#BBB","opacity":1,"zoom":false,"legend":true,"nodesize":true,"radiusCalculation":"Math.sqrt(d.nodesize)+6","bounded":true,"opacityNoHover":0,"clickAction":null}},"evals":[]}</script><!--/html_preserve-->
 
 
- ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
+![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 
-Let's try to made some changes:
+
+
+```r
+library("ggplot2")
+node_list <- get.data.frame(g, what = "vertices") %>% 
+  tbl_df()
+
+# Determine a community for each edge. If two nodes belong to the
+# same community, label the edge with that community. If not,
+# the edge community value is 'NA'
+edge_list <- get.data.frame(g, what = "edges") %>%
+  tbl_df() %>% 
+  inner_join(node_list %>% select(name, comm), by = c("from" = "name")) %>%
+  inner_join(node_list %>% select(name, comm), by = c("to" = "name")) %>%
+  mutate(group = ifelse(comm.x == comm.y, comm.x, NA) %>% factor())
+
+# Create a character vector containing every node name
+all_nodes <- sort(node_list$name)
+
+name_order <- (node_list %>% arrange(comm))$name
+
+# Adjust the 'to' and 'from' factor levels so they are equal
+# to this complete list of node names
+# Reorder edge_list "from" and "to" factor levels based on
+# this new name_order
+plot_data <- edge_list %>% mutate(
+  to = factor(to, levels = rev(name_order)),
+  from = factor(from, levels = name_order))
+```
+
+```r
+p2 <- ggplot(plot_data, aes(x = from, y = to, fill = group, alpha = log(weight))) +
+  geom_tile() +
+#   geom_hline(yintercept = length(name_order) - which(name_order=="r") + 1,
+#              size = 2, alpha = 0.2) +
+#   geom_vline(xintercept = which(name_order=="r") - 1,
+#              size = 2, alpha = 0.2) + 
+  scale_x_discrete(drop = FALSE) +
+  scale_y_discrete(drop = FALSE) +
+  coord_equal() + 
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 270, hjust = 0),
+        legend.position = "none") 
+p2
+```
+
+![](readme_files/figure-html/unnamed-chunk-22-1.png) 
 
 ### Bonus ####
 Some questions I readed for write this post:
@@ -482,6 +494,6 @@ Some questions I readed for write this post:
 
 ---
 title: "readme.R"
-author: "Joshua K"
-date: "Mon Nov 23 22:47:05 2015"
+author: "jkunst"
+date: "Tue Nov 24 16:14:47 2015"
 ---
