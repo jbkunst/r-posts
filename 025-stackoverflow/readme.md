@@ -229,7 +229,7 @@ p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) +
 ```
 
 ```
-## Error in fortify(data): object 'dftags4' not found
+## Error in do.call("layer", list(mapping = mapping, data = data, stat = stat, : object 'dftags4' not found
 ```
 
 ```r
@@ -349,10 +349,10 @@ head(dfvert)
 
 
 ```r
-first_n <- 75
+first_n <- 70
 ```
 
-To reduce the calculation times and we will use the fisrt 75 top tags.
+To reduce the calculation times and we will use the fisrt 70 top tags.
 Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
 algorithm to find groups.
 
@@ -398,15 +398,10 @@ groups
 
 ```
 ## $`4`
-##  [1] "python"  "c++"     "arrays"  "r"       "c"       "regex"   "linux"  
-##  [8] "django"  "string"  "windows"
+##  [1] "java"    "android" "python"  "c++"     "arrays"  "r"       "c"      
+##  [8] "json"    "regex"   "linux"  
 ## 
-## $`5`
-##  [1] "java"           "android"        "json"           "xml"           
-##  [5] "spring"         "eclipse"        "multithreading" "git"           
-##  [9] "image"          "facebook"      
-## 
-## $`7`
+## $`6`
 ##  [1] "c#"          "sql"         "asp.net"     "sql-server"  "asp.net-mvc"
 ##  [6] ".net"        "wpf"         "vb.net"      "oracle"      "postgresql" 
 ## 
@@ -417,16 +412,16 @@ groups
 ## 
 ## $`3`
 ## [1] "php"       "mysql"     "wordpress" "database"  "apache"    "laravel"  
-## [7] "forms"     "symfony2"  ".htaccess"
+## [7] "forms"     "symfony2" 
 ## 
-## $`8`
+## $`7`
 ## [1] "ios"         "swift"       "objective-c" "xcode"       "iphone"     
 ## [6] "osx"        
 ## 
-## $`6`
+## $`5`
 ## [1] "ruby-on-rails"   "ruby"            "ruby-on-rails-4"
 ## 
-## $`9`
+## $`8`
 ## [1] "excel"     "vba"       "excel-vba"
 ## 
 ## $`2`
@@ -447,7 +442,7 @@ edges <- edges %>%
          source = source - 1,
          target = target - 1) %>% 
   arrange(desc(value)) %>% 
-  head(nrow(nodes)*2)
+  head(nrow(nodes)*1.5)
 ```
 
 <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
@@ -457,13 +452,14 @@ edges <- edges %>%
 forceNetwork(Links = edges, Nodes = nodes,
              Source = "source", Target = "target", Value = "value",
              NodeID = "label", Group = "cluster",
-             opacity = 1, linkColour = "#BBB",
-             linkDistance = 50, charge = -100,
+             opacity = 1, linkColour = "#BBB", 
+             linkDistance = 50, charge = -100, bounded = TRUE,
+             opacityNoHover = TRUE,
              zoom = TRUE,  fontFamily = "Lato")
 ```
 
-<!--html_preserve--><div id="htmlwidget-2660" style="width:768px;height:480px;" class="forceNetwork"></div>
-<script type="application/json" data-for="htmlwidget-2660">{"x":{"links":{"source":[0,9,7,7,2,11,12,8,8,9,9,17,0,25,32,24,7,5,25,0,13,1,8,33,4,11,8,28,3,30,51,28,0,9,6,54,15,38,41,25,2,7,9,16,15,4,72,6,15,5,14,0,37,52,21,1,63,3,17,1,5,1,1,56,3,19,12,55,7,4,44,20,2,73,17,71,2,9,1,2,12,53,71,1,37,38,2,48,0,24,4,19,55,37,55,17,15,3,4,4,15,9,6,1,59,63,20,1,4,30,25,2,2,0,1,2,4,25,72,64,56,4,55,12,7,15,30,15,69,9,0,5,6,63,15,2,0,10,0,3,17,12,12,7,63,56,32,21,30,7],"target":[5,7,0,5,1,3,0,14,19,0,5,4,3,5,4,16,3,3,0,22,23,34,36,6,42,13,56,40,31,4,40,51,21,35,49,3,3,0,1,3,69,35,63,66,0,67,1,74,1,35,36,35,11,13,3,70,7,68,30,29,21,21,46,19,13,36,7,3,38,23,22,10,64,6,0,53,29,38,11,41,5,3,3,39,13,5,21,27,26,66,0,14,0,3,7,5,20,26,29,13,10,3,26,26,13,38,27,0,21,5,7,0,8,16,65,60,5,21,34,0,14,46,5,21,11,21,0,6,1,31,44,31,39,0,39,3,11,43,31,29,45,22,9,31,5,36,17,6,67,58],"value":[31,13,12,6,6,6,5,5,5,4,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"nodes":{"name":["javascript","java","android","php","c#","jquery","python","html","ios","css","c++","mysql","angularjs","sql","swift","arrays","ruby-on-rails","asp.net","r","objective-c","c","json","node.js","sql-server","ruby","ajax","regex","linux","excel","xml","asp.net-mvc","wordpress",".net","django","spring","twitter-bootstrap","xcode","database","html5","string","vba","eclipse","wpf","windows","mongodb","vb.net","multithreading","matlab","bash","python-2.7","git","excel-vba","oracle","apache","laravel","forms","iphone","osx","image","postgresql","facebook","scala","algorithm","css3","cordova","rest","ruby-on-rails-4","entity-framework","symfony2","android-studio","maven",".htaccess","hibernate","list","python-3.x"],"group":[1,5,5,3,7,1,4,1,8,1,4,3,1,7,8,4,6,7,4,8,4,5,2,7,6,1,4,4,9,5,7,3,7,4,5,1,8,3,1,4,9,5,7,4,2,7,5,4,4,4,5,9,7,3,3,3,8,8,5,7,5,5,4,1,5,5,6,7,3,5,5,3,5,4,4]},"options":{"NodeID":"label","Group":"cluster","colourScale":"d3.scale.category20()","fontSize":7,"fontFamily":"Lato","clickTextSize":17.5,"linkDistance":50,"linkWidth":"function(d) { return Math.sqrt(d.value); }","charge":-100,"linkColour":"#BBB","opacity":1,"zoom":true,"legend":false,"nodesize":false,"radiusCalculation":" Math.sqrt(d.nodesize)+6","bounded":false,"opacityNoHover":0,"clickAction":null}},"evals":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-7271" style="width:768px;height:480px;" class="forceNetwork"></div>
+<script type="application/json" data-for="htmlwidget-7271">{"x":{"links":{"source":[0,9,7,7,2,11,12,8,8,9,9,17,0,25,32,24,7,5,25,0,13,1,8,33,4,11,8,28,3,30,51,28,0,9,6,54,15,38,41,25,2,7,9,16,15,4,15,5,14,0,37,52,21,63,3,17,1,5,1,1,56,3,19,12,55,7,4,44,20,2,17,2,9,1,2,12,53,1,37,38,2,48,0,24,4,19,55,37,55,17,15,3,4,4,15,9,6,1,59,63,20,1,4,30,25],"target":[5,7,0,5,1,3,0,14,19,0,5,4,3,5,4,16,3,3,0,22,23,34,36,6,42,13,56,40,31,4,40,51,21,35,49,3,3,0,1,3,69,35,63,66,0,67,1,35,36,35,11,13,3,7,68,30,29,21,21,46,19,13,36,7,3,38,23,22,10,64,0,29,38,11,41,5,3,39,13,5,21,27,26,66,0,14,0,3,7,5,20,26,29,13,10,3,26,26,13,38,27,0,21,5,7],"value":[31,13,12,6,6,6,5,5,5,4,3,3,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]},"nodes":{"name":["javascript","java","android","php","c#","jquery","python","html","ios","css","c++","mysql","angularjs","sql","swift","arrays","ruby-on-rails","asp.net","r","objective-c","c","json","node.js","sql-server","ruby","ajax","regex","linux","excel","xml","asp.net-mvc","wordpress",".net","django","spring","twitter-bootstrap","xcode","database","html5","string","vba","eclipse","wpf","windows","mongodb","vb.net","multithreading","matlab","bash","python-2.7","git","excel-vba","oracle","apache","laravel","forms","iphone","osx","image","postgresql","facebook","scala","algorithm","css3","cordova","rest","ruby-on-rails-4","entity-framework","symfony2","android-studio"],"group":[1,4,4,3,6,1,4,1,7,1,4,3,1,6,7,4,5,6,4,7,4,4,2,6,5,1,4,4,8,4,6,3,6,4,4,1,7,3,1,4,8,4,6,4,2,6,4,4,4,4,4,8,6,3,3,3,7,7,4,6,4,4,4,1,4,4,5,6,3,4]},"options":{"NodeID":"label","Group":"cluster","colourScale":"d3.scale.category20()","fontSize":7,"fontFamily":"Lato","clickTextSize":17.5,"linkDistance":50,"linkWidth":"function(d) { return Math.sqrt(d.value); }","charge":-100,"linkColour":"#BBB","opacity":1,"zoom":true,"legend":false,"nodesize":false,"radiusCalculation":" Math.sqrt(d.nodesize)+6","bounded":true,"opacityNoHover":true,"clickAction":null}},"evals":[]}</script><!--/html_preserve-->
 
 
  ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
@@ -486,6 +482,6 @@ Some questions I readed for write this post:
 
 ---
 title: "readme.R"
-author: "jkunst"
-date: "Mon Nov 23 18:34:16 2015"
+author: "Joshua K"
+date: "Mon Nov 23 22:47:05 2015"
 ---

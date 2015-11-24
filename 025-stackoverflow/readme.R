@@ -230,7 +230,7 @@ head(dfvert)
 load("nets_df.RData")
 #+ echo=TRUE
 
-first_n <- 75
+first_n <- 70
 
 #' To reduce the calculation times and we will use the fisrt `r first_n` top tags.
 #' Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
@@ -265,7 +265,9 @@ groups <- nodes %>%
   filter(order_in_cluster <= 10) %>%
   {split(.$label, .$cluster)}
 
-sizes <- purrr::map(groups, length) %>% unlist() %>% order(decreasing = TRUE)
+sizes <- purrr::map(groups, function(x) { 
+  print(unlist(x))
+  }) %>% unlist() %>% order(decreasing = TRUE)
 groups <- groups[sizes]
 groups
 
@@ -282,14 +284,15 @@ edges <- edges %>%
          source = source - 1,
          target = target - 1) %>% 
   arrange(desc(value)) %>% 
-  head(nrow(nodes)*2)
+  head(nrow(nodes)*1.5)
 
 #' <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
 forceNetwork(Links = edges, Nodes = nodes,
              Source = "source", Target = "target", Value = "value",
              NodeID = "label", Group = "cluster",
-             opacity = 1, linkColour = "#BBB",
-             linkDistance = 50, charge = -100,
+             opacity = 1, linkColour = "#BBB", 
+             linkDistance = 50, charge = -100, bounded = TRUE,
+             opacityNoHover = TRUE,
              zoom = TRUE,  fontFamily = "Lato")
 
 #'
