@@ -369,17 +369,14 @@ name_order <- (node_list %>% arrange(comm))$name
 # to this complete list of node names
 # Reorder edge_list "from" and "to" factor levels based on
 # this new name_order
-plot_data <- edge_list %>% mutate(
-  to = factor(to, levels = rev(name_order)),
-  from = factor(from, levels = name_order))
+plot_data <- edge_list %>%
+  rbind(edge_list %>% rename(from = to, to = from)) %>% 
+  mutate(to = factor(to, levels = rev(name_order)),
+         from = factor(from, levels = name_order))
 
 #+ fig.height = 9, fig.width = 9
 p2 <- ggplot(plot_data, aes(x = from, y = to, fill = group, alpha = log(weight))) +
   geom_tile() +
-#   geom_hline(yintercept = length(name_order) - which(name_order=="r") + 1,
-#              size = 2, alpha = 0.2) +
-#   geom_vline(xintercept = which(name_order=="r") - 1,
-#              size = 2, alpha = 0.2) + 
   scale_x_discrete(drop = FALSE) +
   scale_y_discrete(drop = FALSE) +
   coord_equal() + 
@@ -388,6 +385,12 @@ p2 <- ggplot(plot_data, aes(x = from, y = to, fill = group, alpha = log(weight))
         legend.position = "none") 
 p2
 
+
+p2 + 
+  geom_hline(yintercept = length(name_order) - which(name_order=="r") + 1,
+             size = 2, alpha = 0.4) +
+  geom_vline(xintercept = which(name_order=="r") - 1,
+             size = 2, alpha = 0.4) 
   
 
 ####' ### Bonus ####
