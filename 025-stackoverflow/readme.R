@@ -1,5 +1,5 @@
 #' ---
-#' title: "What we ask in Stackoverflow"
+#' title: "What we question at Stackoverflow"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -67,7 +67,7 @@ theme_set(theme_minimal(base_size = 13, base_family = "myfont") +
 #' second source and write a [script](https://github.com/jbkunst/r-posts/blob/master/025-stackoverflow/xml-to-sqlite.R)
 #' to parse the 27GB xml file to extract only the questions and load the data into a sqlite data base.
 #+ eval=FALSE
-db <- src_sqlite("~/so-db.sqlite")
+# db <- src_sqlite("~/so-db.sqlite")
 
 dfqst <- tbl(db, "questions")
 
@@ -82,6 +82,7 @@ dftags <- tbl(db, "questions_tags")
 dfqst <- dfqst %>% mutate(creationyear = substr(creationdate, 0, 5))
 
 dftags2 <- left_join(dftags, dfqst %>% select(id, creationyear), by = "id")
+nrow(dftags2)
 
 dftags3 <- dftags2 %>%
   group_by(creationyear, tag) %>%
@@ -144,15 +145,15 @@ dflms %>% filter(trend != "=")
 #' Yay! it's not coincidence (may be yes because I choose tag with 3 or more appearances): R have a
 #' a big increase in the las 3 years, The reason can be probably the datascience boom and how the data
 #' have become somethig more important in technologies. Today everything is being measured. Other reason
-#' is becuase R it's awesome. 
+#' is because R it's awesome. 
 #' 
 #' I'm not sure why the *arrays* have a similiar trend. This tag is a generic one because all programing
 #' lenguages  arrays. My first guess is this a *web*'s colaterlal effect. In javascript
 #' you need to know how handle data (usually the response to an ajax request is a json object which is
 #' parsed into dict, arrays and/or list) to make you web interactive.
 #'  
-#' What else we see? *asp.net* same as *xml*. Now let's
-#' get some color to stand out the most interesting results.
+#' What else we see? *asp.net* same as *xml* and *sql-serve* are going down. Now let's put some 
+#' color to emphasize the most interesting results.
 colors <- c("asp.net" = "#6a40fd", "r" = "#198ce7", "css" = "#563d7c", "javascript" = "#f1e05a",
             "json" = "#f1e05a", "android" = "#b07219", "arrays" = "#e44b23", "xml" = "green")
 
@@ -180,27 +181,26 @@ p <- ggplot(mapping = aes(creationyear, y = rank, group = tag, color = tag)) +
 p
 
 #' First of all: *javascript*, the language of the web, is the top tag nowadays. This is nothing new yet
-#' so let's focus in the changes of places.We can see the web/mobile technologies like android, json are now
-#' more "popular" this days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand
+#' so let's focus in the changes of places. We can see the web/mobile technologies like android, json are now
+#' more "popular" these days, same as css, html, nodejs, swift, ios, objective-c, etc. By other hand
 #' the *xml* and *asp.net* (and its friends like *.net*, *visual-studio*) tags aren't popular this year comparing
-#' with the previous years, but hey! obviously a top 30 tag in SO means popular yet! but we need to remark
-#' these tags are becoming less popular every year. In the same context is interesting see is how *xml* is 
+#' with the previous years, but hey! obviously a top 30 tag in SO means popular yet!
+#' In the same context is interesting see is how *xml* is 
 #' going down and *json* s going up. It seems xml is being replaced by json format gradually. The same 
 #' effect could be in *.net* with the rest of the webframeworks like ror, django, php frameworks. 
-#' 
-#' The new technoligies are replacing the old ones.
 #'
 
 ####' ### The Topics this Year ####
 #'
-#' We know, for example, some question are tag by *database*, other are tagged with *sql* or *mysql*
+#' We know, for example, some question are tagged by *database*, other are tagged with *sql* or *mysql*
 #' and maybe this questions belong to a family or group of questions. So let's find the
 #' topics/cluster/families/communities in all 2015 questions.
 #'
 #' The approach we'll test is inspired by [Tagoverflow](http://stared.github.io/tagoverflow/) a nice app by
 #' [Piotr Migdal](http://migdal.wikidot.com/) and [Marta Czarnocka-Cieciura](http://martaczc.deviantart.com/). To
-#' find the communiest we use/test the [igraph]() package and the [resolution](github.com/analyxcompany/resolution)
-#' which is a R implementation of [Laplacian Dynamics and Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf).
+#' find the communiest we use/test the [resolution package](github.com/analyxcompany/resoution) from the 
+#' [analyxcompany](github.com/analyxcompany) team which is a R implementation of [Laplacian Dynamics and 
+#' Multiscale Modular Structure in Networks](http://arxiv.org/pdf/0812.1770.pdf).
 #'
 #' *Let the extraction/transformation data/game begin!*:
 #'
@@ -235,7 +235,7 @@ dfvert <- dftags20150 %>%
 load("nets_df.RData")
 #+ echo=TRUE
 
-first_n <- 75
+first_n <- 100
 
 #' To reduce the calculation times and to talk generally we will use the fisrt `r first_n` top tags.
 #' Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
@@ -284,24 +284,34 @@ clusters <- nodes %>%
 
 clusters
 
-#' Mmm! The results from the algorithm make sense (at least for me). 
-#' There are a big cluster about *web-front* things. The second one is the big
-#' *java/android* we mentioned previously. The 3th is about general programming:
-#' nice languages/topic are here. Then the windows topic questions: the *.net* tags. Then appear
-#' the *web-backend*: a lot of *database* and *php* tags. Finally appear the
-#' *ios-dev* topic. So now let's name the cluster, plot them and check if it helps to
+#' Mmm! The results from the algorithm make sense (at least for me). Let's enumerate/name them:
+#' 
+#' - The big *just-frontend* group leading by the top one javascript: jquery, html, css.
+#' - The *java-and-android*.
+#' - The *general-programming-rocks* :D cluster.
+#' - The mmm... *prograWINg*. I sometimes use windows, about 95% of the time. 
+#' - The *php-biased-backend* cluster.
+#' - The *Imobile* programming group.
+#' - Jst the *ror* cluster.
+#' - Mmm I don't know how name this cluster: *nodo-monge*.
+#' - And the *I-know-code-...-in-excel*.
+#' 
+#' Now let's name the cluster, plot them and check if it helps to
 #' get an idea how the top tags in SO are related to each other.
-#'  
-#' The next names may be not the right, for 
-#' example if the cluster number 3 I'll name it as *backend* but the tag 6 is backend
-#' oriented too also in the cluster number 4 there is the *django* tag a big webframework
-#' for python. So, is not the perfect naming but I guess is a good start point.
 #' 
 clusters <- clusters %>% 
-  mutate(cluster_name = c("Frontend", "Java-Android", "Programming",
-                          "asp", "Backend", "ios-dev", "Ruby",
-                          "excel-visual", "node-mongo"))
+  mutate(cluster_name = c("frontend", "java-and-android", "general-programming-rocks",
+                          "prograWINg", "php-biased-backedn", "Imobile", "ror",
+                          "nodo-monge", "I-know-code-...-in-excel"),
+         cluster_name = factor(cluster_name, levels = rev(cluster_name)))
 
+ggplot(clusters) +
+  geom_bar(aes(cluster_name, n_qst),
+           stat = "identity", width = 0.5, fill = "#198ce7") +
+  scale_y_continuous("Questions", labels = scales::comma) + 
+  xlab(NULL) +
+  coord_flip() +
+  ggtitle("Distrution of Question in the top 100 tag clusters")
 
 nodes <- nodes %>% 
   mutate(nn2 = round(30*n ^ 2/max(n ^ 2)) + 1) %>% 
@@ -332,7 +342,6 @@ colordomain <- clusters$cluster_name %>%
 color_scale <- "d3.scale.ordinal().domain(%s).range(%s)" %>% 
   sprintf(colordomain, colorrange)
 
-
 #' <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
 forceNetwork(Links = edges, Nodes = nodes,
              Source = "source", Target = "target",
@@ -347,7 +356,15 @@ forceNetwork(Links = edges, Nodes = nodes,
 #'
 #' ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 #'
+#' Now let's try the adjacency matrix way.
+#'
 library("ggplot2")
+
+nodes
+
+edges
+
+
 node_list <- get.data.frame(g, what = "vertices") %>% 
   tbl_df()
 
