@@ -235,7 +235,7 @@ dfvert <- dftags20150 %>%
 load("nets_df.RData")
 #+ echo=TRUE
 
-first_n <- 100
+first_n <- 75
 
 #' To reduce the calculation times and to talk generally we will use the fisrt `r first_n` top tags.
 #' Then made a igraph element via the edges (tag-tag count) to use the cluster_resolution
@@ -292,17 +292,17 @@ clusters
 #' - The mmm... *prograWINg*. I sometimes use windows, about 95% of the time. 
 #' - The *php-biased-backend* cluster.
 #' - The *Imobile* programming group.
-#' - Jst the *ror* cluster.
+#' - Just the *ror* cluster.
+#' - And the *I-code-...-in-excel*.
 #' - Mmm I don't know how name this cluster: *nodo-monge*.
-#' - And the *I-know-code-...-in-excel*.
 #' 
 #' Now let's name the cluster, plot them and check if it helps to
 #' get an idea how the top tags in SO are related to each other.
 #' 
 clusters <- clusters %>% 
   mutate(cluster_name = c("frontend", "java-and-android", "general-programming-rocks",
-                          "prograWINg", "php-biased-backedn", "Imobile", "ror",
-                          "nodo-monge", "I-know-code-...-in-excel"),
+                          "prograWINg", "php-biased-backend", "Imobile", "ror",
+                          "I-code-...-in-excel", "nodo-monge"),
          cluster_name = factor(cluster_name, levels = rev(cluster_name)))
 
 ggplot(clusters) +
@@ -319,7 +319,7 @@ nodes <- nodes %>%
             by = "cluster") %>% 
   mutate(cluster_order = seq(nrow(.)))
 
-edges <- edges %>% 
+edges2 <- edges %>% 
   left_join(nodes %>% select(from = label, id), by = "from") %>% 
   rename(source = id) %>%
   left_join(nodes %>% select(to = label, id), by = "to") %>% 
@@ -343,7 +343,7 @@ color_scale <- "d3.scale.ordinal().domain(%s).range(%s)" %>%
   sprintf(colordomain, colorrange)
 
 #' <link href='https://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
-forceNetwork(Links = edges, Nodes = nodes,
+forceNetwork(Links = edges2, Nodes = nodes,
              Source = "source", Target = "target",
              NodeID = "label", Group = "cluster_name",
              Value = "ne2", linkWidth = JS("function(d) { return Math.sqrt(d.value);}"),
@@ -356,59 +356,58 @@ forceNetwork(Links = edges, Nodes = nodes,
 #'
 #' ![ihniwid](http://i.kinja-img.com/gawker-media/image/upload/japbcvpavbzau9dbuaxf.jpg)
 #'
-#' Now let's try the adjacency matrix way.
+#' Now let's try the adjacency matrix way like.
 #'
 library("ggplot2")
+library("beyonce")
 
-nodes
-
-edges
+name_order <- (nodes %>% arrange(desc(cluster_name), desc(n)))$label
 
 
-node_list <- get.data.frame(g, what = "vertices") %>% 
-  tbl_df()
-
-# Determine a community for each edge. If two nodes belong to the
-# same community, label the edge with that community. If not,
-# the edge community value is 'NA'
-edge_list <- get.data.frame(g, what = "edges") %>%
-  tbl_df() %>% 
-  inner_join(node_list %>% select(name, comm), by = c("from" = "name")) %>%
-  inner_join(node_list %>% select(name, comm), by = c("to" = "name")) %>%
-  mutate(group = ifelse(comm.x == comm.y, comm.x, NA) %>% factor())
-
-# Create a character vector containing every node name
-all_nodes <- sort(node_list$name)
-
-name_order <- (node_list %>% arrange(comm))$name
-
-# Adjust the 'to' and 'from' factor levels so they are equal
-# to this complete list of node names
-# Reorder edge_list "from" and "to" factor levels based on
-# this new name_order
-plot_data <- edge_list %>%
-  rbind(edge_list %>% rename(from = to, to = from)) %>% 
-  mutate(to = factor(to, levels = rev(name_order)),
+edges2 <- edges %>% 
+  inner_join(nodes %>% select(label, cluster_name), by = c("from" = "label")) %>% 
+  inner_join(nodes %>% select(label, cluster_name), by = c("to" = "label")) %>% 
+  purrr::map_if(is.factor, as.character) %>% 
+  {rbind(.,rename(., from = to, to = from))} %>% 
+  mutate(group = ifelse(cluster_name.x == cluster_name.y, cluster_name.x, NA),
+         group = factor(group, levels = clusters$cluster_name),
+         to = factor(to, levels = rev(name_order)),
          from = factor(from, levels = name_order))
 
-#+ fig.height = 9, fig.width = 9
-p2 <- ggplot(plot_data, aes(x = from, y = to, fill = group, alpha = log(weight))) +
+
+#+ fig.height = 10, fig.width = 15, out.width="1000px", out.height="1000px"
+p2 <- ggplot(edges2, aes(x = from, y = to, fill = group, alpha = log(n))) +
   geom_tile() +
+  scale_alpha_continuous(range = c(.0, 1)) + 
+#   scale_fill_manual(values = c(setNames(viridisLite::viridis(nrow(clusters)),
+#                                         clusters$cluster_name)),
+#                     na.value = "gray") + 
+  scale_fill_manual(values = c(setNames(beyonce_palette(18 ,nrow(clusters), type = "continuous"),
+                                        clusters$cluster_name)),
+                    na.value = "gray") + 
   scale_x_discrete(drop = FALSE) +
   scale_y_discrete(drop = FALSE) +
   coord_equal() + 
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 270, hjust = 0),
-        legend.position = "none") 
-p2
+  theme(axis.text.x = element_text(angle = 270, hjust = 0, vjust = 0),
+        legend.position = "right") 
 
+p2 
 
-p2 + 
-  geom_hline(yintercept = length(name_order) - which(name_order=="r") + 1,
-             size = 2, alpha = 0.4) +
-  geom_vline(xintercept = which(name_order=="r") - 1,
-             size = 2, alpha = 0.4) 
-  
+#' Well, in this plot is easy to see the size of the cluster in terms of numbers of tags. Is a little easy to see
+#' (if the plot is bigger) 
+#'
+#' <script src="http://www.elevateweb.co.uk/wp-content/themes/radial/jquery.elevatezoom.min.js"></script>
+#' <script>
+#' (function() {
+#'  $("img").elevateZoom({
+#'    zoomType	: "lens",
+#'    lensShape : "square",
+#'    lensSize  : 400,
+#'    scrollZoom : true
+#'  });
+#' })();
+#' </script>
+#' 
 
 ####' ### Bonus ####
 #' Some questions I readed for write this post:
