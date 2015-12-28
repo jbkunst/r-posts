@@ -14,17 +14,23 @@ rm(list = ls())
 library("highcharter")
 library("magrittr")
 
+
+
 #
+data(favorite_bars)
+
 highchart() %>% 
   hc_title(text = "My favorite Bars") %>%
-  hc_subtitle(text = "My favorite Bars") %>% 
+  hc_subtitle(text = "(In percentage of awesomeness)") %>% 
   hc_chart(type = "pie") %>% 
-hc_xAxis(categories = c("a", "b")) %>% 
-  hc_add_serie(data = c(4, 5))
+  hc_xAxis(categories = favorite_bars$bar) %>% 
+  hc_add_serie(data = favorite_bars$percent)
+
+data(favorite_pies)
 
 highchart() %>% 
   hc_title(text = "My favorite Pie") %>% 
-  hc_subtitle(text = "My favorite Bars") %>% 
+  hc_subtitle(text = "(In percentage of tastiness)") %>% 
   hc_chart(type = "column") %>% 
-  hc_xAxis(categories = c("a", "b")) %>% 
-  hc_add_serie(data = c(4, 5))
+  hc_xAxis(categories = favorite_pies$pie) %>% 
+  hc_add_serie(data = favorite_pies$percent)
