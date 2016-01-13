@@ -13,26 +13,33 @@
 #### setup ws packages ####
 rm(list = ls())
 
-#' [Highcharts](http://highcharts.com) was the first javascript library what I used in a long time
-#' ago. Highchartshave a mature API to plot a lot of types of charts. Obviously there are some R 
+#' After a lot of documentation, `R CMD check`s and a lot of patience from CRAN
+#' people I'm happy to anonounce [highcharter](http://jkunst.com/highcharter) v0.1.0:
+#' A(nother) wrapper for [Highcharts](http://highcharts.com) charting library.
+#' 
+#' [I like Highcharts(http://jkunst.com/r/ggplot-with-a-highcharts-taste/). It was the 
+#' first charting javascript library what I used in a long time and have
+#' very a mature API to plot a lot of types of charts. Obviously there are some R 
 #' packages to plot data using this library:
 #' 
 #' - [Ramnath Vaidyanathan](https://github.com/ramnathv)'s [rCharts](https://github.com/ramnathv/rCharts).
-#' What a library. This was the beginning to the R & JS romance. The rCharts approach to plot data
+#' What a library. This was the beginning to the R & JS romance. The `rCharts` approach to plot data
 #' is object oriented; here we used a lot of `chart$Key(arguments, ...)`.
 #' - [highchartR](https://github.com/jcizel/highchartR) package from [jcizel](https://github.com/jcizel).
 #' This package we use the `highcharts` function and give some parameters, like the variable's names get our
 #' chart.
 #' 
 #' With these package you can plot almost anything, so **why another wrapper/package/ for highcharts?**. 
-#' The main reasons were:
+#' The main reasons were/are:
 #' 
 #' - Write/code highcharts plots using the piping style and get similar results like 
 #' [dygraphs](https://rstudio.github.io/dygraphs/), [metricsgraphics](http://hrbrmstr.github.io/metricsgraphics/),
-#' [taucharts](http://rpubs.com/hrbrmstr/taucharts),[leaflet](https://rstudio.github.io/leaflet/)
+#' [taucharts](http://rpubs.com/hrbrmstr/taucharts), [leaflet](https://rstudio.github.io/leaflet/)
 #' packages.
-#' - Get a way to get all the funcionalities from the highcharts' [API](api.highcharts.com/highcharts)
-#' including *themes* and *options* too.
+#' - Get all the funcionalities from the highcharts' [API](api.highcharts.com/highcharts).  
+#' This mean we have here a *raw* wrapper in the sense that you maybe need to make/construct the chart by hand
+#' not so R user friendly but with some shortcuts to plot R objects. So you can plot  
+#' including [*themes*](http://jkunst.com/highcharter/#themes) and *options*.
 #' - Generate shortcuts for some R objects. For example time series.
 #' - Put all my love for highcharts in somewhere.
 #' 
@@ -40,7 +47,10 @@ rm(list = ls())
 #' do with this package. So here we go with the demos!
 #' 
 #' ### The Demo ####
-
+#' 
+#' Let's see a simple chart.
+#' 
+#+ message=FALSE, warning=FALSE
 library("highcharter")
 library("magrittr")
 library("dplyr")
@@ -54,43 +64,59 @@ hc <- highchart() %>%
 
 hc
 
-#' Very simple chart. Here comes the powerful highchart API.
+#' Very simple chart. Here comes the powerful highchart API: Adding more series
+#' data and adding themes.
 
 hc <- hc %>% 
   hc_title(text = "Temperatures for some cities") %>% 
   hc_xAxis(categories = citytemp$month) %>% 
   hc_add_serie(name = "London", data = citytemp$london,
-               dataLabels = list(enabled = TRUE)) %>% 
+               dataLabels = list(enabled = TRUE)) %>%
+  hc_add_serie(name = "New York", data = citytemp$new_york,
+               type = "spline") %>% 
   hc_yAxis(title = list(text = "Temperature"),
-           labels = list(format = "{value}° C")) 
-  
-hc
-
-#' And finally we can add a theme.
-
-hc <- hc %>% 
-  hc_add_serie(name = "New York", data = citytemp$new_york, type = "spline") %>% 
+           labels = list(format = "{value}� C")) %>%
   hc_add_theme(hc_theme_sandsignika())
   
-hc
 
-
-#' ### Some shortcuts ####
+#' ### Some examples ####
 
 #' For ts objects
 
 highchart() %>% 
   hc_title(text = "Monthly Deaths from Lung Diseases in the UK") %>% 
   hc_add_serie_ts2(fdeaths, name = "Female") %>%
-  hc_add_serie_ts2(mdeaths, name = "Male") %>% 
-  hc_add_theme(hc_theme_darkunica())
+  hc_add_serie_ts2(mdeaths, name = "Male") 
+
+#' A more elaborated example
+#' 
+hc <- highchart() %>% 
+  hc_title(text = "Motor Trend Car Road Tests") %>% 
+  hc_subtitle(text = "Source: 1974 Motor Trend US magazine") %>% 
+  hc_xAxis(title = list(text = "Weight")) %>% 
+  hc_yAxis(title = list(text = "Miles/gallon")) %>% 
+  hc_chart(zoomType = "xy") %>% 
+  hc_add_serie_scatter(mtcars$wt, mtcars$mpg,
+                       mtcars$drat, mtcars$hp,
+                       rownames(mtcars),
+                       dataLabels = list(
+                         enabled = TRUE,
+                         format = "{point.label}"
+                       )) %>% 
+  hc_tooltip(useHTML = TRUE,
+             headerFormat = "<table>",
+             pointFormat = paste("<tr><th colspan=\"1\"><b>{point.label}</b></th></tr>",
+                                 "<tr><th>Weight</th><td>{point.x} lb/1000</td></tr>",
+                                 "<tr><th>MPG</th><td>{point.y} mpg</td></tr>",
+                                 "<tr><th>Drat</th><td>{point.z} </td></tr>",
+                                 "<tr><th>HP</th><td>{point.valuecolor} hp</td></tr>"),
+             footerFormat = "</table>")
 
 
+#' ### You can do anything ####
 
-
-#' ### With Great Power Comes Great Responsibility ####
-
-#' ![Save pie!](http://cdn.meme.am/instances2/500x/3594501.jpg)
+#' As uncle Bem said some day:
+#' 
 #' 
 #' You can use this pacakge for evil purposes so be careful
 
@@ -98,7 +124,7 @@ iriscount <- count(iris, Species)
 iriscount
 
 highchart() %>% 
-  hc_title(text = "Ñom a delicious pie!") %>% 
+  hc_title(text = "Nom! a delicious 3d pie!") %>% 
   hc_chart(type = "pie", options3d = list(enabled = TRUE, alpha = 70, beta = 0)) %>% 
   hc_plotOptions(pie = list(depth = 70)) %>% 
   hc_add_serie_labels_values(iriscount$Species, iriscount$n) %>% 
