@@ -88,7 +88,7 @@ highchart() %>%
   hc_add_serie_ts2(fdeaths, name = "Female") %>%
   hc_add_serie_ts2(mdeaths, name = "Male") 
 
-#' A more elaborated example
+#' A more elaborated xample
 #' 
 hc <- highchart() %>% 
   hc_title(text = "Motor Trend Car Road Tests") %>% 
@@ -117,6 +117,7 @@ hc <- highchart() %>%
 
 #' As uncle Bem said some day:
 #' 
+#' ![SavePie](https://raw.githubusercontent.com/jbkunst/r-posts/master/032-presenting-highcharter/save%20pie.jpg)
 #' 
 #' You can use this pacakge for evil purposes so be careful
 
