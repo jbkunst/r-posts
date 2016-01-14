@@ -11,6 +11,7 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, fig.keep="none")
 
 #' After a lot of documentation, a lot of `R CMD check`s and a lot of patience from CRAN
 #' people I'm happy to anonounce [highcharter](http://jkunst.com/highcharter) v0.1.0:
@@ -26,7 +27,7 @@ rm(list = ls())
 #' is object oriented; here we used a lot of `chart$Key(arguments, ...)`.
 #' - [highchartR](https://github.com/jcizel/highchartR) package from [jcizel](https://github.com/jcizel).
 #' This package we use the `highcharts` function and give some parameters, like the variable's names 
-#' get our chart.
+#' to get the chart.
 #' 
 #' With these package you can plot almost anything, so **why another wrapper/package/ for highcharts?** 
 #' The main reasons were/are:
@@ -35,10 +36,10 @@ rm(list = ls())
 #' [dygraphs](https://rstudio.github.io/dygraphs/), [metricsgraphics](http://hrbrmstr.github.io/metricsgraphics/),
 #' [taucharts](http://rpubs.com/hrbrmstr/taucharts), [leaflet](https://rstudio.github.io/leaflet/)
 #' packages.
-#' - Get all the funcionalities from the highcharts' [API](api.highcharts.com/highcharts). This mean 
-#' made a not so useR-friendly wrapper in the sense that you maybe need to make/construct 
-#' the chart parmeter by parameter. But don't worry, there are some *shortcuts* functions to
-#' plot some R objects in the fly (see the examples below).
+#' - Get all the funcionalities from the highcharts' [API](api.highcharts.com/highcharts). This means 
+#' make a not so useR-friendly wrapper in the sense that you maybe need to make/construct 
+#' the chart specifying paramter by parameter (just like highcharts). But don't worry, there are 
+#' some *shortcuts* functions to plot some R objects on the fly (see the examples below).
 #' - Include and create [*themes*](http://jkunst.com/highcharter/#themes) :D.
 #' - Put all my love for highcharts in somewhere.
 #' 
@@ -51,11 +52,11 @@ rm(list = ls())
 #' (please check hafen's [htmlwidgets gallery](http://hafen.github.io/htmlwidgetsgallery/))
 #' 
 #' **What are the advantages of using this package?** Basically the advantages are inherited from
-#' hicharts: have a numerous chart tpyes with the **same** format, style, flavour. I think in a
+#' highcharts: have a numerous chart types with the **same** format, style, flavour. I think in a
 #' situation when you use a treemap and a scatter chart from differents packages in a shiny app.
-#' The posibility to create or modify themes (I like this a lot!). Have the possibility to
-#' customize in every way your chart: beatiful tooltips, title, 
-#' [add plotlines or plotbands](http://jkunst.com/highcharter/#hc_xaxis-and-hc_yaxis).
+#' Other advantage is the posibility to create or modify themes (I like this a lot!) and 
+#' customize in every way your chart: beatiful tooltips, titles, credits, legends, [add plotlines or 
+#' plotbands](http://jkunst.com/highcharter/#hc_xaxis-and-hc_yaxis).
 #' 
 #' **What are the disadvantages of this package and highcharts?** One thing I miss is the facet 
 #' implementation like in taucharts and hrbrmstr's [taucharts](http://rpubs.com/hrbrmstr/taucharts).
@@ -65,7 +66,7 @@ rm(list = ls())
 #' I recommed this package to make the final chart instead use the package to explorer visually
 #' the data.
 #' 
-#' ### The Demo ####
+#' ### The Hellow World chart ####
 #' 
 #' Let's see a simple chart.
 #' 
@@ -99,17 +100,74 @@ hc <- hc %>%
 
 hc
   
+#' Now what can you do with a little extra effort:
+#' 
+library("httr")
+library("purrr")
+swmovies <- content(GET("http://swapi.co/api/films/?format=json"))
 
-#' ### Some examples ####
+swdata <- map_df(swmovies$results, function(x){
+  data_frame(title = x$title,
+             species = length(x$species),
+             planets = length(x$planets),
+             release = x$release_date)
+}) %>% arrange(release)
 
-#' For ts objects
+swdata 
+
+swthm <- hc_theme_merge(
+  hc_theme_darkunica(),
+  hc_theme(
+    credits = list(
+      style = list(
+        color = "#4bd5ee"
+      )
+    ),
+    title = list(
+      style = list(
+        color = "#4bd5ee"
+        )
+      ),
+    chart = list(
+      backgroundColor = "transparent",
+      divBackgroundImage = "http://www.wired.com/images_blogs/underwire/2013/02/xwing-bg.gif",
+      style = list(fontFamily = "Lato")
+    )
+  )
+)
+
+highchart() %>% 
+  hc_add_theme(swthm) %>% 
+  hc_xAxis(categories = swdata$title,
+           title = list(text = "Movie")) %>% 
+  hc_yAxis(title = list(text = "Number")) %>% 
+  hc_add_serie(data = swdata$species, name = "Species",
+               type = "column", color = "#e5b13a") %>% 
+  hc_add_serie(data = swdata$planets, name = "Planets",
+               type = "column", color = "#4bd5ee") %>%
+  hc_title(text = "Diversity in <span style=\"color:#e5b13a\">
+           STAR WARS</span> movies",
+           useHTML = TRUE) %>% 
+  hc_credits(enabled = TRUE, text = "Source: SWAPI",
+             href = "https://swapi.co/",
+             style = list(fontSize = "12px"))
+
+
+
+
+#' ### More Examples ####
+
+#' For ts objects. Compare this example with the [dygrapths](https://rstudio.github.io/dygraphs/)
+#' one
 
 highchart() %>% 
   hc_title(text = "Monthly Deaths from Lung Diseases in the UK") %>% 
   hc_add_serie_ts2(fdeaths, name = "Female") %>%
   hc_add_serie_ts2(mdeaths, name = "Male") 
 
-#' A more elaborated example using the `mtcars` data.
+#' 
+#' A more elaborated example using the `mtcars` data. And it's nice like 
+#' [juba's scatterD3](https://github.com/juba/scatterD3).
 #' 
 hcmtcars <- highchart() %>% 
   hc_title(text = "Motor Trend Car Road Tests") %>% 
@@ -134,13 +192,38 @@ hcmtcars <- highchart() %>%
              footerFormat = "</table>")
 hcmtcars
 
+#' Let's try treemaps
+
+library("treemap")
+library("viridisLite")
+
+data(GNI2010)
+
+#+
+tm <- treemap(GNI2010, index = c("continent", "iso3"),
+              vSize = "population", vColor = "GNI",
+              type = "value", palette = viridis(6))
+
+
+hc_tm <- highchart(height = 800) %>% 
+  hc_add_serie_treemap(tm, allowDrillToNode = TRUE,
+                       layoutAlgorithm = "squarified",
+                       name = "tmdata") %>% 
+  hc_title(text = "Gross National Income World Data") %>% 
+  hc_tooltip(pointFormat = "<b>{point.name}</b>:<br>
+             Pop: {point.value:,.0f}<br>
+             GNI: {point.valuecolor:,.0f}")
+
+hc_tm
+
 #' ### You can do anything ####
 
 #' As uncle Bem said some day:
 #' 
 #' ![SavePie](https://raw.githubusercontent.com/jbkunst/r-posts/master/032-presenting-highcharter/save%20pie.jpg)
 #' 
-#' You can use this pacakge for evil purposes so be careful
+#' You can use this pacakge for evil purposes so be good with the people who see 
+#' your charts. So, I will not be happy if I see one chart like this:
 
 iriscount <- count(iris, Species)
 iriscount
@@ -159,7 +242,8 @@ highchart(width = 400, height = 400) %>%
   ))
 
 
-#' ### Other charts just to charting ####
+#' ### Other charts just for charting ####
+#' 
 data("favorite_bars")
 data("favorite_pies")
 
@@ -175,5 +259,10 @@ highchart() %>%
   hc_yAxis(title = list(text = "percentage of tastiness"),
            labels = list(format = "{value}%"), max = 100) %>% 
   hc_xAxis(categories = favorite_pies$pie) %>% 
+  hc_credits(enabled = TRUE, text = "Source (plz click here!)",
+             href = "https://www.youtube.com/watch?v=f_J8QU1m0Ng",
+             style = list(fontSize = "12px")) %>% 
   hc_legend(enabled = FALSE) %>% 
   hc_tooltip(pointFormat = "{point.y}%")
+
+#' Well, I hope you use, reuse and enjoy this package!
