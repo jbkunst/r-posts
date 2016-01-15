@@ -15,7 +15,9 @@ knitr::opts_chunk$set(message=FALSE, warning=FALSE)
 #'
 library("dplyr")
 library("rvest")
+library("httr")
 library("magrittr")
+library("purrr")
 
 url <- "http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats_(Generation_VI-present)"
 
@@ -39,13 +41,19 @@ url_detail <- read_html(url) %>%
   paste0("http://bulbapedia.bulbagarden.net", .)
 
 df <- df %>% 
-  mutate(icon = url_icon, url = url_detail)
+  mutate(icon = url_icon,
+         url = url_detail,
+         name = tolower(pokemon))
 
-purrr::map_df(url_detail, function(urlp){
-  urlp <- sample(url_detail, size = 1)
-  read_html(urlp) %>% 
-    html_node("table.sortable") %>% 
-    html_table() 
-  
-  
-})
+plist <- "http://pokeapi.co/api/v1/pokedex/1/" %>% 
+  GET() %>% 
+  content() %>% 
+  .$pokemon %>% 
+  map_df(function(x){
+    data_frame(name = x$name,
+               api_url = x$resource_uri)})
+
+
+dfanti <- anti_join(df, plist, by = "name")
+dfanti <- anti_join(plist, df, by = "name")
+
