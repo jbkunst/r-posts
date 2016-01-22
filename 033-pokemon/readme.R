@@ -124,4 +124,11 @@ dfpoke <- dfpoke1 %>%
 
 
 # readr::write_csv(dfpoke, "dfpoke.csv")
+# rm(list = ls())
 dfpoke <- readr::read_csv("dfpoke.csv")
+
+dfpv <- dfpoke %>% 
+  select(-name, -pkdx_id, -id, -pokemon,
+         -total, -average, -contains("url"))
+
+dfpv[is.na(dfpv)] <- "-"
