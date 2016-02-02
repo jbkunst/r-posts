@@ -132,3 +132,34 @@ dfpv <- dfpoke %>%
          -total, -average, -contains("url"))
 
 dfpv[is.na(dfpv)] <- "-"
+
+
+dftreemap <- dfpoke %>% 
+  group_by(type_1, type_2) %>%
+  summarise(n = n(),
+            n_distinct = n_distinct(type_2))
+  
+dfcols <- map_df(unique(c(dftreemap$type_1, dftreemap$type_2)), function(t){
+  # t <- "bug"
+  col <- "http://pokemon-uranium.wikia.com/wiki/Template:%s_color" %>% 
+    sprintf(t) %>%
+    read_html() %>% 
+    html_nodes("span > b") %>% 
+    html_text()
+  data_frame(type = t, color = col)
+})
+
+library("highcharter")
+library("treemap")
+
+
+
+
+tm <- treemap(dftreemap, index = c("type_1", "type_2"), vSize = "n", vColor = "type_1")
+
+
+
+highchart() %>% 
+  hc_add_series_treemap(tm, allowDrillToNode = TRUE,
+                        layoutAlgorithm = "squarified" )
+
