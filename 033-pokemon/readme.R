@@ -139,8 +139,9 @@ dftreemap <- dfpoke %>%
   summarise(n = n(),
             n_distinct = n_distinct(type_2))
   
-dfcols <- map_df(unique(c(dftreemap$type_1, dftreemap$type_2)), function(t){
+dfcols <- map_df(na.omit(unique(c(dftreemap$type_1, dftreemap$type_2))), function(t){
   # t <- "bug"
+  message(t)
   col <- "http://pokemon-uranium.wikia.com/wiki/Template:%s_color" %>% 
     sprintf(t) %>%
     read_html() %>% 
