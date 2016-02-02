@@ -61,8 +61,8 @@ url_image <- map_chr(url_detail, function(x){
     read_html() %>% 
     html_nodes("img") %>% 
     html_attr("src") %>% 
-    { .[str_detect(.,"250")]} %>% 
-    { .[str_detect(.,"http://cdn.bulbagarden.net/upload/thumb") ]} %>% 
+    {.[str_detect(.,"250")]} %>% 
+    {.[str_detect(.,"http://cdn.bulbagarden.net/upload/thumb") ]} %>% 
     .[1]
 })
 
