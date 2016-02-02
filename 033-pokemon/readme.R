@@ -10,7 +10,7 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
-knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 #'
 library("dplyr")
@@ -56,18 +56,20 @@ url_detail <- url_bulbapedia_list %>%
 
 url_image <- map_chr(url_detail, function(x){
   # x <- sample(url_detail, 1)
+  # x <- "http://bulbapedia.bulbagarden.net/wiki/Volcanion_(Pok%C3%A9mon)"
   x %>% 
     read_html() %>% 
     html_nodes("img") %>% 
-    .[[3]] %>% 
-    html_attr("src")
+    html_attr("src") %>% 
+    { .[str_detect(.,"250")]} %>% 
+    { .[str_detect(.,"http://cdn.bulbagarden.net/upload/thumb") ]} %>% 
+    .[1]
 })
 
 dfpoke2 <- dfpoke2 %>% 
   mutate(url_icon_bp = url_icon,
          url_detail_bp = url_detail,
          url_image_bp = url_image)
-
 
 
 dfpoke2 <- dfpoke2 %>% 
@@ -95,7 +97,7 @@ dfpoke2 <- dfpoke2 %>%
          name = ifelse(name == "deoxys", "deoxys-normal", name))
 
 
-t0 <- Sys.time()
+# t0 <- Sys.time()
 dfpoke3 <- map_df(dfpoke1$api_url, function(x){
   # x <- sample(dfpoke1$api_url, size = 1); x <- "api/v1/pokemon/10002/"
   l <- file.path("http://pokeapi.co/", x) %>% 
@@ -115,52 +117,123 @@ dfpoke3 <- map_df(dfpoke1$api_url, function(x){
   
 })
 
-tf <- Sys.time() - t0
-tf
+# tf <- Sys.time() - t0
+# tf
+
+dfpokecols <- map_df(na.omit(unique(c(dfpoke3$type_1, dfpoke3$type_2))), function(t){
+  # t <- "bug"
+  col <- "http://pokemon-uranium.wikia.com/wiki/Template:%s_color" %>% 
+    sprintf(t) %>%
+    read_html() %>% 
+    html_nodes("span > b") %>% 
+    html_text()
+  data_frame(type = t, color = paste0("#", col))
+})
+
+getpcol <- function(col1, col2, n = 10, p = 0.3) {
+  # col1 <- "#FFFF00"; col2 <- "#0000FF"
+  colorRampPalette(c(col1, col2))(n)[round(n*p)]
+}
 
 dfpoke <- dfpoke1 %>% 
   inner_join(dfpoke3, by = "api_url") %>%
-  inner_join(dfpoke2, by = "name")
+  inner_join(dfpoke2, by = "name") %>% 
+  left_join(dfpokecols %>% rename(type_1 = type, color_t1 = color), by = "type_1") %>% 
+  left_join(dfpokecols %>% rename(type_2 = type, color_t2 = color), by = "type_2") %>%
+  mutate(color_t2 = ifelse(is.na(color_t2), color_t1, color_t2),
+         color_tp = unlist(map2(.$color_t1, .$color_t2, getpcol))) %>% 
+  arrange(pkdx_id)
 
 
 # readr::write_csv(dfpoke, "dfpoke.csv")
 # rm(list = ls())
 dfpoke <- readr::read_csv("dfpoke.csv")
 
-dfpv <- dfpoke %>% 
-  select(-name, -pkdx_id, -id, -pokemon,
-         -total, -average, -contains("url"))
 
-dfpv[is.na(dfpv)] <- "-"
-
-
-dftreemap <- dfpoke %>% 
-  group_by(type_1, type_2) %>%
-  summarise(n = n(),
-            n_distinct = n_distinct(type_2))
-  
-dfcols <- map_df(na.omit(unique(c(dftreemap$type_1, dftreemap$type_2))), function(t){
-  # t <- "bug"
-  message(t)
-  col <- "http://pokemon-uranium.wikia.com/wiki/Template:%s_color" %>% 
-    sprintf(t) %>%
-    read_html() %>% 
-    html_nodes("span > b") %>% 
-    html_text()
-  data_frame(type = t, color = col)
-})
-
+##' ## Treemap ####
 library("highcharter")
 library("treemap")
-
-
-
-
-tm <- treemap(dftreemap, index = c("type_1", "type_2"), vSize = "n", vColor = "type_1")
-
-
+dftm <- dfpoke %>% 
+  mutate(type_2 = ifelse(is.na(type_2), paste("only", type_1), type_2),
+         type_1 = paste("Main", type_1)) %>% 
+  group_by(type_1, type_2) %>%
+  summarise(n = n()) %>% 
+  ungroup()
+  
+tm <- treemap(dftm, index = c("type_1", "type_2"), vSize = "n", vColor = "type_1")
+tm$tm
 
 highchart() %>% 
   hc_add_series_treemap(tm, allowDrillToNode = TRUE,
                         layoutAlgorithm = "squarified" )
+
+##' ## t-SNE ####
+library("tsne")
+library("ggplot2")
+
+dfpokenum <- dfpoke %>% 
+  select(-name, -pkdx_id, -id, -pokemon,
+         -total, -average, -contains("url")) %>% 
+  map(function(x){
+    ifelse(is.na(x), "NA", x)
+  }) %>% 
+  as.data.frame() %>% 
+  tbl_df() %>% 
+  model.matrix(~., data = .) %>% 
+  as.data.frame() %>% 
+  tbl_df() %>% 
+  .[-1]
+
+set.seed(124)
+tsne_poke <- tsne(dfpokenum)
+
+dfpoke <- dfpoke %>% 
+  mutate(x = tsne_poke[, 1],
+         y = tsne_poke[, 2])
+
+ggplot(dfpoke) + 
+  geom_point(aes(x, y, color = type_1), size = 4, alpha = 0.5) +
+  scale_color_manual("Type", values = unique(setNames(dfpoke$color_t1, dfpoke$type_1))) + 
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+
+dspoke <- dfpoke %>% 
+  select(pokemon, type_1, type_2, weight, height,
+         attack, defense, special_attack, special_defense,
+         url_icon_bp, color = color_t1, x, y) %>% 
+  list.parse3() %>% 
+  map(function(x){
+    urlicon <- x$url_icon_bp 
+    x$url_icon_bp  <- NULL
+    x$marker$symbol <- sprintf("url(%s)", urlicon)
+    x
+  })
+
+nms <- setdiff(names(dspoke[[1]]), c("marker", "color", "x", "y"))
+htmltbl <- map_chr(nms, function(nm){
+  sprintf("<tr><th>%s</th><td>{point.%s}</td></tr>",
+          str_to_title(nm), nm)
+}) %>% paste(collapse = "")
+
+highchart() %>% 
+  hc_chart(zoomType = "xy") %>% 
+  hc_add_series(data = dspoke, type = "scatter") %>% 
+  hc_plotOptions(series = list(states = list(hover = list(halo = list(
+    size  = 25,
+    attributes = list(
+      fill = "black",
+      "stroke-width" = 4,
+      stroke = hc_get_colors()[2])
+    ))))) %>%  
+  hc_tooltip(
+    useHTML = TRUE,
+    borderWidth = 6,
+    positioner = JS("function () { return { x: 0, y: 0 }; }"),
+    headerFormat = "<table>",
+    pointFormat = paste(htmltbl, "<img src='{point.url_image_bp}' width='125px' height='125px'>"),
+    footerFormat = "</table>"
+  ) %>% 
+  hc_add_theme(hc_theme_null())
+
 
