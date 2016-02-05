@@ -96,8 +96,6 @@ dfpoke2 <- dfpoke2 %>%
          name = ifelse(id == "669", "flabebe", name),
          name = ifelse(name == "deoxys", "deoxys-normal", name))
 
-
-# t0 <- Sys.time()
 dfpoke3 <- map_df(dfpoke1$api_url, function(x){
   # x <- sample(dfpoke1$api_url, size = 1); x <- "api/v1/pokemon/718/"
   l <- file.path("http://pokeapi.co/", x) %>% 
@@ -114,12 +112,10 @@ dfpoke3 <- map_df(dfpoke1$api_url, function(x){
              egg_group_2 = ifelse(length(l$egg_groups) > 1, l$egg_groups[[2]]$name, NA),
              type_1 = ifelse(length(l$types) > 0, l$types[[1]]$name, NA),
              type_2 = ifelse(length(l$types) > 1, l$types[[2]]$name, NA),
-             url_image_api = ifelse(length(l$sprites) > 0, sprintf("http://pokeapi.co/media/img/%s.png", pkdx_id)  , NA))
+             url_image_api = ifelse(length(l$sprites) > 0,
+                                    sprintf("http://pokeapi.co/media/img/%s.png", pkdx_id)  , NA))
   
 })
-
-# tf <- Sys.time() - t0
-# tf
 
 dfpokecols <- map_df(na.omit(unique(c(dfpoke3$type_1, dfpoke3$type_2))), function(t){
   # t <- "bug"
@@ -174,7 +170,9 @@ library("ggplot2")
 
 dfpokenum <- dfpoke %>% 
   select(-name, -pkdx_id, -id, -pokemon,
-         -total, -average, -contains("url")) %>% 
+         -total, -average, -contains("url"),
+         -color_t1, -color_t2, -color_tp,
+         -weight, -height) %>% 
   map(function(x){
     ifelse(is.na(x), "NA", x)
   }) %>% 
@@ -186,7 +184,7 @@ dfpokenum <- dfpoke %>%
   .[-1]
 
 set.seed(124)
-tsne_poke <- tsne(dfpokenum)
+tsne_poke <- tsne(dfpokenum, max_iter = 500)
 
 dfpoke <- dfpoke %>% 
   mutate(x = tsne_poke[, 1],
@@ -202,16 +200,16 @@ ggplot(dfpoke) +
 dspoke <- dfpoke %>% 
   select(pokemon, type_1, type_2, weight, height,
          attack, defense, special_attack, special_defense,
-         url_icon_bp, url_image_bp, color = color_t1, x, y) %>% 
+         url_image = url_image_bp, url_icon = url_icon_bp, color = color_t1, x, y) %>% 
   list.parse3() %>% 
   map(function(x){
-    urlicon <- x$url_icon_bp 
-    x$url_icon_bp  <- NULL
-    x$marker$symbol <- sprintf("url(%s)", urlicon)
+    x$marker$symbol <- sprintf("url(%s)", x$url_icon)
+    x$marker$radius <- 2
+    x$url_icon  <- NULL
     x
   })
 
-nms <- setdiff(names(dspoke[[1]]), c("marker", "url_image_bp", "color", "x", "y"))
+nms <- setdiff(names(dspoke[[1]]), c("marker", "url_image", "url_icon", "color", "x", "y"))
 htmltbl <- map_chr(nms, function(nm){
   sprintf("<tr><th>%s</th><td style='min-width:100px'>{point.%s}</td></tr>",
           str_replace_all(str_to_title(nm), "_", " "),
@@ -223,10 +221,10 @@ thm <- hc_theme_merge(
   hc_theme(
     chart = list(
       backgroundColor = "transparent",
-      divBackgroundImage = "https://coinarcade.files.wordpress.com/2013/08/006-charizard.jpg" # mewtwo
+      # divBackgroundImage = "https://coinarcade.files.wordpress.com/2013/08/006-charizard.jpg" # mewtwo
       # divBackgroundImage = "http://orig04.deviantart.net/e1d6/f/2015/044/1/a/lapras_from_pokemon___minimalist_by_matsumayu-d8b3ame.png" # lapras
       # divBackgroundImage = "http://orig00.deviantart.net/719d/f/2013/270/e/b/gengar_2_by_paulosaopaulino-d6o86h4.png" # boo
-      # divBackgroundImage = "http://www.wallpaperup.com/uploads/wallpapers/2014/04/29/345767/6013e88f504983dcab867b92335c4954.jpg"
+      divBackgroundImage = "http://www.wallpaperup.com/uploads/wallpapers/2014/04/29/345767/6013e88f504983dcab867b92335c4954.jpg"
       # divBackgroundImage = "http://images2.alphacoders.com/127/127692.jpg"
     )
   )
@@ -236,7 +234,8 @@ highchart() %>%
   hc_chart(zoomType = "xy") %>% 
   hc_xAxis(minRange = diff(range(dfpoke$x))/2) %>% 
   hc_yAxis(minRange = diff(range(dfpoke$y))/2) %>% 
-  hc_add_series(data = dspoke, type = "scatter",
+  hc_add_series(data = dspoke,
+                type = "scatter",
                 states = list(hover = list(halo = list(
                   size  = 100,
                   attributes = list(
@@ -249,7 +248,7 @@ highchart() %>%
     borderWidth = 10,
     # positioner = JS("function () { return { x: 0, y: 0 }; }"),
     headerFormat = "<table>",
-    pointFormat = paste(htmltbl, "<img src='{point.url_image_bp}' width='125px' height='125px'>"),
+    pointFormat = paste(htmltbl, "<img src='{point.url_image}' width='125px' height='125px'>"),
     footerFormat = "</table>"
   ) %>% 
   hc_add_theme(thm)
