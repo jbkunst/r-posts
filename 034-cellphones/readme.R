@@ -156,4 +156,5 @@ dfphns2 <- dfphns %>%
   filter(screen_body_ratio < 100)
 
 ggplot(dfphns2, aes(launch_date, screen_body_ratio)) +
-  geom_point(aes(color = bran_name), size = 2, alpha = 0.4) 
+  geom_point(aes(color = bran_name), size = 2, alpha = 0.4) +
+  geom_smooth()
