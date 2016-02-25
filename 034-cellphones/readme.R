@@ -23,17 +23,14 @@ library("ggplot2")
 library("printr")
 
 
-
-
 #' ## Text intro
-
 url <- "http://www.gsmarena.com"
 
 tabletd <- file.path(url, "makers.php3") %>% 
   read_html() %>% 
   html_nodes("table td")
 
-# https://github.com/joelcarlson/RImagePalette
+
 
 dfbrands <- data_frame(
   td1 = tabletd[seq(1, length(tabletd), 2)],
@@ -50,22 +47,64 @@ dfbrands <- data_frame(
   arrange(-brand_n_phn)
 
 head(dfbrands)
+#' Extract the main color of each brand via the image.
 
-n <- 10
+brand_color <- map_chr(dfbrands$brand_image_url, function(url){
+  # url <- sample(dfbrands$brand_image_url, size = 1)
+  # url <- "http://cdn2.gsmarena.com/vv/logos/lg_mmax.gif"
+  img <- caTools::read.gif(url)
+  
+  colors <- count(data_frame(col = as.vector(img$image)), col) %>% 
+    arrange(desc(n)) %>% 
+    left_join(data_frame(hex = img$col, col = seq(length(img$col))),
+              by = "col") %>% 
+    filter(!is.na(hex) & !str_detect(hex, "#F[A-z0-9]F[A-z0-9]F[A-z0-9]"))
+  
+  str_sub(colors$hex[1], 0, 7)
+  
+})
+
+dfbrands <- dfbrands %>% mutate(brand_color = brand_color)
+
+n <- 50
+
+dsbrands <- dfbrands %>% 
+  head(n) %>% 
+  mutate(x = bran_name,
+         y = brand_n_phn) %>% 
+  list.parse3()
+
+
 highchart() %>% 
   hc_title(text = "Phone models by Brand") %>% 
   hc_subtitle(text = "source: http://www.gsmarena.com/") %>% 
   hc_chart(zoomType = "x") %>% 
-  hc_xAxis(categories = dfbrands$bran_name, max = n - 1) %>% 
-  hc_add_series(data = dfbrands$brand_n_phn,
-                name = "phones models", color = "#A3A3A3",
-                type = "column")
+  hc_tooltip(
+    useHTML = TRUE,
+    backgroundColor = "white",
+    borderWidth = 2,
+    headerFormat = "<table style ='width:92px;height:22px' >",
+    pointFormat = paste("<span style='float:right;color:#3C3C3C'>{point.y} models</span><br>",
+                        "<img src='{point.brand_image_url}'>"),
+    footerFormat = "</table>"
+  ) %>% 
+  hc_xAxis(categories = map_chr(dsbrands, function(x) x$bran_name)) %>% 
+  hc_add_series(data = dsbrands,
+                showInLegend = FALSE,
+                colorByPoint = TRUE,
+                name = "phones models",
+                type = "bar") %>% 
+  hc_add_theme(
+    hc_theme_merge(
+      hc_theme_538(),
+      hc_theme(colors = map_chr(dsbrands, function(x) x$brand_color))
+      )
+  )
 
 #' ## Data phones
-
+message("Data phones *************")
 dfphones <- map_df(dfbrands$brand_url, function(burl){
   # burl <- "dell-phones-61.php" # burl <- "samsung-phones-9.php"
-  
   extract_page_info <- function(pburl) {
     message(pburl)
     phns <- read_html(pburl) %>% 
@@ -100,6 +139,7 @@ dfphones <- map_df(dfbrands$brand_url, function(burl){
   
 })
 
+message("Data phones info  *************")
 dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
   # purl <- sample(dfphones$phn_url, size = 1)
   # purl <- "samsung_galaxy_s5_mini-6252.php"
@@ -125,6 +165,7 @@ dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
     mutate(phn_url = purl) 
 })
 
+message("save *************")
 # save(dfbrands, dfphones, dfphonesinfo, file = "checkpoint01.RData")
 # rm(list = ls())
 # load(file = "checkpoint01.RData")
