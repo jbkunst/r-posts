@@ -30,19 +30,17 @@ tabletd <- file.path(url, "makers.php3") %>%
   read_html() %>% 
   html_nodes("table td")
 
-
-
 dfbrands <- data_frame(
   td1 = tabletd[seq(1, length(tabletd), 2)],
   td2 = tabletd[seq(2, length(tabletd), 2)]
   ) %>%  
-  mutate(bran_name = html_node(td2, "a") %>% html_text(),
+  mutate(brand_name = html_node(td2, "a") %>% html_text(),
          brand_url = html_node(td1, "a") %>% html_attr("href"),
          brand_image_url = html_node(td1, "img") %>% html_attr("src"),
-         brand_n_phn = str_extract(bran_name, "\\(\\d+\\)"),
+         brand_n_phn = str_extract(brand_name, "\\(\\d+\\)"),
          brand_n_phn = str_replace_all(brand_n_phn, "\\(|\\)", ""),
          brand_n_phn = as.numeric(brand_n_phn),
-         bran_name = str_replace_all(bran_name, " phones \\(\\d+\\)", "")) %>% 
+         brand_name = str_replace_all(brand_name, " phones \\(\\d+\\)", "")) %>% 
   select(-td1, -td2) %>% 
   arrange(-brand_n_phn)
 
@@ -66,17 +64,17 @@ brand_color <- map_chr(dfbrands$brand_image_url, function(url){
 
 dfbrands <- dfbrands %>% mutate(brand_color = brand_color)
 
-n <- 50
+n <- 30
 
 dsbrands <- dfbrands %>% 
   head(n) %>% 
-  mutate(x = bran_name,
+  mutate(x = brand_name,
          y = brand_n_phn) %>% 
   list.parse3()
 
 
 highchart() %>% 
-  hc_title(text = "Phone models by Brand") %>% 
+  hc_title(text = sprintf("Top %s Brands with more phone models", n)) %>% 
   hc_subtitle(text = "source: http://www.gsmarena.com/") %>% 
   hc_chart(zoomType = "x") %>% 
   hc_tooltip(
@@ -88,7 +86,7 @@ highchart() %>%
                         "<img src='{point.brand_image_url}'>"),
     footerFormat = "</table>"
   ) %>% 
-  hc_xAxis(categories = map_chr(dsbrands, function(x) x$bran_name)) %>% 
+  hc_xAxis(categories = map_chr(dsbrands, function(x) x$brand_name)) %>% 
   hc_add_series(data = dsbrands,
                 showInLegend = FALSE,
                 colorByPoint = TRUE,
@@ -102,7 +100,6 @@ highchart() %>%
   )
 
 #' ## Data phones
-message("Data phones *************")
 dfphones <- map_df(dfbrands$brand_url, function(burl){
   # burl <- "dell-phones-61.php" # burl <- "samsung-phones-9.php"
   extract_page_info <- function(pburl) {
@@ -139,7 +136,6 @@ dfphones <- map_df(dfbrands$brand_url, function(burl){
   
 })
 
-message("Data phones info  *************")
 dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
   # purl <- sample(dfphones$phn_url, size = 1)
   # purl <- "samsung_galaxy_s5_mini-6252.php"
@@ -165,23 +161,29 @@ dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
     mutate(phn_url = purl) 
 })
 
-message("save *************")
 # save(dfbrands, dfphones, dfphonesinfo, file = "checkpoint01.RData")
 # rm(list = ls())
 # load(file = "checkpoint01.RData")
 
 dfphns <- dfbrands %>% 
   right_join(dfphones) %>% 
-  right_join(dfphonesinfo)
+  right_join(dfphonesinfo) 
 
-rm(dfbrands, dfphones, dfphonesinfo)
+dfphns <- dfphns %>% 
+  mutate(body_dimensions = str_replace(body_dimensions, "mm \\(.*\\)", ""),
+         weight = as.numeric(str_extract(body_weight, "\\d+"))) %>% 
+  separate(body_dimensions, into = c("height", "width", "depth"), sep = " x ", remove = FALSE, convert = TRUE) %>% 
+  mutate(height = as.numeric(height),
+         width = as.numeric(width),
+         depth = as.numeric(depth))
+
+
+# rm(dfbrands, dfphones, dfphonesinfo)
 
 dfphns2 <- dfphns %>% 
   mutate(screen_body_ratio = str_extract(display_size, "\\d+\\.\\d+%"),
          screen_body_ratio = str_replace(screen_body_ratio, "%", ""),
          screen_body_ratio = as.numeric(screen_body_ratio)) %>% 
-  select(bran_name, phn, launch_status, launch_announced,
-         display_size, screen_body_ratio) %>% 
   mutate(year = str_extract(launch_announced, "\\d{4}"),
          month = str_extract(launch_announced, paste(month.abb, collapse = "|")),
          month = ifelse(str_detect(launch_announced, "1Q|Q1"), "Jan", month),
@@ -190,12 +192,63 @@ dfphns2 <- dfphns %>%
          month = ifelse(str_detect(launch_announced, "4Q|Q4"), "Oct", month),
          month = ifelse(is.na(month), "Jan", month)) %>% 
   # Cancelled Not officially announced yet 
-  filter(!(is.na(year) | is.na(month))) %>%
-  left_join(data_frame(month = month.abb, monthn = seq(12))) %>% 
+  filter(!(is.na(year) | is.na(month) | is.na(height))) %>%
+  left_join(data_frame(month = month.abb, monthn = seq(12)), by = "month") %>% 
   mutate(launch_date = paste(year, monthn, 1, sep = "-"),
          launch_date = ymd(launch_date)) %>% 
   filter(screen_body_ratio < 100)
 
-ggplot(dfphns2, aes(launch_date, screen_body_ratio)) +
-  geom_point(aes(color = bran_name), size = 2, alpha = 0.4) +
-  geom_smooth()
+dfbrandcolors <- dfphns2 %>% 
+  select(brand_name, brand_color) %>% 
+  distinct() %>% 
+  {setNames(.$brand_color, .$brand_name)}
+
+
+gg <- dfphns2 %>%
+  select(launch_date, brand_name, height, width, depth, screen_body_ratio) %>% 
+  gather(key, value, -launch_date, -brand_name) %>% 
+  ggplot(aes(launch_date, value)) + 
+  geom_point(aes(color = brand_name)) +
+  geom_smooth(color = "white") + 
+  scale_color_manual(values = dfbrandcolors) +
+  facet_wrap(~ key, scales = "free") + 
+  theme(legend.position = "none") 
+
+gg
+
+dsphns2 <- dfphns2 %>% 
+  select(launch_date, height, brand_name, brand_color, 
+         brand_image_url,
+         phn, phn_image_url) %>% 
+  mutate(x = datetime_to_timestamp(launch_date),
+         y = height,
+         color = brand_color) %>% 
+  list.parse3() %>% 
+  map(function(x){
+    x$color <- paste("rgba(", paste0(t(col2rgb(x$color)), collapse = ", "), ",", 0.3, ")")
+    x
+  })
+
+
+sm <- loess(height ~ datetime_to_timestamp(launch_date), data = dfphns2)
+predict(sm)
+
+highchart() %>% 
+  hc_title(text = "Release date vs Heigth") %>% 
+  hc_chart(zoomType = "xy") %>% 
+  hc_plotOptions(series = list(turboThreshold = 6000)) %>% 
+  hc_xAxis(type = "datetime") %>% 
+  hc_add_serie(data = dsphns2, type = "scatter", showInLegend = FALSE) %>% 
+  hc_tooltip(
+    # positioner = JS("function () { return { x: this.chart.plotWidth*.3, y: this.chart.plotHeight*.15 }; }"),
+    useHTML = TRUE,
+    backgroundColor = "white",
+    borderWidth = 2,
+    headerFormat = "<table style ='width:160px;height:200px' >",
+    pointFormat = paste("<span style='color:#3C3C3C'>{point.phn}</span><br><hr>",
+                        "<img src='{point.phn_image_url}' width=95%><br>",
+                        "<img src='{point.brand_image_url}'>"),
+    footerFormat = "</table>"
+  ) %>% 
+  hc_add_theme(hc_theme_538())
+
