@@ -7,7 +7,7 @@
 #'    keep_md: yes
 #' ---
 
-#+ echo=FALSE, message=FALSE, warning=FALSE
+#+echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
@@ -20,7 +20,12 @@ library("tidyr")
 library("highcharter")
 library("lubridate")
 library("ggplot2")
+library("ggthemes")
 library("printr")
+library("broom")
+library("htmltools")
+
+hcopts <- options("highcharter.options")
 
 
 #' ## Text intro
@@ -72,6 +77,11 @@ dsbrands <- dfbrands %>%
          y = brand_n_phn) %>% 
   list.parse3()
 
+tooltip <- tagList(
+  tags$span(style = "float:right;color:#3C3C3C", "{point.y} models"),
+  tags$br(),
+  tags$img(src = '{point.brand_image_url}')
+) %>% as.character()
 
 highchart() %>% 
   hc_title(text = sprintf("Top %s Brands with more phone models", n)) %>% 
@@ -82,8 +92,7 @@ highchart() %>%
     backgroundColor = "white",
     borderWidth = 2,
     headerFormat = "<table style ='width:92px;height:22px' >",
-    pointFormat = paste("<span style='float:right;color:#3C3C3C'>{point.y} models</span><br>",
-                        "<img src='{point.brand_image_url}'>"),
+    pointFormat = tooltip,
     footerFormat = "</table>"
   ) %>% 
   hc_xAxis(categories = map_chr(dsbrands, function(x) x$brand_name)) %>% 
@@ -100,6 +109,8 @@ highchart() %>%
   )
 
 #' ## Data phones
+#' asdas
+#+eval=FALSE
 dfphones <- map_df(dfbrands$brand_url, function(burl){
   # burl <- "dell-phones-61.php" # burl <- "samsung-phones-9.php"
   extract_page_info <- function(pburl) {
@@ -136,9 +147,9 @@ dfphones <- map_df(dfbrands$brand_url, function(burl){
   
 })
 
+#+eval=FALSE
 dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
-  # purl <- sample(dfphones$phn_url, size = 1)
-  # purl <- "samsung_galaxy_s5_mini-6252.php"
+  # purl <- sample(dfphones$phn_url, size = 1);purl <- "samsung_galaxy_s5_mini-6252.php"
   message(purl)
   dfphn <- file.path(url, purl) %>% 
     read_html() %>% 
@@ -161,29 +172,35 @@ dfphonesinfo <- map_df(dfphones$phn_url, function(purl){
     mutate(phn_url = purl) 
 })
 
+#+echo=FALSE
 # save(dfbrands, dfphones, dfphonesinfo, file = "checkpoint01.RData")
-# rm(list = ls())
-# load(file = "checkpoint01.RData")
+rm(list = ls())
+load(file = "checkpoint01.RData")
 
+#+echo=TRUE
 dfphns <- dfbrands %>% 
-  right_join(dfphones) %>% 
-  right_join(dfphonesinfo) 
+  right_join(dfphones, by = "brand_url") %>% 
+  right_join(dfphonesinfo, by = "phn_url") 
 
 dfphns <- dfphns %>% 
   mutate(body_dimensions = str_replace(body_dimensions, "mm \\(.*\\)", ""),
          weight = as.numeric(str_extract(body_weight, "\\d+"))) %>% 
-  separate(body_dimensions, into = c("height", "width", "depth"), sep = " x ", remove = FALSE, convert = TRUE) %>% 
+  separate(body_dimensions, into = c("height", "width", "depth"), sep = " x ",
+           remove = FALSE, convert = TRUE) %>% 
   mutate(height = as.numeric(height),
          width = as.numeric(width),
          depth = as.numeric(depth))
 
 
-# rm(dfbrands, dfphones, dfphonesinfo)
-
 dfphns2 <- dfphns %>% 
   mutate(screen_body_ratio = str_extract(display_size, "\\d+\\.\\d+%"),
          screen_body_ratio = str_replace(screen_body_ratio, "%", ""),
-         screen_body_ratio = as.numeric(screen_body_ratio)) %>% 
+         screen_body_ratio = as.numeric(screen_body_ratio),
+         screen_ppi = str_extract(display_resolution, "~\\d+"),
+         screen_ppi = as.numeric(str_replace(screen_ppi, "~", "")),
+         talk_time = as.numeric(str_extract(`battery_talk time`, "\\d+")),
+         camera = str_extract(camera_primary, ".* MP"),
+         camera = as.numeric(str_replace(camera," MP", ""))) %>% 
   mutate(year = str_extract(launch_announced, "\\d{4}"),
          month = str_extract(launch_announced, paste(month.abb, collapse = "|")),
          month = ifelse(str_detect(launch_announced, "1Q|Q1"), "Jan", month),
@@ -204,17 +221,20 @@ dfbrandcolors <- dfphns2 %>%
   {setNames(.$brand_color, .$brand_name)}
 
 
-gg <- dfphns2 %>%
-  select(launch_date, brand_name, height, width, depth, screen_body_ratio) %>% 
+#+fig.width=9
+dfphns2 %>%
+  select(launch_date, brand_name, height, 
+         depth, screen_body_ratio, camera) %>% 
   gather(key, value, -launch_date, -brand_name) %>% 
   ggplot(aes(launch_date, value)) + 
-  geom_point(aes(color = brand_name)) +
-  geom_smooth(color = "white") + 
+  geom_point(aes(color = brand_name), alpha = 0.25) +
+  geom_smooth(color = "black", size = 1.2, alpha = 0.5) + 
   scale_color_manual(values = dfbrandcolors) +
-  facet_wrap(~ key, scales = "free") + 
-  theme(legend.position = "none") 
+  facet_wrap(~key, scales = "free") + 
+  ggtitle("Release date vs some characteristics") + 
+  theme_fivethirtyeight() +
+  theme(legend.position = "none")
 
-gg
 
 dsphns2 <- dfphns2 %>% 
   select(launch_date, height, brand_name, brand_color, 
@@ -225,30 +245,77 @@ dsphns2 <- dfphns2 %>%
          color = brand_color) %>% 
   list.parse3() %>% 
   map(function(x){
-    x$color <- paste("rgba(", paste0(t(col2rgb(x$color)), collapse = ", "), ",", 0.3, ")")
+    x$color <- paste("rgba(", paste0(t(col2rgb(x$color)), collapse = ", "), ",", 0.2, ")")
     x
   })
 
+dsphns2iphones <- dsphns2[map_lgl(dsphns2, function(x) str_detect(x$phn, "iPhone") )]
 
-sm <- loess(height ~ datetime_to_timestamp(launch_date), data = dfphns2)
-predict(sm)
+dsphns2galaxy <- dsphns2[map_lgl(dsphns2, function(x) str_detect(x$phn, "Galaxy S") )]
+  
+fit <- loess(height ~ datetime_to_timestamp(launch_date),
+             data = dfphns2) %>% 
+  augment() %>% 
+  tbl_df()
+
+head(fit)
+
+dssmooth <- fit %>% 
+  select(x = datetime_to_timestamp.launch_date.,
+         y = .fitted) %>% 
+  distinct(x) %>% # imporant!
+  arrange(x) %>% # really important!
+  list.parse3()
+
+dssarea <- fit %>% 
+  mutate(x = datetime_to_timestamp.launch_date.,
+         y = .fitted - .se.fit,
+         z = .fitted + .se.fit) %>% 
+  select(x, y, z) %>% 
+  distinct(x) %>% # imporant!
+  arrange(x) %>% # really important!
+  list.parse2()
+
+tooltip <- tagList(
+  tags$span(style = "color:#3C3C3C", "{point.phn}"),
+  tags$hr(),
+  tags$img(src = '{point.brand_image_url}'),
+  tags$br(),
+  tags$img(src = '{point.phn_image_url}', width = "95%")
+  ) %>% as.character()
 
 highchart() %>% 
   hc_title(text = "Release date vs Heigth") %>% 
+  hc_subtitle(text = "Woth the Local Polynomial Regression Fitting") %>% 
   hc_chart(zoomType = "xy") %>% 
   hc_plotOptions(series = list(turboThreshold = 6000)) %>% 
+  hc_yAxis(label = list(text = ""), min = 60, max = 170) %>%
   hc_xAxis(type = "datetime") %>% 
-  hc_add_serie(data = dsphns2, type = "scatter", showInLegend = FALSE) %>% 
+  hc_add_serie(data = dsphns2, type = "scatter",
+               name = "All Phones",zIndex = -3) %>%
+  hc_add_serie(data = dsphns2galaxy, type = "scatter",
+               dataLabels = list(enabled = TRUE, format = "{point.phn}"),
+               name = "Galaxy S",zIndex = -3) %>%
+  hc_add_serie(data = dsphns2iphones, type = "scatter",
+               dataLabels = list(enabled = TRUE, format = "{point.phn}"),
+               name = "IPhones",zIndex = -3) %>%
+  hc_add_serie(data = dssmooth, name = "LOESS",
+               type = "spline", lineWidth = 3, color = "#000",
+               enableMouseTracking = FALSE,
+               marker = list(enabled = FALSE)) %>%
+  hc_add_serie(data = dssarea, 
+               type = "arearange", fillOpacity = 0.25, color = "#c3c3c3",
+               linkedTo = 'previous',
+               lineWidth = 1.5, enableMouseTracking = FALSE) %>% 
   hc_tooltip(
-    # positioner = JS("function () { return { x: this.chart.plotWidth*.3, y: this.chart.plotHeight*.15 }; }"),
     useHTML = TRUE,
     backgroundColor = "white",
-    borderWidth = 2,
+    borderWidth = 4,
     headerFormat = "<table style ='width:160px;height:200px' >",
-    pointFormat = paste("<span style='color:#3C3C3C'>{point.phn}</span><br><hr>",
-                        "<img src='{point.phn_image_url}' width=95%><br>",
-                        "<img src='{point.brand_image_url}'>"),
+    pointFormat = tooltip,
     footerFormat = "</table>"
   ) %>% 
   hc_add_theme(hc_theme_538())
 
+#' ## Sessiong info
+sessionInfo()
