@@ -63,16 +63,16 @@ options(highcharter.options = hcopts)
 #' So, just for fun (and to show what highcharter can do too!) I coded to kwow the
 #' truth.
 #'  
-#'  ## The data
+#' ### The data
+#' 
+#' When you have doubts about the cellphones specficiaction you always finish
+#' in the gsmarena.com site. They did an analisys about this topic It was very
+#' descriptive but I think they could do better in terms of visualization:
 #'  
-#'  When you have doubts about the cellphones specficiaction you always finish
-#'  in the gsmarena.com site. They did an analisys about this topic It was very
-#'  descriptive but I think they could do better in terms of visualization:
+#' ![chart-weigth](http://cdn.gsmarena.com/vv/reviewsimg/shapes-and-sizes-study/chart-weight.gif)
 #'  
-#'  ![chart-weigth](http://cdn.gsmarena.com/vv/reviewsimg/shapes-and-sizes-study/chart-weight.gif)
-#'  
-#'  Well basically I made a script to get all the phone brand first. Then for each
-#'  of them download all brands' phones (and not phone, beacuse I founded some AIO and some watches)
+#' Well basically I made a script to get all the phone brand first. Then for each
+#' of them download all brands' phones (and not phone, beacuse I founded some AIO and some watches)
 #'  
 #'  
 url <- "http://www.gsmarena.com"
@@ -161,18 +161,19 @@ highchart() %>%
       )
   )
 
-#' I know! Too much colors but I wanted to represent each bar with the
-#' brand color (I'm sorry).
+#' I know I know! Too much colors. I'm sorry but I wanted to represent 
+#' each bar with the associated brand color.
 #' 
-#' Back to the data: Samsung have over 1000 models! This dont say too much because
-#' the hay over 10 Galaxy 5. Besides gsmarena don't have data about the marketshare. 
+#' Back to the data: Samsung have over 1000 models! This don't say too much because
+#' there are over 10 Galaxy 5. Besides gsmarena don't have data about the marketshare. 
 #' But we can make and idea about the status.
 #' 
 #' Now we'll scrape the phones data, brand by brand. This part of the code 
 #' took a little long time.
-
-#' ## Data phones
-#' asdas
+#' 
+#' ### Data phones
+#' 
+#' 
 #+eval=FALSE
 dfphones <- map_df(sample(dfbrands$brand_url), function(burl){
   
@@ -259,14 +260,17 @@ dfphones <- map_df(dfphones$burl, function(burl){
 rm(list = ls())
 load(file = "gsmarena.RData")
 
+#' 
+#' And then join with the previous brand data.
+#' 
 #+echo=TRUE
 dfphns <- dfbrands %>% 
   right_join(dfphones, by = "brand_url") 
 
 #' Once time I read something like *the code to clean data is a dirty code*
-#' and this is so true. Here we separate some value like `body dimensions`
-#' beacuse have strings like `12 x 12 x 12` so we need to extract theses
-#' values in separate columns (here we used `tidyr` package). 
+#' and this is so true. Here we separate some variables like `body_dimensions`
+#' which have value in the form: `12 x 12 x 12` and we need these values 
+#' separately so we use the `tidyr::separate` function. 
 
 dfphns <- dfphns %>% 
   mutate(body_dimensions = str_replace(body_dimensions, "mm \\(.*\\)", ""),
@@ -312,6 +316,7 @@ dfbrandcolors <- dfphns %>%
 #' 
 #' We'll extract some features/specifications like the pixels camera,
 #' screen_body_ration, height and plot them vs time.
+#' 
 #+fig.width=9
 dfphns %>%
   select(launch_date, brand_name, height, 
@@ -325,11 +330,13 @@ dfphns %>%
   ggtitle("Release date vs phone specifications")
 
 #' Clearly the megapixels are getting bigger and the
-#' phones are getting more and more thinners nothing to worry about.
+#' phones are getting more and more thinners nothing to worry (right?)
+#' about.
+#' 
 #' Now, the screen body ratio start to growth near of 2007 same 
 #' date the first iPhone was realeased, coincidence? Not sure.
-#' But what we see in height? we see a similiar trend
-#' as the image. But this trend it's seem so slight but 
+#' But what we see in `height`? We see a similiar trend
+#' as the first image. But this trend it's seem so slight but 
 #' this is scale effect beacuse as I said before, there are some
 #' NO phones in the data.
 #' 
@@ -394,15 +401,21 @@ highchart() %>%
   hc_title(text = "Release date vs Heigth") %>% 
   hc_subtitle(text = "data from: http://www.gsmarena.com/") %>% 
   hc_chart(zoomType = "xy") %>% 
-  hc_plotOptions(series = list(turboThreshold = 8000)) %>% 
-  hc_yAxis(label = list(text = ""), min = 60, max = 170) %>%
-  hc_xAxis(type = "datetime") %>% 
+  hc_plotOptions(series = list(
+    turboThreshold = 8000,
+    marker = list(symbol = "circle", radius = 2)
+    )) %>% 
+  hc_yAxis(title = list(text = "Heigth"),
+           min = 60, max = 170, maxZoom = 10) %>%
+  hc_xAxis(type = "datetime", maxZoom = 2 * 30 * 24 * 3600 * 1000) %>% 
   hc_add_serie(data = dsphnsgalaxy, type = "scatter",
                dataLabels = list(enabled = TRUE, format = "{point.phn}"),
-               name = "Galaxy S",zIndex = 1) %>%
+               name = "Galaxy S",zIndex = 1, color = "rgba( 64 , 54 , 132 , 0.5)",
+               marker = list(radius = 3)) %>%
   hc_add_serie(data = dsphnsiphones, type = "scatter",
                dataLabels = list(enabled = TRUE, format = "{point.phn}"),
-               name = "IPhones",zIndex = 1) %>%
+               name = "IPhones",zIndex = 1, color = "rgba( 51 , 51 , 51 , 0.5)",
+               marker = list(radius = 3)) %>%
   hc_add_serie(data = dsphns, type = "scatter",
                name = "All Phones",zIndex = -5) %>%
   hc_add_serie(data = dssmooth, name = "Trend",
@@ -423,7 +436,6 @@ highchart() %>%
   ) %>% 
   hc_add_theme(hc_theme_538())
 
-#' And yep! The image and the trend are really similar 
+#' What do you think. I think it looks so beautiful and almost  ready to publish
+#' in a more serious blog   
 
-#' ### Sessiong info
-sessionInfo()
