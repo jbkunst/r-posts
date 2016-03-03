@@ -12,7 +12,6 @@
 rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
-#'
 library("dplyr")
 library("httr")
 library("rvest")
@@ -55,6 +54,7 @@ url_detail <- url_bulbapedia_list %>%
   paste0("http://bulbapedia.bulbagarden.net", .)
 
 url_image <- map_chr(url_detail, function(x){
+  message(x)
   # x <- sample(url_detail, 1)
   # x <- "http://bulbapedia.bulbagarden.net/wiki/Volcanion_(Pok%C3%A9mon)"
   x %>% 
@@ -97,6 +97,7 @@ dfpoke2 <- dfpoke2 %>%
          name = ifelse(name == "deoxys", "deoxys-normal", name))
 
 dfpoke3 <- map_df(dfpoke1$api_url, function(x){
+  message(x)
   # x <- sample(dfpoke1$api_url, size = 1); x <- "api/v1/pokemon/718/"
   l <- file.path("http://pokeapi.co/", x) %>% 
     GET() %>% 
@@ -142,10 +143,9 @@ dfpoke <- dfpoke1 %>%
   arrange(pkdx_id)
 
 
-# readr::write_csv(dfpoke, "dfpoke.csv")
+# save(dfpoke, file = "dfpoke.RData")
 # rm(list = ls())
-dfpoke <- readr::read_csv("dfpoke.csv")
-
+# load("dfpoke.RData")
 
 ##' ## Treemap ####
 library("highcharter")
