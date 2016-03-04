@@ -13,12 +13,156 @@ rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 library("dplyr")
-library("httr")
+library("readr")
 library("rvest")
-library("magrittr")
 library("purrr")
 library("stringr")
+library("tidyr")
+library("highcharter")
 
+#' 
+#' ## Data
+#' 
+path <- function(x) paste0("https://raw.githubusercontent.com/phalt/pokeapi/master/data/v2/csv/", x)
+
+dfpkmn <- read_csv(path("pokemon.csv")) %>% 
+  select(-order, -is_default) %>% 
+  rename(pokemon = identifier)
+
+dfstat <- read_csv(path("stats.csv")) %>% 
+  rename(stat_id = id) %>% 
+  right_join(read_csv(path("pokemon_stats.csv")),
+             by = "stat_id") %>% 
+  mutate(identifier = str_replace(identifier, "-", "_")) %>% 
+  select(pokemon_id, identifier, base_stat) %>% 
+  spread(identifier, base_stat) %>% 
+  rename(id = pokemon_id)
+
+dftype <- read_csv(path("types.csv")) %>% 
+  rename(type_id = id) %>% 
+  right_join(read_csv(path("pokemon_types.csv")), by = "type_id") %>% 
+  select(pokemon_id, identifier, slot) %>% 
+  mutate(slot = paste0("type_", slot)) %>% 
+  spread(slot, identifier) %>% 
+  rename(id = pokemon_id)
+
+dfegg <- read_csv(path("egg_groups.csv")) %>% 
+  rename(egg_group_id = id) %>% 
+  right_join(read_csv(path("pokemon_egg_groups.csv")), by = "egg_group_id") %>% 
+  group_by(species_id) %>% 
+  mutate(ranking = row_number(),
+         ranking = paste0("egg_group_", ranking)) %>% 
+  select(species_id, ranking, identifier) %>% 
+  spread(ranking, identifier) 
+
+dfimg <- "https://github.com/phalt/pokeapi/tree/master/data/Pokemon_XY_Sprites" %>% 
+  read_html() %>% 
+  html_nodes("tr.js-navigation-item > .content > .css-truncate a") %>% 
+  map_df(function(x){
+    url <- x %>% html_attr("href")
+    data_frame(
+      id = str_extract(basename(url), "\\d+"),
+      url_image = basename(url)
+    )
+  }) %>%
+  mutate(id = as.numeric(id))
+
+dfcolor <- map_df(na.omit(unique(c(dftype$type_1, dftype$type_2))), function(t){
+  # t <- "bug"
+  col <- "http://pokemon-uranium.wikia.com/wiki/Template:%s_color" %>% 
+    sprintf(t) %>%
+    read_html() %>% 
+    html_nodes("span > b") %>% 
+    html_text()
+  data_frame(type = t, color = paste0("#", col))
+})
+
+dfcolorf <- expand.grid(color_1 = dfcolor$color, color_2 = dfcolor$color,
+                        stringsAsFactors = FALSE) %>% 
+  tbl_df() %>% 
+  group_by(color_1, color_2) %>% 
+  do({
+      n = 100;p = 0.4
+      data_frame(color_f = colorRampPalette(c(.$color_1, .$color_2))(n)[round(n*p)])
+    })
+  
+df <- dfpkmn %>% 
+  left_join(dftype, by = "id") %>% 
+  left_join(dfstat, by = "id") %>% 
+  left_join(dfcolor %>% rename(type_1 = type, color_1 = color), by = "type_1") %>% 
+  left_join(dfcolor %>% rename(type_2 = type, color_2 = color), by = "type_2") %>% 
+  left_join(dfcolorf, by =  c("color_1", "color_2")) %>% 
+  left_join(dfegg, by = "species_id") %>% 
+  left_join(dfimg, by = "id") 
+
+df <- df %>% 
+  mutate(color_f = ifelse(is.na(color_f), color_1, color_f))
+
+str(df)
+
+head(df)
+
+#### bar chart i choose you ####
+
+dstype <- df %>% 
+  count(type_1, color_1) %>% 
+  ungroup() %>% 
+  arrange(desc(n)) %>% 
+  mutate(x = row_number()) %>% 
+  rename(
+    name = type_1,
+    color = color_1,
+    y = n
+  ) %>% 
+  select(y, name, color) %>% 
+  list.parse3()
+  
+hcb <- highchart() %>% 
+  hc_xAxis(categories = unlist(pluck(dstype, i = 2))) %>% 
+  hc_yAxis(title = NULL) %>% 
+  hc_add_series(data = dstype, type = "bar", showInLegend = FALSE)
+
+hcb
+
+#### Oh! The barchat has evolved  ####
+dftm <- df %>% 
+  mutate(type_2 = ifelse(is.na(type_2), paste("only", type_1), type_2),
+         type_1 = type_1) %>% 
+  group_by(type_1, type_2) %>%
+  summarise(n = n()) %>% 
+  ungroup()
+
+tm <- treemap::treemap(dftm, index = c("type_1", "type_2"), vSize = "n", vColor = "type_1")
+
+tm$tm <- tm$tm %>%
+  tbl_df() %>% 
+  left_join(df %>% select(type_1, type_2, color_f) %>% distinct(), by = c("type_1", "type_2")) %>%
+  left_join(df %>% select(type_1, color_1) %>% distinct(), by = c("type_1")) %>% 
+  mutate(type_1 = paste0("Main ", type_1),
+         color = ifelse(is.na(color_f), color_1, color_f))
+
+hctm <- highchart() %>% 
+  hc_add_series_treemap(tm, allowDrillToNode = TRUE,
+                        layoutAlgorithm = "squarified")
+
+hctm
+
+
+
+#################################################################
+#################################################################
+#################################################################
+#################################################################
+
+
+
+
+
+
+
+#' 
+#' Lets first download the names of the pokemon and their url
+#' 
 
 dfpoke1 <- "http://pokeapi.co/api/v1/pokedex/1/" %>% 
   GET() %>% 
@@ -28,6 +172,14 @@ dfpoke1 <- "http://pokeapi.co/api/v1/pokedex/1/" %>%
     data_frame(name = x$name,
                api_url = x$resource_uri)
     }) 
+
+head(dfpoke1)
+
+#'
+#' Now, we download the information from the bulpapedia site and
+#' identify de url icon and the detailed url and for each detailed url
+#' we extract a more bigger image
+#' 
 
 url_bulbapedia_list <- "http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats_(Generation_VI-present)" 
 
@@ -53,6 +205,8 @@ url_detail <- url_bulbapedia_list %>%
   html_attr("href") %>% 
   paste0("http://bulbapedia.bulbagarden.net", .)
 
+
+t <- Sys.time()
 url_image <- map_chr(url_detail, function(x){
   message(x)
   # x <- sample(url_detail, 1)
@@ -65,11 +219,14 @@ url_image <- map_chr(url_detail, function(x){
     {.[str_detect(.,"http://cdn.bulbagarden.net/upload/thumb") ]} %>% 
     .[1]
 })
+Sys.time() - t  
 
 dfpoke2 <- dfpoke2 %>% 
   mutate(url_icon_bp = url_icon,
          url_detail_bp = url_detail,
          url_image_bp = url_image)
+
+dfpoke2
 
 
 dfpoke2 <- dfpoke2 %>% 
