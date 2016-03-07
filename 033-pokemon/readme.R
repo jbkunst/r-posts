@@ -8,7 +8,7 @@
 #' ---
 
 #+ echo=FALSE, message=FALSE, warning=FALSE
-#### setup ws packages ####
+#  setup ws packages ####
 rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
@@ -41,6 +41,7 @@ library("htmltools")
 #' 
 #' Now to the script
 #' 
+
 path <- function(x) paste0("https://raw.githubusercontent.com/phalt/pokeapi/master/data/v2/csv/", x)
 
 dfpkmn <- read_csv(path("pokemon.csv")) %>% 
@@ -144,7 +145,7 @@ str(df)
 
 head(df)
 
-#' ### *bar chart* I choose you 
+#' ## *bar chart* I choose you 
 
 dstype <- df %>% 
   count(type_1, color_1) %>% 
@@ -167,9 +168,11 @@ hcb <- highchart() %>%
 
 hcb
 
-#### Oh! The *bar chat* has evolved into a *treemap*  ####
+#'
+#'  ## Oh! The *bar chat* has evolved into a *treemap*
+#'  
 
-#+fig.kepp='none'
+#+fig.keep='none'
 dftm <- df %>% 
   mutate(type_2 = ifelse(is.na(type_2), paste("only", type_1), type_2),
          type_1 = type_1) %>% 
@@ -198,49 +201,10 @@ hctm
 saveRDS(hctmpkmn <- hctm, file = "~/hctmpkmn.rds", compress = "xz")
 
 
-#### Use the stats ###
-stts <- c("hp", "attack", "defense", "special_attack", "special_defense", "speed")
-
-dftpstats  <- df %>% 
-  select(type_1, color_1,
-         hp, attack, defense, special_attack, special_defense, speed) %>% 
-  gather(stat, value, -type_1, -color_1) %>% 
-  group_by(type_1, color_1, stat) %>%
-  summarise(value = median(value)) %>% 
-  ungroup() %>% 
-  mutate(stat = factor(stat, levels = stts)) %>% 
-  arrange(type_1, as.numeric(stat))
-
-dftpstats
-
-hcstats <- highchart() %>% 
-  hc_chart(type = "line", polar = TRUE) %>% 
-  hc_plotOptions(line = list(marker = list(enabled = FALSE))) %>% 
-  hc_xAxis(categories = stts,
-           tickmarkPlacement = 'on',
-           lineWidth = 0) %>% 
-  hc_yAxis(gridLineInterpolation = 'polygon',
-           lineWidth = 0,
-           min = 0) %>% 
-  hc_legend(align = "left", verticalAlign = "top",
-            layout = "vertical") 
-
-for(tp in unique(dftpstats$type_1)){
-  
-  dftpstats2 <- dftpstats %>% filter(type_1 == tp)
-  
-  hcstats <- hcstats %>% 
-    hc_add_series(name = tp, data = dftpstats2$value,
-                  color = hex_to_rgba(dftpstats2$color_1[1], 0.4))
-    
-}
-
-hcstats
-
-
-#### scatter t-SNE ####
-
-
+#'
+#' ## t-SNE
+#' 
+#' 
 dfnum <- df %>% 
   select(type_1, type_2, weight, height, base_experience, attack,
          defense, hp, special_attack, special_defense, speed,
@@ -257,7 +221,7 @@ dfnum <- df %>%
 
 set.seed(13242)
 
-tsne_poke <- tsne(dfnum, max_iter = 2000)
+tsne_poke <- tsne(dfnum, max_iter = 500)
 
 df <- df %>% 
   mutate(x = tsne_poke[, 1],
@@ -300,15 +264,17 @@ tooltip <- names(ds[[1]]) %>%
   do.call(tagList, .) %>% 
   tagList(
     tags$img(src = "https://raw.githubusercontent.com/phalt/pokeapi/master/data/Pokemon_XY_Sprites/{point.url_image}",
-             width='125px', height='125px')
+             width = "125px", height = "125px")
   ) %>% 
   as.character()
 
 
+qt <- function(...) as.numeric(quantile(...))
+
 hctsne <- highchart() %>% 
   hc_chart(zoomType = "xy") %>% 
-  hc_xAxis(minRange = diff(range(df$x))/5) %>% 
-  hc_yAxis(minRange = diff(range(df$y))/5) %>% 
+  hc_xAxis(minRange = diff(range(df$x))/5, min = qt(df$x, 0.01) - 10, max = qt(df$x, 0.99) + 10) %>% 
+  hc_yAxis(minRange = diff(range(df$y))/5, min = qt(df$y, 0.01) - 10, max = qt(df$y, 0.99) + 10) %>% 
   hc_add_series(data = ds2, type = "scatter",
                 marker = list(radius = 100),
                 zIndex = -3,  enableMouseTracking = FALSE) %>%
