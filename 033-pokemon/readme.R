@@ -39,8 +39,6 @@ library("htmltools")
 #' http://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_base_stats_(Generation_VI-present) and
 #' http://pokemon-uranium.wikia.com/wiki/Template:fire_color.
 #' 
-#' Now to the script
-#' 
 
 path <- function(x) paste0("https://raw.githubusercontent.com/phalt/pokeapi/master/data/v2/csv/", x)
 
@@ -134,6 +132,9 @@ df <- dfpkmn %>%
   left_join(dfimg, by = "id") %>% 
   left_join(dficon, by = "id")
 
+rm(dftype, dfstat, dfcolor, dfcolorf, dfegg, dfimg, dficon)
+rm(id, url_bulbapedia_list, url_icon)
+
 #'
 #' Finally we remove the pokemon with no images (like the mega ones).
 #'
@@ -145,44 +146,61 @@ str(df)
 
 head(df)
 
-#' ## *bar chart* I choose you 
+#'
+#' ## *bar chart* I choose you! 
+#' 
+#' We'll start with the most simple of chart. Let's count
+#' the pkmns by its main type
+#' 
 
 dstype <- df %>% 
   count(type_1, color_1) %>% 
   ungroup() %>% 
   arrange(desc(n)) %>% 
   mutate(x = row_number()) %>% 
-  rename(
-    name = type_1,
-    color = color_1,
-    y = n
-  ) %>% 
+  rename(name = type_1,
+         color = color_1,
+         y = n) %>% 
   select(y, name, color) %>% 
   list.parse3()
   
-hcb <- highchart() %>% 
+hcbar <- highchart() %>% 
   hc_xAxis(categories = unlist(pluck(dstype, i = 2))) %>% 
   hc_yAxis(title = NULL) %>% 
   hc_add_series(data = dstype, type = "bar", showInLegend = FALSE,
                 name = "Number of species")
 
-hcb
+hcbar
+
+#' 
+#' Nothing new: A lot of water and normal pkmns and a few with 
+#' fly as main type. 
+#' 
 
 #'
-#'  ## Oh! The *bar chat* has evolved into a *treemap*
+#' ## Oh! The *bar chat* has evolved into a *treemap*
+#' 
+#'  Now, lets include in some way the second type of each pkmn. An 
+#'  alternative to do this is using a treemap. So here we'll 
+#'  use the `treemap` package to get the information.
 #'  
 
 #+fig.keep='none'
-dftm <- df %>% 
+set.seed(3514)
+
+tm <- df %>% 
   mutate(type_2 = ifelse(is.na(type_2), paste("only", type_1), type_2),
          type_1 = type_1) %>% 
   group_by(type_1, type_2) %>%
   summarise(n = n()) %>% 
-  ungroup()
+  ungroup() %>% 
+  treemap::treemap(index = c("type_1", "type_2"),
+                   vSize = "n", vColor = "type_1")
 
-set.seed(3514)
-
-tm <- treemap::treemap(dftm, index = c("type_1", "type_2"), vSize = "n", vColor = "type_1")
+#'
+#' Now let's tweak the treemap result to include the respective color 
+#' to each type so we have a more *fun* chart.
+#' 
 
 tm$tm <- tm$tm %>%
   tbl_df() %>% 
@@ -205,10 +223,13 @@ saveRDS(hctmpkmn <- hctm, file = "~/hctmpkmn.rds", compress = "xz")
 #' ## t-SNE
 #' 
 #' 
-dfnum <- df %>% 
-  select(type_1, type_2, weight, height, base_experience, attack,
-         defense, hp, special_attack, special_defense, speed,
-         egg_group_1, egg_group_2) %>% 
+
+set.seed(13242)
+
+tsne_poke <- df %>% 
+  select(type_1, type_2, weight, height, base_experience,
+         attack, defense, special_attack, special_defense, speed, base_experience,
+         hp, egg_group_1, egg_group_2) %>%
   map(function(x){
     ifelse(is.na(x), "NA", x)
   }) %>% 
@@ -217,19 +238,27 @@ dfnum <- df %>%
   model.matrix(~., data = .) %>% 
   as.data.frame() %>% 
   tbl_df() %>% 
-  .[-1]
+  .[-1] %>% 
+  tsne(perplexity = 60)
 
-set.seed(13242)
-
-tsne_poke <- tsne(dfnum, max_iter = 500)
+str(tsne_poke)
 
 df <- df %>% 
   mutate(x = tsne_poke[, 1],
          y = tsne_poke[, 2])
 
+dfcenters <- df %>% 
+  group_by(type_1, color_1) %>% 
+  summarise(cx = mean(x),
+            cy = mean(y),
+            sdcx = sd(x),
+            sdcy = sd(y))
+
+
 ggplot(df) + 
-  geom_point(aes(x, y, color = type_1), size = 4, alpha = 0.5) +
-  scale_color_manual("Type", values = unique(setNames(df$color_1, df$color_1))) + 
+  geom_point(aes(x, y, color = type_1), size = 4, alpha = 0.25) +
+  scale_color_manual("Type", values = unique(setNames(df$color_1, df$color_1))) +
+  geom_text(data = dfcenters, aes(x, y, label = type_1)) + 
   theme_minimal() +
   theme(legend.position = "right")
 
@@ -248,13 +277,15 @@ ds <- df %>%
 
 ds2 <- df %>% 
   select(color = color_1, x, y) %>%
-  mutate(color = hex_to_rgba(color, 0.05)) %>% 
+  mutate(color = hex_to_rgba(color, 0.06)) %>% 
   list.parse3()
 
+urlimage <- "https://raw.githubusercontent.com/phalt/pokeapi/master/data/Pokemon_XY_Sprites/"
 
-tooltip <- names(ds[[1]]) %>% 
-  setdiff(c("marker", "url_image", "url_icon", "color", "x", "y",
-            "color_1", "color_2", "color_f", "species_id")) %>%
+tooltip <- c("pokemon", "type_1", "type_2",
+             "weight", "height",
+             "attack",  "defense",
+             "special_attack", "special_defense") %>%
   map(function(x){
     tags$tr(
       tags$th(str_replace_all(str_to_title(x), "_", " ")),
@@ -263,28 +294,28 @@ tooltip <- names(ds[[1]]) %>%
   }) %>% 
   do.call(tagList, .) %>% 
   tagList(
-    tags$img(src = "https://raw.githubusercontent.com/phalt/pokeapi/master/data/Pokemon_XY_Sprites/{point.url_image}",
+    tags$img(src = paste0(urlimage, "{point.url_image}"),
              width = "125px", height = "125px")
   ) %>% 
   as.character()
 
-
-qt <- function(...) as.numeric(quantile(...))
-
 hctsne <- highchart() %>% 
   hc_chart(zoomType = "xy") %>% 
-  hc_xAxis(minRange = diff(range(df$x))/5, min = qt(df$x, 0.01) - 10, max = qt(df$x, 0.99) + 10) %>% 
-  hc_yAxis(minRange = diff(range(df$y))/5, min = qt(df$y, 0.01) - 10, max = qt(df$y, 0.99) + 10) %>% 
-  hc_add_series(data = ds2, type = "scatter",
-                marker = list(radius = 100),
-                zIndex = -3,  enableMouseTracking = FALSE) %>%
+  hc_xAxis(minRange = diff(range(df$x))/5) %>%
+  hc_yAxis(minRange = diff(range(df$y))/5) %>%
   hc_add_series(data = ds,
                 type = "scatter",
+                name = "pokemons",
                 states = list(hover = list(halo = list(
                   size  = 50,
                   attributes = list(
                     opacity = 1)
                 )))) %>%
+  hc_add_series(data = ds2, type = "scatter",
+                marker = list(radius = 75, symbol = "circle"),
+                zIndex = -3,  enableMouseTracking = FALSE,
+                linkedTo = ":previous",
+                showInLegend = FALSE) %>%
   hc_plotOptions(series = list()) %>%  
   hc_tooltip(
     useHTML = TRUE,
@@ -294,7 +325,14 @@ hctsne <- highchart() %>%
     pointFormat = tooltip,
     footerFormat = "</table>"
   ) %>% 
-  hc_add_theme(hc_theme_null())
+  hc_add_theme(
+    hc_theme_null(
+      legend = list(
+        enabled = TRUE,
+        align = "right"
+        )
+      )
+    )
 
 hctsne
 
