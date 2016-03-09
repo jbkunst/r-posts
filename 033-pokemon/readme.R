@@ -215,13 +215,19 @@ hctm <- highchart() %>%
 
 hctm
 
-#+echo=FALSE
-saveRDS(hctmpkmn <- hctm, file = "~/hctmpkmn.rds", compress = "xz")
-
-
 #'
-#' ## t-SNE
+#' ## A Wild t-SNE Appears! 
 #' 
+#' I met t-SNE (t-Distributed Stochastic Neighbor Embedding) algorithm in a Kaggle post.
+#' It was developed by Laurens van der Maaten and according the official package 
+#' (https://lvdmaaten.github.io/tsne/) it's a prize winning
+#' algorithm. In the site the description mention:
+#' 
+#' > It is particularly well suited for the visualization of high-dimensional datasets
+#' 
+#' So, it's just use the algorithm and see what happend, right? We'll select some variables
+#' and use the `model.matrix` to convert the strings variable into indicators for each level
+#' and apply `tsne`
 #' 
 
 set.seed(13242)
@@ -254,14 +260,32 @@ dfcenters <- df %>%
             sdcx = sd(x),
             sdcy = sd(y))
 
+#' 
+#' Now, we'll use ggplot to how the algorithm put every pokemon in this
+#' new dimensions:
+#' 
 
-ggplot(df) + 
-  geom_point(aes(x, y, color = type_1), size = 4, alpha = 0.25) +
-  scale_color_manual("Type", values = unique(setNames(df$color_1, df$color_1))) +
-  geom_text(data = dfcenters, aes(x, y, label = type_1)) + 
+cols <- df %>% select(type_1, color_1) %>% distinct() %>% {  setNames(.$color_1, .$type_1) }
+
+gg <- ggplot(df) + 
+  geom_point(aes(x, y, color = type_1), size = 4, alpha = 0.5) +
+  scale_color_manual("Type", values = cols) +
+  geom_text(data = dfcenters, aes(cx, cy, label = type_1)) +
   theme_minimal() +
-  theme(legend.position = "right")
+  theme(legend.position = "right") +
+  facet_wrap(~type_1)
 
+gg
+
+#' 
+#' Clearly the algorithm grouped pokemon according to their main type. Every
+#' group look relative concentrated except the *dragon*, *fairy*, *poison* and
+#' *steel*. I think this can be beacuse this types of pokemon have a second and
+#' variable so they dont are so similiar among them.
+#' 
+#' There will be more in this result? Now it's time to put all the 
+#' download images in a chart and explore the output. 
+#' 
 
 ds <- df %>% 
   select(pokemon, type_1, type_2, weight, height,
@@ -277,7 +301,7 @@ ds <- df %>%
 
 ds2 <- df %>% 
   select(color = color_1, x, y) %>%
-  mutate(color = hex_to_rgba(color, 0.06)) %>% 
+  mutate(color = hex_to_rgba(color, 0.05)) %>% 
   list.parse3()
 
 urlimage <- "https://raw.githubusercontent.com/phalt/pokeapi/master/data/Pokemon_XY_Sprites/"
@@ -314,8 +338,7 @@ hctsne <- highchart() %>%
   hc_add_series(data = ds2, type = "scatter",
                 marker = list(radius = 75, symbol = "circle"),
                 zIndex = -3,  enableMouseTracking = FALSE,
-                linkedTo = ":previous",
-                showInLegend = FALSE) %>%
+                linkedTo = ":previous") %>%
   hc_plotOptions(series = list()) %>%  
   hc_tooltip(
     useHTML = TRUE,
@@ -327,13 +350,29 @@ hctsne <- highchart() %>%
   ) %>% 
   hc_add_theme(
     hc_theme_null(
-      legend = list(
-        enabled = TRUE,
-        align = "right"
+      chart = list(
+        backgroundColor = "transparent",
+        style = list(
+          fontFamily = "Roboto"
+          )
         )
       )
     )
 
 hctsne
 
+#' 
+#' I see nice things here:
+#' 
+#' - The cluster are detrmined by the type of pokemon.
+#' - The algorithm keep the chain evolution side by side. You can see
+#' charmander, charmeleon, charizard together.
+#' - Put steelix, onix and wailord (the most heavy pokemons) together.
+#' 
+#' Nice algorithm to keep testing in other data!
+#' 
 
+
+#+echo=FALSE, eval=FALSE
+saveRDS(hctmpkmn <- hctm, file = "~/hctmpkmn.rds", compress = "xz")
+save(hctmpkmn, hcbar, hctsne, file = "~/hcpkmn.RData")
