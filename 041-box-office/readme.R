@@ -16,6 +16,8 @@ library("rvest")
 library("purrr")
 library("stringr")
 library("DT")
+library("ggplot2")
+library("lubridate")
 #'
 #'
 
@@ -50,8 +52,10 @@ dfmovie <- dfmovie %>%
          box_id = str_replace_all(box_id, "^id=|\\.htm$", ""))
 
 
+datatable(dfmovie)
 
-dfgross <- map_df(sample(dfmovie$box_id), function(x){
+
+dfgross <- map_df(dfmovie$box_id, function(x){
   # x <- sample(dfmovie$box_id, size =1)
   message(x)
   
@@ -82,3 +86,24 @@ dfgross <- map_df(sample(dfmovie$box_id), function(x){
   dfgr
   
 })
+
+save(dfgross, dfmovie, file = "data/data.RData")
+
+dfgross <- dfgross %>% 
+  mutate(gross = as.numeric(str_replace_all(gross, "\\$|\\,", "")),
+         gross_to_date = as.numeric(str_replace_all(gross_to_date, "\\$|\\,", "")),
+         day_number = as.numeric(day_number),
+         date2 = str_replace_all(date, "\\t|\\.", ""),
+         date2 = as.Date(date2, "%b %d, %Y"),
+         decade = year(date2)/100) %>% 
+  filter(!is.na(date))
+
+
+ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter"))) + 
+  geom_line(aes(date2, gross_to_date, color = box_id))
+
+ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter"))) + 
+  geom_line(aes(day_number, gross_to_date, color = box_id))
+
+ggplot(dfgross %>% filter(year(date2) > 2010)) + 
+  geom_line(aes(date2, gross_to_date, fill = box_id))
