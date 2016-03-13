@@ -10,6 +10,6 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
-knitr::opts_chunk$set(message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 #'
