@@ -17,14 +17,14 @@ library("purrr")
 library("stringr")
 library("DT")
 library("ggplot2")
+library("directlabels")
 library("lubridate")
 #'
 #'
 
 url <- "http://www.boxofficemojo.com/alltime/domestic.htm"
 
-urls <- paste0(url, sprintf("?page=%s&p=.htm", 1:10))
-
+urls <- paste0(url, sprintf("?page=%s&p=.htm", 1:1))
 
 dfmovie <- map_df(urls, function(x){
   # x <- sample(size = 1, urls)
@@ -54,12 +54,65 @@ dfmovie <- dfmovie %>%
 
 datatable(dfmovie)
 
+dfmovie2 <- map_df(dfmovie$box_id, function(x){
+  # x <- "starwars2"
+  # x <- sample(dfmovie$box_id, size =1); 
+  message(x)
+  
+  if (file.exists(sprintf("data/%s-p2.rds", x))) {
+    dfm <- readRDS(sprintf("data/%s-p2.rds", x))
+    return(dfm)
+  }
+  
+  html <- sprintf("http://www.boxofficemojo.com/movies/?page=main&id=%s.htm", x) %>% 
+    read_html()
+  
+  img_url <- html %>% 
+    html_nodes("table table table img") %>% 
+    .[[1]] %>% 
+    html_attr("src")
+  
+  tmp <- tempfile(fileext = ".jpg")
+  download.file(img_url, tmp, mode = "wb", quiet = TRUE)
+  img <- jpeg::readJPEG(tmp)
+  imgpltt <- image_palette(img, n = 1, choice = median)
+  
+  # par(mfrow = c(1, 2))
+  # display_image(img)
+  # scales::show_col(imgpltt)
+  
+  dfaux <- html %>% 
+    html_nodes("table  table  table") %>% 
+    .[[2]] %>% 
+    html_table(fill = TRUE) %>% 
+    .[-1, 1:2] %>% 
+    tbl_df()
+
+  dfm <- data_frame(
+    box_id = x,
+    distributor = str_replace(dfaux[2, 1], "Distributor: ", ""),
+    genre = str_replace(dfaux[3, 1], "Genre: ", ""),
+    mpaa_rating = str_replace(dfaux[4, 1], " MPAA Rating: ", ""),
+    runtime = str_replace(dfaux[3, 2], " Runtime: ", ""),
+    production_budget = str_extract(dfaux[4, 2], "\\d+"),
+    img_url = img_url,
+    img_main_color = imgpltt
+  )
+  
+  saveRDS(dfm, file = sprintf("data/%s-p2.rds", x))
+  
+  dfm
+    
+})
+
+dfmovie <- left_join(dfmovie, dfmovie2, by = "box_id")
+
 
 dfgross <- map_df(dfmovie$box_id, function(x){
   # x <- sample(dfmovie$box_id, size =1)
   message(x)
   
-  if(file.exists(sprintf("data/%s.rds", x))) {
+  if (file.exists(sprintf("data/%s.rds", x))) {
     dfgr <- readRDS(sprintf("data/%s.rds", x))
     return(dfgr)
   }
@@ -87,7 +140,8 @@ dfgross <- map_df(dfmovie$box_id, function(x){
   
 })
 
-save(dfgross, dfmovie, file = "data/data.RData")
+try(Sys.setlocale("LC_TIME", "en_US.UTF-8"))
+try(Sys.setlocale("LC_TIME", "English"))
 
 dfgross <- dfgross %>% 
   mutate(gross = as.numeric(str_replace_all(gross, "\\$|\\,", "")),
@@ -95,15 +149,48 @@ dfgross <- dfgross %>%
          day_number = as.numeric(day_number),
          date2 = str_replace_all(date, "\\t|\\.", ""),
          date2 = as.Date(date2, "%b %d, %Y"),
-         decade = year(date2)/100) %>% 
+         decade = year(date2)/100,
+         movieserie = str_extract(box_id, "^[A-Za-z]+|\\d{2,3}"),
+         serienumber = str_extract(box_id, "\\d$"),
+         serienumber = ifelse(is.na(serienumber), 1, serienumber)) %>% 
   filter(!is.na(date))
 
 
-ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter"))) + 
-  geom_line(aes(date2, gross_to_date, color = box_id))
+save(dfgross, dfmovie, file = "data/data.RData")
 
-ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter"))) + 
-  geom_line(aes(day_number, gross_to_date, color = box_id))
+dfgross
 
-ggplot(dfgross %>% filter(year(date2) > 2010)) + 
-  geom_line(aes(date2, gross_to_date, fill = box_id))
+gg <- ggplot(dfgross) + 
+  geom_line(aes(date2, gross_to_date, fill = box_id)) 
+
+gg
+
+gg + xlim(as.Date(ymd(20100101)),
+          as.Date(ymd(20160101)))
+
+movies <- dfgross %>% 
+  distinct(movieserie, serienumber) %>% 
+  count(movieserie) %>% 
+  arrange(desc(n)) %>% 
+  filter(n >= 4) %>% 
+  .$movieserie
+
+
+
+
+
+
+ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter")),
+       aes(date2, gross_to_date)) + 
+  geom_line(aes(color = box_id)) +
+  geom_dl(aes(label = box_id), method = "last.points") 
+
+
+ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter")),
+       aes(day_number, gross_to_date)) + 
+  geom_line(aes(color = box_id)) +
+  geom_dl(aes(label = box_id), method = "last.points") + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+
+
