@@ -11,7 +11,9 @@
 #### setup ws packages ####
 rm(list = ls())
 library("jbkmisc")
+
 blog_setup()
+knitr::opts_chunk$set(fig.width = 10, fig.height = 6)
 
 library("dplyr")
 library("rvest")
@@ -139,8 +141,8 @@ dfgross <- map_df(dfmovie$box_id, function(x){
   
 })
 
-try(Sys.setlocale("LC_TIME", "en_US.UTF-8"))
-try(Sys.setlocale("LC_TIME", "English"))
+try(x <- Sys.setlocale("LC_TIME", "en_US.UTF-8"))
+try(x <- Sys.setlocale("LC_TIME", "English"))
 
 dfgross <- dfgross %>% 
   mutate(gross = as.numeric(str_replace_all(gross, "\\$|\\,", "")),
@@ -168,7 +170,7 @@ dfmovie <- dfmovie %>%
          studio = str_replace_all(studio, "\\.", "")
   )
 
-datatable(dfmovie)
+head(dfmovie)
 rm(dfmovie2)
 
 save(dfgross, dfmovie, file = "data/data.RData")
@@ -201,34 +203,35 @@ fmt_dllr_mm <- function(x) {
     scales::dollar()
 }
 
-gg <- ggplot(dfgross,
+ggplot(dfgross,
              aes(date2, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
   geom_line(alpha = 0.25) + 
   scale_color_manual(values = cols) + 
   geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
-          method = "last.points") + 
+          method = list("last.points", cex = 0.75)) + 
   theme(legend.position = "none") +
   xlim(as.Date(min(dfgross$date2)), as.Date(ymd(20180101))) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
-  ylab("Gross (millions)") + xlab("Days since release")
+  labs(title = "Cumulative gross for TOP 200 movies",
+       subtitle = "the gross and length",
+       caption = "Data from boxofficemojo.com",
+       x = "Time",
+       y = "Cumulative Gross (millions)")
 
-gg
-
-gg + xlim(as.Date(ymd(20080101)),
-          as.Date(ymd(20170101)))
-
-gg <- ggplot(dfgross,
+ggplot(dfgross,
              aes(day_number, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
   geom_line(alpha = 0.25) + 
   geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
-          method = "last.points") + 
+          method = list("last.points", cex = 0.75)) + 
   scale_color_manual(values = cols) + 
   theme(legend.position = "none") +
   xlim(NA, 550) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
-  ylab("Gross (millions)") + xlab("Days since release")
-
-gg
+  labs(title = "Cumulative gross for TOP 200 movies",
+       subtitle = "the gross and length",
+       caption = "Data from boxofficemojo.com",
+       x = "Days since release",
+       y = "Cumulative Gross (millions)")
 
 
 moviessaga <- dfgross %>% 
@@ -241,9 +244,15 @@ moviessaga <- dfgross %>%
 ggplot(dfgross %>% filter(movieserie %in% moviessaga),
        aes(day_number, gross_to_date)) + 
   geom_line(aes(color = box_id), alpha = 0.5) +
-  geom_dl(aes(label = serienumber), method = "last.points", alpha = 0.75) + 
+  geom_dl(aes(label = serienumber), method = list("last.points", cex = 0.75), alpha = 0.75) + 
   facet_wrap(~movieserie, scales = "free") + 
-  theme(legend.position = "none") + 
   scale_y_continuous(labels = fmt_dllr_mm) +
-  ggtitle("Comparing gross between sagas") + 
-  ylab("Gross (millions)") + xlab("Days since release")
+  labs(title = "Comparing gross between sagas",
+       subtitle = "Usually the order es 2, 1, 3, 4 in gross terms",
+       caption = "Data from boxofficemojo.com",
+       x = "Days since release",
+       y = "Gross (millions)") + 
+  theme(legend.position = "none")
+
+
+
