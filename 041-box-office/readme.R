@@ -10,8 +10,9 @@
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
-knitr::opts_chunk$set(message = FALSE, warning = FALSE,
-                      fig.showtext = TRUE, dev = "CairoPNG")
+library("jbkmisc")
+blog_setup()
+
 library("dplyr")
 library("rvest")
 library("purrr")
@@ -21,87 +22,14 @@ library("ggplot2")
 library("directlabels")
 library("lubridate")
 library("RImagePalette")
-library("showtext")
-
-
-font.add.google("Open Sans Condensed",  regular.wt = 300, bold.wt = 700)
-font.add.google("Lato")
-
-showtext.auto()
-
-
-theme_hrbrmstr <- function(base_family = "Lato",
-                           base_size = 11,
-                           strip_text_family = base_family,
-                           strip_text_size = 12,
-                           plot_title_family = "Open Sans Condensed",
-                           plot_title_face = "bold",
-                           plot_title_size = 18,
-                           plot_title_margin = 16,
-                           axis_title_family = "Lato",
-                           axis_title_size = 9,
-                           axis_title_just = "rt",
-                           grid = TRUE,
-                           axis = FALSE,
-                           ticks = FALSE) {
-  
-  ret <- theme_minimal(base_family=base_family, base_size=base_size)
-  
-  ret <- ret + theme(legend.background=element_blank())
-  ret <- ret + theme(legend.key=element_blank())
-  
-  if (inherits(grid, "character") | grid == TRUE) {
-    
-    ret <- ret + theme(panel.grid=element_line(color="#2b2b2bdd", size=0.10))
-    ret <- ret + theme(panel.grid.major=element_line(color="#2b2b2b99", size=0.10))
-    ret <- ret + theme(panel.grid.minor=element_line(color="#2b2b2b99", size=0.05))
-    
-    if (inherits(grid, "character")) {
-      if (regexpr("X", grid)[1] < 0) ret <- ret + theme(panel.grid.major.x=element_blank())
-      if (regexpr("Y", grid)[1] < 0) ret <- ret + theme(panel.grid.major.y=element_blank())
-      if (regexpr("x", grid)[1] < 0) ret <- ret + theme(panel.grid.minor.x=element_blank())
-      if (regexpr("y", grid)[1] < 0) ret <- ret + theme(panel.grid.minor.y=element_blank())
-    }
-    
-  } else {
-    ret <- ret + theme(panel.grid=element_blank())
-  }
-  
-  if (inherits(axis, "character") | axis == TRUE) {
-    ret <- ret + theme(axis.line=element_line(color="#2b2b2b", size=0.15))
-    if (inherits(axis, "character")) {
-      if (regexpr("X", axis)[1] < 0) ret <- ret + theme(axis.line.x=element_blank())
-      if (regexpr("Y", axis)[1] < 0) ret <- ret + theme(axis.line.y=element_blank())
-    }
-  } else {
-    ret <- ret + theme(axis.line=element_blank())
-  }
-  
-  if (!ticks) ret <- ret + theme(axis.ticks = element_blank())
-  
-  xj <- switch(tolower(substr(axis_title_just, 1, 1)), b=0, l=0, m=0.5, c=0.5, r=1, t=1)
-  yj <- switch(tolower(substr(axis_title_just, 2, 2)), b=0, l=0, m=0.5, c=0.5, r=1, t=1)
-  
-  ret <- ret + theme(axis.title.x=element_text(hjust=xj, size=axis_title_size, family=axis_title_family))
-  ret <- ret + theme(axis.title.y=element_text(hjust=yj, size=axis_title_size, family=axis_title_family))
-  ret <- ret + theme(strip.text=element_text(hjust=0, size=strip_text_size, family=strip_text_family))
-  ret <- ret + theme(plot.title=element_text(hjust=0, size=plot_title_size, face = plot_title_face,
-                                             margin=margin(b=plot_title_margin), family=plot_title_family))
-  ret <- ret + theme(strip.background=element_rect(fill="#858585", color=NA))
-  ret <- ret + theme(strip.text=element_text(size=12, color="white", hjust=0.1))
-  
-  ret
-  
-}
-
-theme_set(theme_hrbrmstr(plot_title_family = "Open Sans Condensed"))
 
 #'
-#'
+#' ## Data
+#' 
 
 url <- "http://www.boxofficemojo.com/alltime/domestic.htm"
 
-urls <- paste0(url, sprintf("?page=%s&p=.htm", 1:1))
+urls <- paste0(url, sprintf("?page=%s&p=.htm", 1:2))
 
 dfmovie <- map_df(urls, function(x){
   # x <- sample(size = 1, urls)
@@ -127,9 +55,6 @@ dfmovie <- dfmovie %>%
          have_release = str_detect(url_movie, "releases"),
          box_id = str_extract(url_movie, "id=.*"),
          box_id = str_replace_all(box_id, "^id=|\\.htm$", ""))
-
-
-datatable(dfmovie)
 
 dfmovie2 <- map_df(dfmovie$box_id, function(x){
   # x <- "starwars2"
@@ -169,8 +94,8 @@ dfmovie2 <- map_df(dfmovie$box_id, function(x){
     box_id = x,
     distributor = str_replace(dfaux[2, 1], "Distributor: ", ""),
     genre = str_replace(dfaux[3, 1], "Genre: ", ""),
-    mpaa_rating = str_replace(dfaux[4, 1], " MPAA Rating: ", ""),
-    runtime = str_replace(dfaux[3, 2], " Runtime: ", ""),
+    mpaa_rating = str_replace(dfaux[4, 1], "MPAA Rating: ", ""),
+    runtime = str_replace(dfaux[3, 2], "Runtime: ", ""),
     production_budget = str_extract(dfaux[4, 2], "\\d+"),
     img_url = img_url,
     img_main_color = imgpltt
@@ -181,9 +106,6 @@ dfmovie2 <- map_df(dfmovie$box_id, function(x){
   dfm
     
 })
-
-dfmovie <- left_join(dfmovie, dfmovie2, by = "box_id")
-
 
 dfgross <- map_df(dfmovie$box_id, function(x){
   # x <- sample(dfmovie$box_id, size =1)
@@ -228,51 +150,100 @@ dfgross <- dfgross %>%
          date2 = as.Date(date2, "%b %d, %Y"),
          decade = year(date2)/100,
          movieserie = str_extract(box_id, "^[A-Za-z]+|\\d{2,3}"),
-         serienumber = str_extract(box_id, "\\d$"),
+         serienumber = str_extract(box_id, "\\d{1,2}$"),
          serienumber = ifelse(is.na(serienumber), 1, serienumber)) %>% 
-  filter(!is.na(date))
+  filter(!is.na(date)) 
 
+
+dfmovie <- dfmovie %>% 
+  left_join(dfmovie2, by = "box_id") %>% 
+  left_join(dfgross %>% 
+              group_by(box_id) %>% 
+              summarise(max_day = max(day_number)),
+            by = "box_id")
+
+dfmovie <- dfmovie %>% 
+  mutate(rank = as.numeric(rank),
+         gross = as.numeric(str_replace_all(gross, "\\$|\\,", "")),
+         studio = str_replace_all(studio, "\\.", "")
+  )
+
+datatable(dfmovie)
+rm(dfmovie2)
 
 save(dfgross, dfmovie, file = "data/data.RData")
 
+#'
 #' ## Plot
+#' 
 
 cols <- setNames(dfmovie$img_main_color, dfmovie$box_id)
 
-gg <- ggplot(dfgross) + 
-  geom_line(aes(date2, gross_to_date, color = box_id),
-            alpha = 0.75) + 
+ntoplabel <- 10 + 1 # rm starwars
+nmostlong <- 10
+
+moviestop <- dfmovie %>%
+  arrange(rank) %>% 
+  head(ntoplabel) %>%
+  .$box_id
+
+movieslng <- dfmovie %>%
+  arrange(desc(max_day)) %>% 
+  head(ntoplabel) %>%
+  .$box_id
+
+movieslbl <- unique(c(moviestop, movieslng))
+movieslbl <- setdiff(movieslbl, c("starwars4"))
+
+fmt_dllr_mm <- function(x) {
+  x %>% 
+    {./1000000} %>% 
+    scales::dollar()
+}
+
+gg <- ggplot(dfgross,
+             aes(date2, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
+  geom_line(alpha = 0.25) + 
   scale_color_manual(values = cols) + 
-  theme(legend.position = "none")
+  geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
+          method = "last.points") + 
+  theme(legend.position = "none") +
+  xlim(as.Date(min(dfgross$date2)), as.Date(ymd(20180101))) + 
+  scale_y_continuous(labels = fmt_dllr_mm) +
+  ylab("Gross (millions)") + xlab("Days since release")
 
 gg
 
-gg + xlim(as.Date(ymd(20100101)),
-          as.Date(ymd(20160101)))
+gg + xlim(as.Date(ymd(20080101)),
+          as.Date(ymd(20170101)))
 
-movies <- dfgross %>% 
+gg <- ggplot(dfgross,
+             aes(day_number, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
+  geom_line(alpha = 0.25) + 
+  geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
+          method = "last.points") + 
+  scale_color_manual(values = cols) + 
+  theme(legend.position = "none") +
+  xlim(NA, 550) + 
+  scale_y_continuous(labels = fmt_dllr_mm) +
+  ylab("Gross (millions)") + xlab("Days since release")
+
+gg
+
+
+moviessaga <- dfgross %>% 
   distinct(movieserie, serienumber) %>% 
   count(movieserie) %>% 
   arrange(desc(n)) %>% 
   filter(n >= 4) %>% 
   .$movieserie
 
-
-
-
-
-
-ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter")),
-       aes(date2, gross_to_date)) + 
-  geom_line(aes(color = box_id)) +
-  geom_dl(aes(label = box_id), method = "last.points") 
-
-
-ggplot(dfgross %>% filter(str_detect(box_id, "harrypotter")),
+ggplot(dfgross %>% filter(movieserie %in% moviessaga),
        aes(day_number, gross_to_date)) + 
-  geom_line(aes(color = box_id)) +
-  geom_dl(aes(label = box_id), method = "last.points") + 
-  theme_minimal() + 
-  theme(legend.position = "none")
-
-
+  geom_line(aes(color = box_id), alpha = 0.5) +
+  geom_dl(aes(label = serienumber), method = "last.points", alpha = 0.75) + 
+  facet_wrap(~movieserie, scales = "free") + 
+  theme(legend.position = "none") + 
+  scale_y_continuous(labels = fmt_dllr_mm) +
+  ggtitle("Comparing gross between sagas") + 
+  ylab("Gross (millions)") + xlab("Days since release")
