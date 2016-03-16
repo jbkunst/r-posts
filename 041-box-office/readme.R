@@ -11,9 +11,7 @@
 #### setup ws packages ####
 rm(list = ls())
 library("jbkmisc")
-
 blog_setup()
-knitr::opts_chunk$set(fig.width = 10, fig.height = 6)
 
 library("dplyr")
 library("rvest")
@@ -33,7 +31,7 @@ library("highcharter")
 #' Have you ask yourself how much gross income the movies produces? Uff a lot! What movies are the most
 #' succesfull in a particular saga? I dont know so lets discover it because 
 #' <http://www.boxofficemojo.com/> have all these data and we're here to scrap it a 
-#' visualize it (shh.. and this is an excellent excuses to
+#' visualize it (shh.. and this is an excellent excuse to
 #' test the brand new subtitles and captions in #ggplot2! powered by @hrbrmstr)
 #' 
 #' <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">&quot;And there 
@@ -198,7 +196,6 @@ dfmovie <- dfmovie %>%
          production_budget = 10e6 * as.numeric(production_budget)
   )
 
-head(dfmovie)
 rm(dfmovie2)
 
 #+ echo=FALSE
@@ -224,7 +221,12 @@ dfmovie %>%
 #' series and compare! The data is just telling us what to do.
 #' 
 
-datatable(dfgross %>% filter(box_id == "starwars7"))
+dfgross %>%
+  filter(box_id == "starwars7") %>% 
+  mutate(gross = scales::dollar(gross),
+         gross_to_date = scales::dollar(gross_to_date)) %>% 
+  select(box_id, date, day_number, gross, gross_to_date) %>% 
+  datatable()
 
 #'
 #' ## Plot
@@ -262,20 +264,24 @@ fmt_dllr_mm <- function(x) {
     scales::dollar()
 }
 
-ggplot(dfgross,
-             aes(date2, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
+dfgross %>% 
+  ggplot(aes(date2, gross_to_date,
+             color = box_id, label = str_to_title(box_id))) + 
   geom_line(alpha = 0.25) + 
   scale_color_manual(values = cols) + 
-  geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
-          method = list("last.points", cex = 0.75)) + 
+  geom_label(data = dfgross %>%
+               filter(box_id %in% movieslbl) %>% 
+               arrange(desc(day_number)) %>% 
+               distinct(box_id)) + 
   theme(legend.position = "none") +
-  xlim(as.Date(min(dfgross$date2)), as.Date(ymd(20180101))) + 
+  xlim(as.Date(min(dfgross$date2)), as.Date(ymd(20170101))) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Cumulative gross income for the TOP 200 movies",
-       subtitle = "asd",
-       caption = "Jbkunst || Data from boxofficemojo.com",
+       caption = "jkunst.com | Data from boxofficemojo.com",
        x = "Time",
        y = "Cumulative Gross (millions)")
+
+
 
 #' Mmm the first conclusion I get from this:
 #' 
@@ -291,15 +297,16 @@ ggplot(dfgross,
 ggplot(dfgross,
              aes(day_number, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
   geom_line(alpha = 0.25) + 
-  geom_dl(data = dfgross %>% filter(box_id %in% movieslbl),
-          method = list("last.points", cex = 0.75)) + 
+  geom_label(data = dfgross %>%
+               filter(box_id %in% movieslbl) %>% 
+               arrange(desc(day_number)) %>% 
+               distinct(box_id)) + 
   scale_color_manual(values = cols) + 
   theme(legend.position = "none") +
   xlim(NA, 550) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Cumulative gross for TOP 200 movies",
-       subtitle = "the gross and length",
-       caption = "Data from boxofficemojo.com",
+       caption = "jkunst.com | Data from boxofficemojo.com",
        x = "Days since release",
        y = "Cumulative Gross (millions)")
 
@@ -316,18 +323,22 @@ moviessaga <- dfgross %>%
   filter(n >= 4) %>% 
   .$movieserie
 
+st <- "jkunst.com | Data from boxofficemojo.com"
+
 dfgross %>%
   filter(movieserie %in% moviessaga) %>%
-  mutate(serienumber = ifelse(box_id == "transformers06", 1, serienumber)) %>% 
-ggplot(aes(day_number, gross_to_date)) + 
+  ggplot(aes(day_number, gross_to_date, label = serienumber)) + 
   geom_line(aes(color = box_id), alpha = 0.5) +
-  geom_dl(aes(label = serienumber), method = list("last.points", cex = 0.75), alpha = 0.75) + 
+  geom_label(data = dfgross %>%
+               filter(movieserie %in% moviessaga) %>% 
+               mutate(serienumber = ifelse(box_id == "transformers06", 1, serienumber)) %>% 
+               arrange(desc(day_number)) %>% 
+               distinct(box_id)) +
   facet_wrap(~movieserie, scales = "free_y") + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Comparing gross between sagas",
-       subtitle = "In 3 of the 6 sagas with more movies the 1st movie have the longest time 
-in theater but they are not the most popular than the 2nd and 3rd movie (in order)",
-       caption = "Data from boxofficemojo.com",
+       subtitle = st,
+       caption = "jkunst.com | Data from boxofficemojo.com",
        x = "Days since release",
        y = "Gross (millions)") + 
   theme(legend.position = "none")
@@ -349,37 +360,43 @@ dsmovie <- dfmovie %>%
          color = img_main_color) %>% 
   list.parse3() 
 
-str(dsmovie[[1]])
-
-thmhc <- hc_theme(
-  chart = list(
-    style = list(
-      fontFamily = "Roboto"
-    )
-  ),
-  title = list(
-    align = "left",
-    style = list(
-      fontFamily = "PT Sans Narrow"
-    )
-  ),
-  subtitle = list(
-    align = "left",
-    style = list(
-      fontFamily = "PT Sans Narrow"
-    )
-  ),
-  xAxis = list(
-    gridLineWidth = 1
-  )
-)
-
-
-highchart() %>% 
-  hc_title(text = "SasdasAs asdA asd") %>%
-  hc_subtitle(text = "SasdasAs asdA asd") %>% 
+hcscttr <- highchart() %>% 
+  hc_title(text = "Main Title") %>%
+  hc_subtitle(text = "Grumpy wizards make toxic brew for the evil Queen and Jack") %>% 
   hc_add_series(data = dsmovie, type = "scatter",
                 showInLegend = FALSE) %>%
-  hc_add_theme(thmhc)
+  hc_xAxis(title = list(text = "Gross income")) %>% 
+  hc_yAxis(title = list(text = "Production Budget")) %>% 
+  hc_add_theme(hc_theme_smpl()) 
+
+hcscttr
+
+
+hcgross1 <- highchart() %>% 
+  hc_title(text = "Main Title") %>% 
+  hc_xAxis(type = "datetime") %>% 
+  hc_add_theme(hc_theme_smpl()) 
+
+hcgross2 <- highchart() %>% 
+  hc_title(text = "Main Title") %>% 
+  hc_add_theme(hc_theme_smpl()) 
+
+for (id in unique(dfgross$box_id)) {
+  message(id)
+  dfaux <- dfgross %>% filter(box_id == id)
+  
+  hcgross1  <- hcgross1 %>% 
+    hc_add_serie_times_values(dfaux$date2, dfaux$gross_to_date,
+                              name = id, showInLegend = FALSE)
+  
+  hcgross2  <- hcgross2 %>% 
+    hc_add_serie(data = dfaux %>% select(day_number, gross_to_date) %>% list.parse2(),
+                 name = id, showInLegend = FALSE)
+ 
+}
+
+hcgross1
+
+hcgross2
 
 
