@@ -26,14 +26,8 @@ library("printr")
 library("highcharter")
 library("htmltools")
 #' 
-#' The recently (I remeber this movie like it was yesterday) SW7 ($930,901,726 gross income) 
-#' and the non standar Deadpool ($329,397,732) are top 1 and top 7 in 
-#' terms of gross income according to  <http://www.boxofficemojo.com/> site.
-#' Have you ask yourself how much gross income the movies produces? Uff a lot! What movies are the most
-#' succesfull in a particular saga? I dont know so lets discover it because 
-#' <http://www.boxofficemojo.com/> have all these data and we're here to scrap it a 
-#' visualize it (shh.. and this is an excellent excuse to
-#' test the brand new subtitles and captions in #ggplot2! powered by @hrbrmstr)
+#' *Shh.. this post is an excuse to test the brand new subtitles and 
+#' captions in #ggplot2! powered by @hrbrmstr*.
 #' 
 #' <blockquote class="twitter-tweet" data-lang="en"><p lang="en" dir="ltr">&quot;And there 
 #' came a day unlike any other,when earth&#39;s mightiest data sci vis tool added subtitles 
@@ -42,6 +36,14 @@ library("htmltools")
 #' (@hrbrmstr) <a href="https://twitter.com/hrbrmstr/status/709824064190337027">March 15, 
 #' 2016</a></blockquote>
 #' <script async src="http://platform.twitter.com/widgets.js" charset="utf-8"></script>
+#' 
+#' The recently^[I remeber this movie like it was yesterday] SW7 ($930,901,726 gross income) 
+#' and the not so standar Deadpool ($329,397,732) are **top 1** and **top 7** (and climbing) in 
+#' terms of gross income according to  <http://www.boxofficemojo.com/> site.
+#' Have you ask yourself how much gross income the movies produces? A lot i guess! 
+#' What movies are the most succesfull in a particular saga? I dont know so write some
+#' code to scrap and discover it because  <http://www.boxofficemojo.com/> have all these 
+#' data and we're here visualize it.
 #' 
 #' 
 #' ## Data
@@ -156,7 +158,7 @@ dfgross <- map_df(dfmovie$box_id, function(x){
   } else {
     dfgr <- dfgr %>% 
       .[-1, ] %>% 
-      setNames(c("day", "date", "rank", "gross", "pd", "na", "theaters_avg", "na2", "gross_to_date", "day_number")) %>% 
+      setNames(c("day", "date", "rank", "gross", "pd", "na", "theatres_avg", "na2", "gross_to_date", "day_number")) %>% 
       mutate(box_id = x) %>% 
       filter(!is.na(day_number))
   }
@@ -206,8 +208,8 @@ load("data/boxoffice-data.RData")
 
 #' 
 #' Finally  we have the movies data with some interesting colums like 
-#' `production_budet`, total life time gross income `gross` and the
-#' `max_day` column which count the days in theaters. Here ara
+#' `production_budget`, total life time gross income `gross` and the
+#' `max_day` column which count the days in theatres. Here are
 #' the top 10 movies
 #'
 
@@ -218,8 +220,9 @@ dfmovie %>%
 
 #' Phantom Menace ad Jurassic World top 10? 
 #'   
-#' We have too the incomes by day for every movie so, we can plot time
-#' series and compare! The data is just telling us what to do.
+#' We have the incomes by day for every movie too. So we can plot time
+#' series and compare! The data is just telling us what to do. Here's 
+#' a sample of the detailed data by day.
 #' 
 
 dfgross %>%
@@ -227,18 +230,18 @@ dfgross %>%
   mutate(gross = scales::dollar(gross),
          gross_to_date = scales::dollar(gross_to_date)) %>% 
   select(box_id, date, day_number, gross, gross_to_date) %>% 
-  datatable()
+  head(10)
 
 #'
 #' ## Plot
 #' 
 #' Okey, here we take a breath. A lot of ideas and only one order 
 #' to code all of them. Just start considering the release date for every
-#' movie and its gross income evolution. 
+#' movie and its gross income evolution.
 #' 
-#'  First well use the color for every movie extracted using the 
-#'  nice `RImagePalette` package and the select the top movies and 
-#'  the movies with more day in theater to annotate them in the plot. 
+#' First well use the color for every movie extracted using the 
+#' nice `RImagePalette` package and the select the top movies and 
+#' the movies with more days in theatres to annotate them in the plot. 
 
 #### plot ####
 cols <- setNames(dfmovie$img_main_color, dfmovie$box_id)
@@ -265,6 +268,8 @@ fmt_dllr_mm <- function(x) {
     scales::dollar()
 }
 
+cptn <- "jkunst.com | Data from boxofficemojo.com"
+
 dfgross %>% 
   ggplot(aes(date2, gross_to_date,
              color = box_id, label = str_to_title(box_id))) + 
@@ -278,10 +283,9 @@ dfgross %>%
   xlim(as.Date(min(dfgross$date2)), as.Date(ymd(20170101))) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Cumulative gross income for the TOP 200 movies",
-       caption = "jkunst.com | Data from boxofficemojo.com",
-       x = "Time",
+       caption = cptn,
+       x = "Date",
        y = "Cumulative Gross (millions)")
-
 
 
 #' Mmm the first conclusion I get from this:
@@ -292,8 +296,14 @@ dfgross %>%
 #' before this plot XD]. Clearly we can observe the date of release and compare the
 #' gross income between the movies. Nice to see and remeber old classics like ET and
 #' Back to the Future. Well the time scale is so big we can't differentiate how long
-#' each movie had been in theaters. To get a more fair comparision we plot every movie
-#' considering `x` the day since release:
+#' each movie had been in theatres. To get a more fair comparision we plot every movie
+#' considering `x` the day since release. I'm not sure if `gross` is comparable due 
+#' time of release but well keep data as is.
+
+stt <- "By far Star Wars the Force Awakens is the top 1 in term of
+gross income. E.T, Gladiator and Jurassic Park were in theatres more
+than a year"
+stt <- gsub("\n", " ", stt)
 
 ggplot(dfgross,
              aes(day_number, gross_to_date, color = box_id, label = str_to_title(box_id))) + 
@@ -307,13 +317,16 @@ ggplot(dfgross,
   xlim(NA, 550) + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Cumulative gross for TOP 200 movies",
-       caption = "jkunst.com | Data from boxofficemojo.com",
+       subtitle = stt, 
+       caption = cptn,
        x = "Days since release",
-       y = "Cumulative Gross (millions)")
+       y = "Cumulative Gross (millions)") +
+  annotate("segment", x = 365, xend = 365, y = 0, yend = 925000000, colour = "gray") +
+  geom_text(label = "One Year", x = 365, y = 950000000)
 
 #' 
-#' Now it's clearly see Jurassic Park and ET were more than a year It's still
-#' like spaghetti but a tasty spagehtti.
+#' Now it's clearly see Jurassic Park and ET were more than a year. the plot still
+#' like spaghetti but a *info-tasty* spagehtti.
 #' 
 #' Now, we can compare movies between other movies in their saga.
 
@@ -324,28 +337,33 @@ moviessaga <- dfgross %>%
   filter(n >= 4) %>% 
   .$movieserie
 
-st <- "jkunst.com | Data from boxofficemojo.com"
+st <- "The Final part in Harry Potter saga was .
+Interesting pattern is showed in Pirates of the Carrbbean, Shrek and
+Transformes where the first movie the 2dn re"
+st <- gsub("\n", " ", st)
 
 dfgross %>%
   filter(movieserie %in% moviessaga) %>%
+  mutate(movieserie = factor(movieserie, levels = moviessaga)) %>% 
   ggplot(aes(day_number, gross_to_date, label = serienumber)) + 
   geom_line(aes(color = box_id), alpha = 0.5) +
   geom_label(data = dfgross %>%
-               filter(movieserie %in% moviessaga) %>% 
-               mutate(serienumber = ifelse(box_id == "transformers06", 1, serienumber)) %>% 
-               arrange(desc(day_number)) %>% 
+               filter(movieserie %in% moviessaga) %>%
+               mutate(serienumber = ifelse(box_id == "transformers06", 1, serienumber),
+                      movieserie = factor(movieserie, levels = moviessaga)) %>%
+               arrange(desc(day_number)) %>%
                distinct(box_id)) +
   facet_wrap(~movieserie, scales = "free_y") + 
   scale_y_continuous(labels = fmt_dllr_mm) +
   labs(title = "Comparing gross between sagas",
        subtitle = st,
-       caption = "jkunst.com | Data from boxofficemojo.com",
+       caption = cptn,
        x = "Days since release",
        y = "Gross (millions)") + 
   theme(legend.position = "none")
 
 #' Aha! Nice pattern 2-3-1-4 in the Pirates of the caribbean, Shrek and Transformers
-#' we got: The first movie have a long time in theaters but they arent more popular
+#' we got: The first movie have a long time in theatres but they arent more popular
 #' than the second one (and the 3rd) in the saga and the 4th is the movie with 
 #' *less* gross imcome.
 #' 
@@ -361,12 +379,28 @@ dsmovie <- dfmovie %>%
          color = img_main_color) %>% 
   list.parse3() 
 
+t <- c("income", "production_budget", "distributor", "genre", "mpaa_rating")
+x <- t %>% str_to_title()
+y <- sprintf("{point.%s}", t)
+
+tooltip <- tooltip_table(
+  x, y,
+  tags$b("{point.title}"),
+  tags$img(src = "{point.img_url}", width = 150, height = 222)
+  )
+
+st <- "There "
+st <- gsub("\n", "", st)
+
 hcscttr <- highchart() %>% 
-  hc_title(text = "Main Title") %>%
-  hc_subtitle(text = "Grumpy wizards make toxic brew for the evil Queen and Jack") %>% 
+  hc_chart(zoomType = "xy") %>% 
+  hc_title(text = "Gross Income versus Production Budget") %>%
+  hc_subtitle(text = st) %>%
   hc_add_series(data = dsmovie, type = "scatter", showInLegend = FALSE) %>%
   hc_xAxis(title = list(text = "Gross income")) %>% 
   hc_yAxis(title = list(text = "Production Budget")) %>% 
+  hc_tooltip(useHTML = TRUE,
+             pointFormat = tooltip) %>% 
   hc_add_theme(hc_theme_smpl()) 
 
 hcscttr
@@ -375,19 +409,12 @@ hcscttr
 x <- c("Income:", "Genre", "Runtime")
 y <- c("$ {point.y}", "{point.series.options.extra.genre}", "{point.series.options.extra.runtime}")
 
-tooltip <- map2(x, y, function(x, y){
-    tags$tr(
-      tags$th(x),
-      tags$td(y)      )
-  }) %>% 
-  tags$table(.) %>% 
-  tagList(
-    tags$b("{point.series.options.title}"),
-    .,
-    tags$img(src = "{point.series.options.extra.img_url}",
-             width = 150, height = 222)
-    ) %>% 
-  as.character() 
+tooltip <- tooltip_table(
+  x, y,
+  tags$b("{point.series.options.extra.title}"),
+  tags$img(src = "{point.series.options.extra.img_url}", width = 150, height = 222)
+)
+
 
 fmtrr <- "function() {
   if (this.point.x == this.series.data[this.series.data.length-1].x & 
@@ -429,11 +456,12 @@ hcgross2 <- hcgross %>%
   hc_title(text = "Main Title") %>% 
   hc_xAxis(title = list(text = "Days since release"))
 
-for (id in unique(dfgross$box_id)) {
-# for (id in head(unique(dfgross$box_id), 20)) {
+# for (id in unique(dfgross$box_id)) {
+for (id in head(unique(dfgross$box_id), 20)) {
     
   message(id)
   dfaux <- dfgross %>% filter(box_id == id)
+  
   dsmov <- dfmovie %>% 
     filter(box_id == id) %>% 
     as.list()
