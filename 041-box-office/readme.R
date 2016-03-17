@@ -24,6 +24,7 @@ library("lubridate")
 library("RImagePalette")
 library("printr")
 library("highcharter")
+library("htmltools")
 #' 
 #' The recently (I remeber this movie like it was yesterday) SW7 ($930,901,726 gross income) 
 #' and the non standar Deadpool ($329,397,732) are top 1 and top 7 in 
@@ -363,8 +364,7 @@ dsmovie <- dfmovie %>%
 hcscttr <- highchart() %>% 
   hc_title(text = "Main Title") %>%
   hc_subtitle(text = "Grumpy wizards make toxic brew for the evil Queen and Jack") %>% 
-  hc_add_series(data = dsmovie, type = "scatter",
-                showInLegend = FALSE) %>%
+  hc_add_series(data = dsmovie, type = "scatter", showInLegend = FALSE) %>%
   hc_xAxis(title = list(text = "Gross income")) %>% 
   hc_yAxis(title = list(text = "Production Budget")) %>% 
   hc_add_theme(hc_theme_smpl()) 
@@ -372,31 +372,89 @@ hcscttr <- highchart() %>%
 hcscttr
 
 
-hcgross1 <- highchart() %>% 
-  hc_title(text = "Main Title") %>% 
-  hc_xAxis(type = "datetime") %>% 
+x <- c("Income:", "Genre", "Runtime")
+y <- c("$ {point.y}", "{point.series.options.extra.genre}", "{point.series.options.extra.runtime}")
+
+tooltip <- map2(x, y, function(x, y){
+    tags$tr(
+      tags$th(x),
+      tags$td(y)      )
+  }) %>% 
+  tags$table(.) %>% 
+  tagList(
+    tags$b("{point.series.options.title}"),
+    .,
+    tags$img(src = "{point.series.options.extra.img_url}",
+             width = 150, height = 222)
+    ) %>% 
+  as.character() 
+
+fmtrr <- "function() {
+  if (this.point.x == this.series.data[this.series.data.length-1].x & 
+       this.series.options.showlabel) {
+      return this.series.options.extra.title;
+  } else {
+      return null;
+  }
+}"
+
+hcgross <- highchart() %>% 
+  hc_chart(zoomType = "x") %>% 
+  hc_tooltip(followPointer =  FALSE) %>% 
+  hc_yAxis(title = list(text = "Gross income")) %>%
+  hc_tooltip(
+    useHTML = TRUE,
+    pointFormat = tooltip
+  ) %>% 
+  hc_plotOptions(
+    series = list(
+      dataLabels = list(
+        enabled = TRUE,
+        align = "left",
+        verticalAlign = "middle",
+        formatter = JS(fmtrr),
+        crop = FALSE,
+        overflow = FALSE
+      )
+    )
+  ) %>% 
   hc_add_theme(hc_theme_smpl()) 
 
-hcgross2 <- highchart() %>% 
+hcgross1 <- hcgross %>% 
+  hc_title(text = "Main Title") %>%
+  hc_xAxis(title = list(text = "Date")) %>%
+  hc_xAxis(type = "datetime")
+
+hcgross2 <- hcgross %>% 
   hc_title(text = "Main Title") %>% 
-  hc_add_theme(hc_theme_smpl()) 
+  hc_xAxis(title = list(text = "Days since release"))
 
 for (id in unique(dfgross$box_id)) {
+# for (id in head(unique(dfgross$box_id), 20)) {
+    
   message(id)
   dfaux <- dfgross %>% filter(box_id == id)
+  dsmov <- dfmovie %>% 
+    filter(box_id == id) %>% 
+    as.list()
+  
+  showlabel <- id %in% movieslbl
   
   hcgross1  <- hcgross1 %>% 
     hc_add_serie_times_values(dfaux$date2, dfaux$gross_to_date,
-                              name = id, showInLegend = FALSE)
+                              name = id, showInLegend = FALSE,
+                              extra = dsmov,  showlabel = showlabel,
+                              color = hex_to_rgba(dsmov$img_main_color, 0.52))
   
   hcgross2  <- hcgross2 %>% 
     hc_add_serie(data = dfaux %>% select(day_number, gross_to_date) %>% list.parse2(),
-                 name = id, showInLegend = FALSE)
+                 name = id, showInLegend = FALSE, marker = list(enabled = FALSE),
+                 extra = dsmov, showlabel = showlabel,
+                 color = hex_to_rgba(dsmov$img_main_color, 0.25))
  
 }
 
 hcgross1
-
 hcgross2
 
 
