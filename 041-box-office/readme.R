@@ -386,7 +386,8 @@ y <- sprintf("{point.%s}", t)
 tooltip <- tooltip_table(
   x, y,
   tags$b("{point.title}"),
-  tags$img(src = "{point.img_url}", width = 150, height = 222)
+  tags$img(src = "{point.img_url}", width = 150, height = 222),
+  `min-heigth` = 300 
   )
 
 st <- "There "
