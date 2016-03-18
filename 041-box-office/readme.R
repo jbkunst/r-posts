@@ -501,4 +501,53 @@ hcgross2
 #' What do you think? I love see how R can make (almost!) ready 
 #' publish plots and charts!
 
+#+echo=FALSE
+hcgross1 <- hcgross %>% 
+  hc_title(text = tt1) %>%
+  hc_subtitle(text = stt1) %>%
+  hc_xAxis(title = list(text = "Date")) %>%
+  hc_xAxis(type = "datetime")
+
+hcgross2 <- hcgross %>% 
+  hc_title(text = tt1) %>% 
+  hc_subtitle(text = stt2) %>%
+  hc_xAxis(title = list(text = "Days since release")) %>% 
+  hc_tooltip(headerFormat = as.character(tags$small("{point.key} days sinsce release")))
+
+# for (id in unique(dfgross$box_id)) {
+  for (id in head(unique(dfgross$box_id), 50)) {
+  
+  message(id)
+  dfaux <- dfgross %>% filter(box_id == id)
+  
+  dsmov <- dfmovie %>% 
+    filter(box_id == id) %>% 
+    select(title, genre, img_url, mpaa_rating,img_main_color) %>% 
+    as.list()
+  
+  showlabel <- id %in% movieslbl
+  
+  hcgross1  <- hcgross1 %>% 
+    hc_add_serie_times_values(dfaux$date2, dfaux$gross_to_date,
+                              name = id, showInLegend = FALSE,
+                              extra = dsmov,  showlabel = showlabel,
+                              color = hex_to_rgba(dsmov$img_main_color, 0.52))
+  
+  hcgross2  <- hcgross2 %>% 
+    hc_add_serie(data = dfaux %>% select(day_number, gross_to_date) %>% list.parse2(),
+                 name = id, showInLegend = FALSE, marker = list(enabled = FALSE),
+                 extra = dsmov, showlabel = showlabel,
+                 color = hex_to_rgba(dsmov$img_main_color, 0.25))
+  
+}
+
+hcgross1
+hcgross2
+
+
+try(dir.create("js"))
+export_hc(hcscttr, "js/mvie-scatter.js")
+export_hc(hcgross1, "js/mvie-gross1.js")
+export_hc(hcgross2, "js/mvie-gross2.js")
+
 
