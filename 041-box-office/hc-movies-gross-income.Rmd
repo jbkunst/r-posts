@@ -1,0 +1,39 @@
+---
+title: "Visualizing and comparing the highest-grossing films"
+author: "Joshua Kunst"
+output: 
+  html_document: 
+    theme: flatly
+---
+
+Did you went to see Star Wars VII? Probably yes. Star Wars is questionless the most successful movie in
+term of gross income. But have you and idea how much has earned compared with Avatar? 
+
+
+The data used for this visualizations was extracted from the http://www.boxofficemojo.com/, a site maintained by imbd.com).
+If you dont know this site have the daily gross income since was released in theaters for almost every movie. For example:
+in this [link](http://www.boxofficemojo.com/movies/?page=daily&view=chart&id=avatar.htm) you'll find the data for the movie Avatar.
+
+Now, with the data how we can compare the gross incomes between the movies? The first and safe approach would be a  
+bar chart but let us be a little more risky, ambitious and consider the daily information. We can chart for every movie the time series
+considering the cumulative gross income.  
+
+<iframe width="100%" height="670" src="http://jsfiddle.net/jbkunst/p0xnx1xw/embedded/result,js,html/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+The result is really interesnting because we can visualize the gross incomes (like a bar chart) but at the same time we
+can see when the movie was released how much  highest-grossing films  are separated among them in time.
+In particular we see ET and Jurassic Park have almost the same income but 10 year after. We enabled
+the zoom in this highcharts visualization so we can explore with more detail particular date.
+
+Movies don't have necessarily the same exposure in the theaters and the previous chart, due time scale, don't help us too
+much to get this information so we can consider the time variables the days since the realease and all the movies
+will have the same origin:
+
+<iframe width="100%" height="670" src="http://jsfiddle.net/jbkunst/zkn6bofq/embedded/result,js,html/" allowfullscreen="allowfullscreen" frameborder="0"></iframe>
+
+With this chart is may be easier to compare the income the income, but we have a lot data overlaped in the right bottom corner
+so the chart is not very informative this area, but by other hand it is very explicit showing the movies with more days in
+theaters: Jurassic Park were near of 500 days. 
+
+As we see there's no only way to see the data. Every representation show a particular feature just choose which one tell your story.
+

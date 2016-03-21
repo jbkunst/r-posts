@@ -502,6 +502,7 @@ hcgross2
 #' publish plots and charts!
 
 #+echo=FALSE
+#### EXTRACT EXPORT 
 hcgross1 <- hcgross %>% 
   hc_title(text = tt1) %>%
   hc_subtitle(text = stt1) %>%
@@ -514,8 +515,8 @@ hcgross2 <- hcgross %>%
   hc_xAxis(title = list(text = "Days since release")) %>% 
   hc_tooltip(headerFormat = as.character(tags$small("{point.key} days sinsce release")))
 
-# for (id in unique(dfgross$box_id)) {
-  for (id in head(unique(dfgross$box_id), 50)) {
+for (id in unique(dfgross$box_id)) {
+  # for (id in head(unique(dfgross$box_id), 100)) {
   
   message(id)
   dfaux <- dfgross %>% filter(box_id == id)
