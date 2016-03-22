@@ -29,9 +29,8 @@ urltl <- "http://www.timetoast.com/timelines/forrest-gump-timeline-of-events-and
 
 df <- read_html(urltl) %>% 
   html_nodes("table tr") %>% 
-  .[-c(1, length(.)-1, length(.))] %>% 
+  .[-c(1, length(.) - 1, length(.))] %>% 
   map_df(function(x){
-    message(x)
     # x <- sample(read_html(urltl) %>%  html_nodes("table tr"), size = 1)[[1]]
     data_frame(
       id = x %>% html_node("img") %>% html_attr("alt") %>% tolower(),

@@ -110,7 +110,7 @@ $(document).ready(function () {
 
 <h1 class="title">Watching Forrest Gump through the Data</h1>
 <h4 class="author"><em>Joshua Kunst</em></h4>
-<h4 class="date"><em>Tue Mar 22 18:16:40 2016</em></h4>
+<h4 class="date"><em>Tue Mar 22 18:34:58 2016</em></h4>
 
 </div>
 
@@ -124,7 +124,6 @@ df &lt;- read_html(urltl) %&gt;%
   html_nodes(&quot;table tr&quot;) %&gt;% 
   .[-c(1, length(.)-1, length(.))] %&gt;% 
   map_df(function(x){
-    message(x)
     # x &lt;- sample(read_html(urltl) %&gt;%  html_nodes(&quot;table tr&quot;), size = 1)[[1]]
     data_frame(
       id = x %&gt;% html_node(&quot;img&quot;) %&gt;% html_attr(&quot;alt&quot;) %&gt;% tolower(),

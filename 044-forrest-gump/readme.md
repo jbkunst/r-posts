@@ -16,7 +16,6 @@ df <- read_html(urltl) %>%
   html_nodes("table tr") %>% 
   .[-c(1, length(.)-1, length(.))] %>% 
   map_df(function(x){
-    message(x)
     # x <- sample(read_html(urltl) %>%  html_nodes("table tr"), size = 1)[[1]]
     data_frame(
       id = x %>% html_node("img") %>% html_attr("alt") %>% tolower(),
@@ -60,5 +59,5 @@ df
 ---
 title: "readme.R"
 author: "jkunst"
-date: "Tue Mar 22 18:16:40 2016"
+date: "Tue Mar 22 18:34:58 2016"
 ---
