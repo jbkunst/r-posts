@@ -87,6 +87,9 @@ hc <- highchart() %>%
 
 hc
 
+
+#+echo=FALSE
+export_hc(hc, "js/wr-1.js")
 #' 
 #' Everything seem fine.
 #' 
@@ -94,7 +97,6 @@ hc
 #' 
 #' We' change the type to column, stack and see what is the result
 #' 
-
 
 hc <- hc %>% 
   hc_chart(
@@ -108,6 +110,8 @@ hc <- hc %>%
 
 hc
 
+#+echo=FALSE
+export_hc(hc, "js/wr-2.js")
 #' 
 #' Not so close.
 #' 
@@ -118,8 +122,6 @@ hc
 #' So we need to create the difference between the max and min, 
 #' and plot them with the min value and hiding using a transparent color.
 #'   
-
-
 dsmax <- df %>% 
   mutate(color = colorize_vector(mean_temperaturec, "A"),
          y = max_temperaturec - min_temperaturec) %>% 
@@ -131,6 +133,7 @@ dsmax <- df %>%
          max = max_temperaturec,
          min = min_temperaturec) %>% 
   list.parse3()
+
 
 
 # Some tooltips to make it a little *intercative*
@@ -178,7 +181,26 @@ hc <- highchart() %>%
     pointFormat = tltip
   )
 
+
+#+echo=FALSE
+hc <- hc %>% 
+  hc_chart(
+    polar = FALSE
+  )
+  
+export_hc(hc, "js/wr-3.js")
+
+hc <- hc %>% 
+  hc_chart(
+    polar = TRUE
+  )
+
+
+export_hc(hc, "js/wr-4.js")
+
+#echo=TRUE
 hc
+
 
 #' 
 #' Yay :D! A beautiful chart same as the d3 version and only using R. So sweet!
