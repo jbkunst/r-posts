@@ -152,7 +152,8 @@ $(function () {
             img_main_color: "#463334"
           },
           showlabel: true,
-          color: "rgba(70,51,52,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -407,7 +408,8 @@ $(function () {
             img_main_color: "#2F2E36"
           },
           showlabel: true,
-          color: "rgba(47,46,54,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -715,7 +717,8 @@ $(function () {
             img_main_color: "#443529"
           },
           showlabel: true,
-          color: "rgba(68,53,41,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -897,7 +900,8 @@ $(function () {
             img_main_color: "#31485B"
           },
           showlabel: true,
-          color: "rgba(49,72,91,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -1016,7 +1020,8 @@ $(function () {
             img_main_color: "#435256"
           },
           showlabel: true,
-          color: "rgba(67,82,86,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -1268,7 +1273,8 @@ $(function () {
             img_main_color: "#2D4551"
           },
           showlabel: true,
-          color: "rgba(45,69,81,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -1459,7 +1465,8 @@ $(function () {
             img_main_color: "#8B5453"
           },
           showlabel: true,
-          color: "rgba(139,84,83,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -1482,7 +1489,8 @@ $(function () {
             img_main_color: "#775E55"
           },
           showlabel: false,
-          color: "rgba(119,94,85,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -1580,7 +1588,8 @@ $(function () {
             img_main_color: "#5A5A65"
           },
           showlabel: true,
-          color: "rgba(90,90,101,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -1748,7 +1757,8 @@ $(function () {
             img_main_color: "#402D23"
           },
           showlabel: true,
-          color: "rgba(64,45,35,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -1869,7 +1879,8 @@ $(function () {
             img_main_color: "#7B8291"
           },
           showlabel: true,
-          color: "rgba(123,130,145,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -2252,7 +2263,8 @@ $(function () {
             img_main_color: "#353A4A"
           },
           showlabel: true,
-          color: "rgba(53,58,74,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -2406,7 +2418,8 @@ $(function () {
             img_main_color: "#3F1911"
           },
           showlabel: false,
-          color: "rgba(63,25,17,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -2511,7 +2524,8 @@ $(function () {
             img_main_color: "#463D20"
           },
           showlabel: false,
-          color: "rgba(70,61,32,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -2623,7 +2637,8 @@ $(function () {
             img_main_color: "#A48555"
           },
           showlabel: false,
-          color: "rgba(164,133,85,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -2714,7 +2729,8 @@ $(function () {
             img_main_color: "#625140"
           },
           showlabel: false,
-          color: "rgba(98,81,64,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -2903,7 +2919,8 @@ $(function () {
             img_main_color: "#441F0F"
           },
           showlabel: false,
-          color: "rgba(68,31,15,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -3003,7 +3020,8 @@ $(function () {
             img_main_color: "#A66B38"
           },
           showlabel: false,
-          color: "rgba(166,107,56,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -3403,7 +3421,8 @@ $(function () {
             img_main_color: "#241A18"
           },
           showlabel: true,
-          color: "rgba(36,26,24,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -3538,7 +3557,8 @@ $(function () {
             img_main_color: "#21252C"
           },
           showlabel: false,
-          color: "rgba(33,37,44,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -3720,7 +3740,8 @@ $(function () {
             img_main_color: "#A6CAE2"
           },
           showlabel: false,
-          color: "rgba(166,202,226,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -3874,7 +3895,8 @@ $(function () {
             img_main_color: "#4D5552"
           },
           showlabel: false,
-          color: "rgba(77,85,82,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -4011,7 +4033,8 @@ $(function () {
             img_main_color: "#3D6382"
           },
           showlabel: false,
-          color: "rgba(61,99,130,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -4187,7 +4210,8 @@ $(function () {
             img_main_color: "#402F2B"
           },
           showlabel: false,
-          color: "rgba(64,47,43,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -4378,7 +4402,8 @@ $(function () {
             img_main_color: "#6F5838"
           },
           showlabel: false,
-          color: "rgba(111,88,56,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -4505,7 +4530,8 @@ $(function () {
             img_main_color: "#723925"
           },
           showlabel: false,
-          color: "rgba(114,57,37,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -4629,7 +4655,8 @@ $(function () {
             img_main_color: "#4E2810"
           },
           showlabel: false,
-          color: "rgba(78,40,16,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -4848,7 +4875,8 @@ $(function () {
             img_main_color: "#D0C6A9"
           },
           showlabel: false,
-          color: "rgba(208,198,169,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -4974,7 +5002,8 @@ $(function () {
             img_main_color: "#6A7183"
           },
           showlabel: false,
-          color: "rgba(106,113,131,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -5072,7 +5101,8 @@ $(function () {
             img_main_color: "#6A6A69"
           },
           showlabel: false,
-          color: "rgba(106,106,105,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -5201,7 +5231,8 @@ $(function () {
             img_main_color: "#4B4440"
           },
           showlabel: false,
-          color: "rgba(75,68,64,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -5405,7 +5436,8 @@ $(function () {
             img_main_color: "#A7A3A1"
           },
           showlabel: false,
-          color: "rgba(167,163,161,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -5457,7 +5489,8 @@ $(function () {
             img_main_color: "#91717B"
           },
           showlabel: false,
-          color: "rgba(145,113,123,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -5724,7 +5757,8 @@ $(function () {
             img_main_color: "#2D6252"
           },
           showlabel: true,
-          color: "rgba(45,98,82,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -5864,7 +5898,8 @@ $(function () {
             img_main_color: "#532C1B"
           },
           showlabel: false,
-          color: "rgba(83,44,27,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -5977,7 +6012,8 @@ $(function () {
             img_main_color: "#1C1A1C"
           },
           showlabel: false,
-          color: "rgba(28,26,28,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -6159,7 +6195,8 @@ $(function () {
             img_main_color: "#EDEADD"
           },
           showlabel: false,
-          color: "rgba(237,234,221,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -6264,7 +6301,8 @@ $(function () {
             img_main_color: "#7A7769"
           },
           showlabel: false,
-          color: "rgba(122,119,105,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -6369,7 +6407,8 @@ $(function () {
             img_main_color: "#454451"
           },
           showlabel: false,
-          color: "rgba(69,68,81,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -6475,7 +6514,8 @@ $(function () {
             img_main_color: "#93A9A4"
           },
           showlabel: false,
-          color: "rgba(147,169,164,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -6626,7 +6666,8 @@ $(function () {
             img_main_color: "#644036"
           },
           showlabel: false,
-          color: "rgba(100,64,54,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -6803,7 +6844,8 @@ $(function () {
             img_main_color: "#28242B"
           },
           showlabel: false,
-          color: "rgba(40,36,43,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -6895,7 +6937,8 @@ $(function () {
             img_main_color: "#735F4E"
           },
           showlabel: false,
-          color: "rgba(115,95,78,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -7064,7 +7107,8 @@ $(function () {
             img_main_color: "#66482A"
           },
           showlabel: false,
-          color: "rgba(102,72,42,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -7328,7 +7372,8 @@ $(function () {
             img_main_color: "#58573F"
           },
           showlabel: true,
-          color: "rgba(88,87,63,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -7454,7 +7499,8 @@ $(function () {
             img_main_color: "#241D1B"
           },
           showlabel: false,
-          color: "rgba(36,29,27,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -7647,7 +7693,8 @@ $(function () {
             img_main_color: "#2B1A14"
           },
           showlabel: false,
-          color: "rgba(43,26,20,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -7732,7 +7779,8 @@ $(function () {
             img_main_color: "#A5A9B1"
           },
           showlabel: false,
-          color: "rgba(165,169,177,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -7765,7 +7813,8 @@ $(function () {
             img_main_color: "#454952"
           },
           showlabel: false,
-          color: "rgba(69,73,82,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -7981,7 +8030,8 @@ $(function () {
             img_main_color: "#494941"
           },
           showlabel: false,
-          color: "rgba(73,73,65,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -8121,7 +8171,8 @@ $(function () {
             img_main_color: "#493427"
           },
           showlabel: false,
-          color: "rgba(73,52,39,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -8236,7 +8287,8 @@ $(function () {
             img_main_color: "#262525"
           },
           showlabel: false,
-          color: "rgba(38,37,37,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -8390,7 +8442,8 @@ $(function () {
             img_main_color: "#35321F"
           },
           showlabel: false,
-          color: "rgba(53,50,31,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -8567,7 +8620,8 @@ $(function () {
             img_main_color: "#405055"
           },
           showlabel: false,
-          color: "rgba(64,80,85,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -8702,7 +8756,8 @@ $(function () {
             img_main_color: "#20262C"
           },
           showlabel: false,
-          color: "rgba(32,38,44,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -8856,7 +8911,8 @@ $(function () {
             img_main_color: "#2C1F14"
           },
           showlabel: false,
-          color: "rgba(44,31,20,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -9017,7 +9073,8 @@ $(function () {
             img_main_color: "#303A3F"
           },
           showlabel: false,
-          color: "rgba(48,58,63,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -9169,7 +9226,8 @@ $(function () {
             img_main_color: "#090B0E"
           },
           showlabel: false,
-          color: "rgba(9,11,14,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -9261,7 +9319,8 @@ $(function () {
             img_main_color: "#6C8186"
           },
           showlabel: false,
-          color: "rgba(108,129,134,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -9457,7 +9516,8 @@ $(function () {
             img_main_color: "#2A4452"
           },
           showlabel: false,
-          color: "rgba(42,68,82,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -9590,7 +9650,8 @@ $(function () {
             img_main_color: "#282324"
           },
           showlabel: false,
-          color: "rgba(40,35,36,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -9767,7 +9828,8 @@ $(function () {
             img_main_color: "#292228"
           },
           showlabel: false,
-          color: "rgba(41,34,40,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -9865,7 +9927,8 @@ $(function () {
             img_main_color: "#7B8473"
           },
           showlabel: false,
-          color: "rgba(123,132,115,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -9985,7 +10048,8 @@ $(function () {
             img_main_color: "#54555E"
           },
           showlabel: false,
-          color: "rgba(84,85,94,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -10013,7 +10077,8 @@ $(function () {
             img_main_color: "#6F6776"
           },
           showlabel: false,
-          color: "rgba(111,103,118,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -10174,7 +10239,8 @@ $(function () {
             img_main_color: "#1C262B"
           },
           showlabel: false,
-          color: "rgba(28,38,43,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -10286,7 +10352,8 @@ $(function () {
             img_main_color: "#B2C8C7"
           },
           showlabel: false,
-          color: "rgba(178,200,199,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -10405,7 +10472,8 @@ $(function () {
             img_main_color: "#692C18"
           },
           showlabel: false,
-          color: "rgba(105,44,24,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -10596,7 +10664,8 @@ $(function () {
             img_main_color: "#BFCEC9"
           },
           showlabel: false,
-          color: "rgba(191,206,201,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -10715,7 +10784,8 @@ $(function () {
             img_main_color: "#4E2E23"
           },
           showlabel: false,
-          color: "rgba(78,46,35,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -10871,7 +10941,8 @@ $(function () {
             img_main_color: "#EFE9EA"
           },
           showlabel: false,
-          color: "rgba(239,233,234,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -11088,7 +11159,8 @@ $(function () {
             img_main_color: "#907A63"
           },
           showlabel: false,
-          color: "rgba(144,122,99,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -11326,7 +11398,8 @@ $(function () {
             img_main_color: "#273340"
           },
           showlabel: false,
-          color: "rgba(39,51,64,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -11417,7 +11490,8 @@ $(function () {
             img_main_color: "#8A8F96"
           },
           showlabel: false,
-          color: "rgba(138,143,150,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -11643,7 +11717,8 @@ $(function () {
             img_main_color: "#A28E84"
           },
           showlabel: false,
-          color: "rgba(162,142,132,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -11749,7 +11824,8 @@ $(function () {
             img_main_color: "#403240"
           },
           showlabel: false,
-          color: "rgba(64,50,64,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -11939,7 +12015,8 @@ $(function () {
             img_main_color: "#292F37"
           },
           showlabel: false,
-          color: "rgba(41,47,55,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -12037,7 +12114,8 @@ $(function () {
             img_main_color: "#7F3E2C"
           },
           showlabel: false,
-          color: "rgba(127,62,44,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -12163,7 +12241,8 @@ $(function () {
             img_main_color: "#444E50"
           },
           showlabel: false,
-          color: "rgba(68,78,80,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -12247,7 +12326,8 @@ $(function () {
             img_main_color: "#5B5E5C"
           },
           showlabel: false,
-          color: "rgba(91,94,92,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -12394,7 +12474,8 @@ $(function () {
             img_main_color: "#372D20"
           },
           showlabel: false,
-          color: "rgba(55,45,32,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -12625,7 +12706,8 @@ $(function () {
             img_main_color: "#5F597D"
           },
           showlabel: false,
-          color: "rgba(95,89,125,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -12794,7 +12876,8 @@ $(function () {
             img_main_color: "#8E979B"
           },
           showlabel: false,
-          color: "rgba(142,151,155,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -12934,7 +13017,8 @@ $(function () {
             img_main_color: "#837044"
           },
           showlabel: false,
-          color: "rgba(131,112,68,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -13137,7 +13221,8 @@ $(function () {
             img_main_color: "#74766F"
           },
           showlabel: false,
-          color: "rgba(116,118,111,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -13265,7 +13350,8 @@ $(function () {
             img_main_color: "#414647"
           },
           showlabel: false,
-          color: "rgba(65,70,71,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -13399,7 +13485,8 @@ $(function () {
             img_main_color: "#8A6B4C"
           },
           showlabel: false,
-          color: "rgba(138,107,76,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -13616,7 +13703,8 @@ $(function () {
             img_main_color: "#717B86"
           },
           showlabel: false,
-          color: "rgba(113,123,134,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -13813,7 +13901,8 @@ $(function () {
             img_main_color: "#443230"
           },
           showlabel: false,
-          color: "rgba(68,50,48,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -14016,7 +14105,8 @@ $(function () {
             img_main_color: "#56402B"
           },
           showlabel: false,
-          color: "rgba(86,64,43,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -14187,7 +14277,8 @@ $(function () {
             img_main_color: "#394450"
           },
           showlabel: false,
-          color: "rgba(57,68,80,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -14362,7 +14453,8 @@ $(function () {
             img_main_color: "#2D3135"
           },
           showlabel: false,
-          color: "rgba(45,49,53,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -14526,7 +14618,8 @@ $(function () {
             img_main_color: "#B3695E"
           },
           showlabel: false,
-          color: "rgba(179,105,94,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -14652,7 +14745,8 @@ $(function () {
             img_main_color: "#67645E"
           },
           showlabel: false,
-          color: "rgba(103,100,94,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -14764,7 +14858,8 @@ $(function () {
             img_main_color: "#835C4F"
           },
           showlabel: false,
-          color: "rgba(131,92,79,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -14939,7 +15034,8 @@ $(function () {
             img_main_color: "#717890"
           },
           showlabel: false,
-          color: "rgba(113,120,144,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -15170,7 +15266,8 @@ $(function () {
             img_main_color: "#343836"
           },
           showlabel: false,
-          color: "rgba(52,56,54,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -15192,7 +15289,8 @@ $(function () {
             img_main_color: "#564A33"
           },
           showlabel: false,
-          color: "rgba(86,74,51,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -15403,7 +15501,8 @@ $(function () {
             img_main_color: "#979BA5"
           },
           showlabel: true,
-          color: "rgba(151,155,165,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -15448,7 +15547,8 @@ $(function () {
             img_main_color: "#7B7270"
           },
           showlabel: false,
-          color: "rgba(123,114,112,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -15546,7 +15646,8 @@ $(function () {
             img_main_color: "#314F5C"
           },
           showlabel: false,
-          color: "rgba(49,79,92,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -15630,7 +15731,8 @@ $(function () {
             img_main_color: "#4F4835"
           },
           showlabel: false,
-          color: "rgba(79,72,53,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -15763,7 +15865,8 @@ $(function () {
             img_main_color: "#8F918A"
           },
           showlabel: false,
-          color: "rgba(143,145,138,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -15889,7 +15992,8 @@ $(function () {
             img_main_color: "#677A84"
           },
           showlabel: false,
-          color: "rgba(103,122,132,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -15994,7 +16098,8 @@ $(function () {
             img_main_color: "#455C63"
           },
           showlabel: false,
-          color: "rgba(69,92,99,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -16099,7 +16204,8 @@ $(function () {
             img_main_color: "#716E57"
           },
           showlabel: false,
-          color: "rgba(113,110,87,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -16232,7 +16338,8 @@ $(function () {
             img_main_color: "#233234"
           },
           showlabel: false,
-          color: "rgba(35,50,52,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -16400,7 +16507,8 @@ $(function () {
             img_main_color: "#261918"
           },
           showlabel: false,
-          color: "rgba(38,25,24,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -16554,7 +16662,8 @@ $(function () {
             img_main_color: "#7C7461"
           },
           showlabel: false,
-          color: "rgba(124,116,97,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -16586,7 +16695,8 @@ $(function () {
             img_main_color: "#98857E"
           },
           showlabel: false,
-          color: "rgba(152,133,126,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -16755,7 +16865,8 @@ $(function () {
             img_main_color: "#37352D"
           },
           showlabel: false,
-          color: "rgba(55,53,45,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -16897,7 +17008,8 @@ $(function () {
             img_main_color: "#68727B"
           },
           showlabel: false,
-          color: "rgba(104,114,123,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -17072,7 +17184,8 @@ $(function () {
             img_main_color: "#76645C"
           },
           showlabel: false,
-          color: "rgba(118,100,92,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -17179,7 +17292,8 @@ $(function () {
             img_main_color: "#6A250E"
           },
           showlabel: false,
-          color: "rgba(106,37,14,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -17266,7 +17380,8 @@ $(function () {
             img_main_color: "#6E5651"
           },
           showlabel: false,
-          color: "rgba(110,86,81,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -17406,7 +17521,8 @@ $(function () {
             img_main_color: "#363637"
           },
           showlabel: false,
-          color: "rgba(54,54,55,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -17446,7 +17562,8 @@ $(function () {
             img_main_color: "#A396A6"
           },
           showlabel: false,
-          color: "rgba(163,150,166,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -17547,7 +17664,8 @@ $(function () {
             img_main_color: "#316289"
           },
           showlabel: false,
-          color: "rgba(49,98,137,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -17653,7 +17771,8 @@ $(function () {
             img_main_color: "#C1C3CC"
           },
           showlabel: false,
-          color: "rgba(193,195,204,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -17740,7 +17859,8 @@ $(function () {
             img_main_color: "#514536"
           },
           showlabel: false,
-          color: "rgba(81,69,54,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -17882,7 +18002,8 @@ $(function () {
             img_main_color: "#C19D43"
           },
           showlabel: false,
-          color: "rgba(193,157,67,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -18022,7 +18143,8 @@ $(function () {
             img_main_color: "#B8B7AE"
           },
           showlabel: false,
-          color: "rgba(184,183,174,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -18157,7 +18279,8 @@ $(function () {
             img_main_color: "#2C2520"
           },
           showlabel: false,
-          color: "rgba(44,37,32,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -18297,7 +18420,8 @@ $(function () {
             img_main_color: "#23406D"
           },
           showlabel: false,
-          color: "rgba(35,64,109,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -18396,7 +18520,8 @@ $(function () {
             img_main_color: "#514948"
           },
           showlabel: false,
-          color: "rgba(81,73,72,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -18578,7 +18703,8 @@ $(function () {
             img_main_color: "#AC5945"
           },
           showlabel: false,
-          color: "rgba(172,89,69,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -18830,7 +18956,8 @@ $(function () {
             img_main_color: "#6E6B6A"
           },
           showlabel: true,
-          color: "rgba(110,107,106,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -18984,7 +19111,8 @@ $(function () {
             img_main_color: "#3E83A2"
           },
           showlabel: false,
-          color: "rgba(62,131,162,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -19131,7 +19259,8 @@ $(function () {
             img_main_color: "#954D2B"
           },
           showlabel: false,
-          color: "rgba(149,77,43,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -19229,7 +19358,8 @@ $(function () {
             img_main_color: "#884D28"
           },
           showlabel: false,
-          color: "rgba(136,77,40,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -19390,7 +19520,8 @@ $(function () {
             img_main_color: "#766F73"
           },
           showlabel: false,
-          color: "rgba(118,111,115,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -19558,7 +19689,8 @@ $(function () {
             img_main_color: "#DC913B"
           },
           showlabel: false,
-          color: "rgba(220,145,59,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -19636,7 +19768,8 @@ $(function () {
             img_main_color: "#6B7575"
           },
           showlabel: false,
-          color: "rgba(107,117,117,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -19783,7 +19916,8 @@ $(function () {
             img_main_color: "#5C4538"
           },
           showlabel: false,
-          color: "rgba(92,69,56,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -20065,7 +20199,8 @@ $(function () {
             img_main_color: "#6A6562"
           },
           showlabel: true,
-          color: "rgba(106,101,98,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -20191,7 +20326,8 @@ $(function () {
             img_main_color: "#628198"
           },
           showlabel: false,
-          color: "rgba(98,129,152,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -20332,7 +20468,8 @@ $(function () {
             img_main_color: "#725536"
           },
           showlabel: false,
-          color: "rgba(114,85,54,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -20426,7 +20563,8 @@ $(function () {
             img_main_color: "#855A54"
           },
           showlabel: false,
-          color: "rgba(133,90,84,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -20573,7 +20711,8 @@ $(function () {
             img_main_color: "#4B6A6E"
           },
           showlabel: false,
-          color: "rgba(75,106,110,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -20720,7 +20859,8 @@ $(function () {
             img_main_color: "#2D1E1C"
           },
           showlabel: false,
-          color: "rgba(45,30,28,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -20879,7 +21019,8 @@ $(function () {
             img_main_color: "#5B3C25"
           },
           showlabel: false,
-          color: "rgba(91,60,37,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -21047,7 +21188,8 @@ $(function () {
             img_main_color: "#6F6D80"
           },
           showlabel: false,
-          color: "rgba(111,109,128,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -21138,7 +21280,8 @@ $(function () {
             img_main_color: "#A29895"
           },
           showlabel: false,
-          color: "rgba(162,152,149,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -21229,7 +21372,8 @@ $(function () {
             img_main_color: "#4B5E63"
           },
           showlabel: false,
-          color: "rgba(75,94,99,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -21261,7 +21405,8 @@ $(function () {
             img_main_color: "#CA8C81"
           },
           showlabel: false,
-          color: "rgba(202,140,129,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -21418,7 +21563,8 @@ $(function () {
             img_main_color: "#2A2F38"
           },
           showlabel: false,
-          color: "rgba(42,47,56,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -21523,7 +21669,8 @@ $(function () {
             img_main_color: "#6C626A"
           },
           showlabel: false,
-          color: "rgba(108,98,106,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -21656,7 +21803,8 @@ $(function () {
             img_main_color: "#4F5052"
           },
           showlabel: false,
-          color: "rgba(79,80,82,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -21831,7 +21979,8 @@ $(function () {
             img_main_color: "#5B301F"
           },
           showlabel: false,
-          color: "rgba(91,48,31,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -21854,7 +22003,8 @@ $(function () {
             img_main_color: "#3F1C1A"
           },
           showlabel: false,
-          color: "rgba(63,28,26,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -21946,7 +22096,8 @@ $(function () {
             img_main_color: "#46546C"
           },
           showlabel: false,
-          color: "rgba(70,84,108,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -22057,7 +22208,8 @@ $(function () {
             img_main_color: "#647057"
           },
           showlabel: false,
-          color: "rgba(100,112,87,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -22183,7 +22335,8 @@ $(function () {
             img_main_color: "#644C46"
           },
           showlabel: false,
-          color: "rgba(100,76,70,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -22333,7 +22486,8 @@ $(function () {
             img_main_color: "#4B4A44"
           },
           showlabel: false,
-          color: "rgba(75,74,68,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -22483,7 +22637,8 @@ $(function () {
             img_main_color: "#47505A"
           },
           showlabel: false,
-          color: "rgba(71,80,90,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -22553,7 +22708,8 @@ $(function () {
             img_main_color: "#3F4035"
           },
           showlabel: false,
-          color: "rgba(63,64,53,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -22728,7 +22884,8 @@ $(function () {
             img_main_color: "#5E7B9B"
           },
           showlabel: false,
-          color: "rgba(94,123,155,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -22924,7 +23081,8 @@ $(function () {
             img_main_color: "#90ADC9"
           },
           showlabel: false,
-          color: "rgba(144,173,201,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -22949,7 +23107,8 @@ $(function () {
             img_main_color: "#C29E98"
           },
           showlabel: false,
-          color: "rgba(194,158,152,0.25)"
+          color: "rgba(52,152,219,0.75)",
+          linkedTo: "Period"
         },
         {
           data: [
@@ -23105,7 +23264,8 @@ $(function () {
             img_main_color: "#4F5B52"
           },
           showlabel: false,
-          color: "rgba(79,91,82,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -23273,7 +23433,8 @@ $(function () {
             img_main_color: "#477C86"
           },
           showlabel: false,
-          color: "rgba(71,124,134,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -23385,7 +23546,8 @@ $(function () {
             img_main_color: "#A6B4B2"
           },
           showlabel: false,
-          color: "rgba(166,180,178,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -23546,7 +23708,8 @@ $(function () {
             img_main_color: "#55494B"
           },
           showlabel: false,
-          color: "rgba(85,73,75,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -23701,7 +23864,8 @@ $(function () {
             img_main_color: "#291E1A"
           },
           showlabel: false,
-          color: "rgba(41,30,26,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -23823,7 +23987,8 @@ $(function () {
             img_main_color: "#97B1B9"
           },
           showlabel: true,
-          color: "rgba(151,177,185,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -23946,7 +24111,8 @@ $(function () {
             img_main_color: "#B1776A"
           },
           showlabel: false,
-          color: "rgba(177,119,106,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -24030,7 +24196,8 @@ $(function () {
             img_main_color: "#495267"
           },
           showlabel: false,
-          color: "rgba(73,82,103,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -24156,7 +24323,8 @@ $(function () {
             img_main_color: "#1E1E16"
           },
           showlabel: false,
-          color: "rgba(30,30,22,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -24239,7 +24407,8 @@ $(function () {
             img_main_color: "#A5A4A5"
           },
           showlabel: false,
-          color: "rgba(165,164,165,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -24379,7 +24548,8 @@ $(function () {
             img_main_color: "#6C3E47"
           },
           showlabel: false,
-          color: "rgba(108,62,71,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -24535,7 +24705,8 @@ $(function () {
             img_main_color: "#98A6A9"
           },
           showlabel: false,
-          color: "rgba(152,166,169,0.25)"
+          color: "rgba(231,76,60,0.75)",
+          linkedTo: "Sci-Fi"
         },
         {
           data: [
@@ -24804,7 +24975,8 @@ $(function () {
             img_main_color: "#67614D"
           },
           showlabel: true,
-          color: "rgba(103,97,77,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -25007,7 +25179,8 @@ $(function () {
             img_main_color: "#6A827C"
           },
           showlabel: false,
-          color: "rgba(106,130,124,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -25140,7 +25313,8 @@ $(function () {
             img_main_color: "#203342"
           },
           showlabel: false,
-          color: "rgba(32,51,66,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -25301,7 +25475,8 @@ $(function () {
             img_main_color: "#6F7E93"
           },
           showlabel: false,
-          color: "rgba(111,126,147,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -25476,7 +25651,8 @@ $(function () {
             img_main_color: "#C1BDBC"
           },
           showlabel: false,
-          color: "rgba(193,189,188,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -25574,7 +25750,8 @@ $(function () {
             img_main_color: "#6D6853"
           },
           showlabel: false,
-          color: "rgba(109,104,83,0.25)"
+          color: "rgba(26,188,156,0.75)",
+          linkedTo: "Comedy"
         },
         {
           data: [
@@ -25742,7 +25919,8 @@ $(function () {
             img_main_color: "#545854"
           },
           showlabel: false,
-          color: "rgba(84,88,84,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -25840,7 +26018,8 @@ $(function () {
             img_main_color: "#64382F"
           },
           showlabel: false,
-          color: "rgba(100,56,47,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
         },
         {
           data: [
@@ -25982,7 +26161,8 @@ $(function () {
             img_main_color: "#335976"
           },
           showlabel: false,
-          color: "rgba(51,89,118,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -26136,7 +26316,8 @@ $(function () {
             img_main_color: "#E1D2A0"
           },
           showlabel: false,
-          color: "rgba(225,210,160,0.25)"
+          color: "rgba(46,204,113,0.75)",
+          linkedTo: "Animation"
         },
         {
           data: [
@@ -26197,7 +26378,8 @@ $(function () {
             img_main_color: "#8B6660"
           },
           showlabel: false,
-          color: "rgba(139,102,96,0.25)"
+          color: "rgba(52,73,94,0.75)",
+          linkedTo: "Fantasy"
         },
         {
           data: [
@@ -26278,7 +26460,8 @@ $(function () {
             img_main_color: "#252526"
           },
           showlabel: false,
-          color: "rgba(37,37,38,0.25)"
+          color: "rgba(241,196,15,0.75)",
+          linkedTo: "Action"
         },
         {
           data: [
@@ -26432,7 +26615,50 @@ $(function () {
             img_main_color: "#7C7C7C"
           },
           showlabel: false,
-          color: "rgba(124,124,124,0.25)"
+          color: "rgba(155,89,182,0.75)",
+          linkedTo: "Other"
+        },
+        {
+          name: "Action",
+          data: 0,
+          id: "Action",
+          color: "#f1c40f"
+        },
+        {
+          name: "Animation",
+          data: 0,
+          id: "Animation",
+          color: "#2ecc71"
+        },
+        {
+          name: "Sci-Fi",
+          data: 0,
+          id: "Sci-Fi",
+          color: "#e74c3c"
+        },
+        {
+          name: "Fantasy",
+          data: 0,
+          id: "Fantasy",
+          color: "#34495e"
+        },
+        {
+          name: "Period",
+          data: 0,
+          id: "Period",
+          color: "#3498db"
+        },
+        {
+          name: "Comedy",
+          data: 0,
+          id: "Comedy",
+          color: "#1abc9c"
+        },
+        {
+          name: "Other",
+          data: 0,
+          id: "Other",
+          color: "#9b59b6"
         }
       ]
     }

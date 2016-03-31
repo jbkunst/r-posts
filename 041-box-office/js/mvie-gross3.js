@@ -140,7 +140,7 @@ $(function () {
             ]
           ],
           name: "starwars7",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -395,7 +395,7 @@ $(function () {
             ]
           ],
           name: "avatar",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -703,7 +703,7 @@ $(function () {
             ]
           ],
           name: "titanic",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -885,7 +885,7 @@ $(function () {
             ]
           ],
           name: "jurassicpark4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1004,7 +1004,7 @@ $(function () {
             ]
           ],
           name: "avengers11",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1256,7 +1256,7 @@ $(function () {
             ]
           ],
           name: "darkknight",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1447,7 +1447,7 @@ $(function () {
             ]
           ],
           name: "starwars",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1470,7 +1470,7 @@ $(function () {
             ]
           ],
           name: "starwars4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1568,7 +1568,7 @@ $(function () {
             ]
           ],
           name: "avengers2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1736,7 +1736,7 @@ $(function () {
             ]
           ],
           name: "batman3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -1857,7 +1857,7 @@ $(function () {
             ]
           ],
           name: "shrek2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2240,7 +2240,7 @@ $(function () {
             ]
           ],
           name: "et",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2394,7 +2394,7 @@ $(function () {
             ]
           ],
           name: "catchingfire",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2499,7 +2499,7 @@ $(function () {
             ]
           ],
           name: "piratesofthecaribbean2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2611,7 +2611,7 @@ $(function () {
             ]
           ],
           name: "toystory3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2702,7 +2702,7 @@ $(function () {
             ]
           ],
           name: "ironman3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2891,7 +2891,7 @@ $(function () {
             ]
           ],
           name: "hungergames",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -2991,7 +2991,7 @@ $(function () {
             ]
           ],
           name: "spiderman",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -3391,7 +3391,7 @@ $(function () {
             ]
           ],
           name: "jurassicpark",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -3526,7 +3526,7 @@ $(function () {
             ]
           ],
           name: "transformers2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -3708,7 +3708,7 @@ $(function () {
             ]
           ],
           name: "frozen2013",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -3862,7 +3862,7 @@ $(function () {
             ]
           ],
           name: "harrypotter72",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -3999,7 +3999,7 @@ $(function () {
             ]
           ],
           name: "findingnemo",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4175,7 +4175,7 @@ $(function () {
             ]
           ],
           name: "starwars3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4366,7 +4366,7 @@ $(function () {
             ]
           ],
           name: "returnoftheking",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4493,7 +4493,7 @@ $(function () {
             ]
           ],
           name: "spiderman2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4617,7 +4617,7 @@ $(function () {
             ]
           ],
           name: "passionofthechrist",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4836,7 +4836,7 @@ $(function () {
             ]
           ],
           name: "despicableme2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -4962,7 +4962,7 @@ $(function () {
             ]
           ],
           name: "pixar2014",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5060,7 +5060,7 @@ $(function () {
             ]
           ],
           name: "fast7",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5189,7 +5189,7 @@ $(function () {
             ]
           ],
           name: "transformers3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5393,7 +5393,7 @@ $(function () {
             ]
           ],
           name: "americansniper",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5445,7 +5445,7 @@ $(function () {
             ]
           ],
           name: "deadpool2016",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5712,7 +5712,7 @@ $(function () {
             ]
           ],
           name: "twotowers",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5852,7 +5852,7 @@ $(function () {
             ]
           ],
           name: "hungergames3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -5965,7 +5965,7 @@ $(function () {
             ]
           ],
           name: "spiderman3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6147,7 +6147,7 @@ $(function () {
             ]
           ],
           name: "minions",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6252,7 +6252,7 @@ $(function () {
             ]
           ],
           name: "aliceinwonderland10",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6357,7 +6357,7 @@ $(function () {
             ]
           ],
           name: "marvel2014a",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6463,7 +6463,7 @@ $(function () {
             ]
           ],
           name: "shrek3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6614,7 +6614,7 @@ $(function () {
             ]
           ],
           name: "transformers06",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6791,7 +6791,7 @@ $(function () {
             ]
           ],
           name: "ironman",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -6883,7 +6883,7 @@ $(function () {
             ]
           ],
           name: "harrypotter",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7052,7 +7052,7 @@ $(function () {
             ]
           ],
           name: "indianajones4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7316,7 +7316,7 @@ $(function () {
             ]
           ],
           name: "fellowshipofthering",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7442,7 +7442,7 @@ $(function () {
             ]
           ],
           name: "ironman2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7635,7 +7635,7 @@ $(function () {
             ]
           ],
           name: "starwars2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7720,7 +7720,7 @@ $(function () {
             ]
           ],
           name: "piratesofthecaribbean3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7753,7 +7753,7 @@ $(function () {
             ]
           ],
           name: "starwars6",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -7969,7 +7969,7 @@ $(function () {
             ]
           ],
           name: "independenceday",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8109,7 +8109,7 @@ $(function () {
             ]
           ],
           name: "piratesofthecaribbean",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8224,7 +8224,7 @@ $(function () {
             ]
           ],
           name: "bond23",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8378,7 +8378,7 @@ $(function () {
             ]
           ],
           name: "hobbit",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8555,7 +8555,7 @@ $(function () {
             ]
           ],
           name: "harrypotter6",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8690,7 +8690,7 @@ $(function () {
             ]
           ],
           name: "eclipse",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -8844,7 +8844,7 @@ $(function () {
             ]
           ],
           name: "newmoon",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9005,7 +9005,7 @@ $(function () {
             ]
           ],
           name: "harrypotter7",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9157,7 +9157,7 @@ $(function () {
             ]
           ],
           name: "sixthsense",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9249,7 +9249,7 @@ $(function () {
             ]
           ],
           name: "up",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9445,7 +9445,7 @@ $(function () {
             ]
           ],
           name: "inception",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9578,7 +9578,7 @@ $(function () {
             ]
           ],
           name: "breakingdawn2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9755,7 +9755,7 @@ $(function () {
             ]
           ],
           name: "harrypotter5",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9853,7 +9853,7 @@ $(function () {
             ]
           ],
           name: "narnia",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -9973,7 +9973,7 @@ $(function () {
             ]
           ],
           name: "superman2012",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10001,7 +10001,7 @@ $(function () {
             ]
           ],
           name: "starwars5",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10162,7 +10162,7 @@ $(function () {
             ]
           ],
           name: "harrypotter4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10274,7 +10274,7 @@ $(function () {
             ]
           ],
           name: "monstersinc",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10393,7 +10393,7 @@ $(function () {
             ]
           ],
           name: "hungergames4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10584,7 +10584,7 @@ $(function () {
             ]
           ],
           name: "matrixreloaded",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10703,7 +10703,7 @@ $(function () {
             ]
           ],
           name: "breakingdawn",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -10859,7 +10859,7 @@ $(function () {
             ]
           ],
           name: "meetthefockers",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11076,7 +11076,7 @@ $(function () {
             ]
           ],
           name: "hangover",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11314,7 +11314,7 @@ $(function () {
             ]
           ],
           name: "gravity",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11405,7 +11405,7 @@ $(function () {
             ]
           ],
           name: "monstersinc2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11631,7 +11631,7 @@ $(function () {
             ]
           ],
           name: "shrek",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11737,7 +11737,7 @@ $(function () {
             ]
           ],
           name: "spiderman4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -11927,7 +11927,7 @@ $(function () {
             ]
           ],
           name: "harrypotter2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12025,7 +12025,7 @@ $(function () {
             ]
           ],
           name: "incredibles",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12151,7 +12151,7 @@ $(function () {
             ]
           ],
           name: "grinch",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12235,7 +12235,7 @@ $(function () {
             ]
           ],
           name: "marvel14b",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12382,7 +12382,7 @@ $(function () {
             ]
           ],
           name: "hobbit2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12613,7 +12613,7 @@ $(function () {
             ]
           ],
           name: "lego",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12782,7 +12782,7 @@ $(function () {
             ]
           ],
           name: "startrek11",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -12922,7 +12922,7 @@ $(function () {
             ]
           ],
           name: "iamlegend",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -13125,7 +13125,7 @@ $(function () {
             ]
           ],
           name: "blindside",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -13253,7 +13253,7 @@ $(function () {
             ]
           ],
           name: "hobbit3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -13387,7 +13387,7 @@ $(function () {
             ]
           ],
           name: "hangover2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -13604,7 +13604,7 @@ $(function () {
             ]
           ],
           name: "despicableme",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -13801,7 +13801,7 @@ $(function () {
             ]
           ],
           name: "batman",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14004,7 +14004,7 @@ $(function () {
             ]
           ],
           name: "nightatthemuseum",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14175,7 +14175,7 @@ $(function () {
             ]
           ],
           name: "meninblack",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14350,7 +14350,7 @@ $(function () {
             ]
           ],
           name: "harrypotter3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14514,7 +14514,7 @@ $(function () {
             ]
           ],
           name: "toystory2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14640,7 +14640,7 @@ $(function () {
             ]
           ],
           name: "transformers4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14752,7 +14752,7 @@ $(function () {
             ]
           ],
           name: "cars",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -14927,7 +14927,7 @@ $(function () {
             ]
           ],
           name: "brucealmighty",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15158,7 +15158,7 @@ $(function () {
             ]
           ],
           name: "ghostbusters",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15180,7 +15180,7 @@ $(function () {
             ]
           ],
           name: "twister",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15391,7 +15391,7 @@ $(function () {
             ]
           ],
           name: "mybigfatgreekwedding",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15436,7 +15436,7 @@ $(function () {
             ]
           ],
           name: "disney2016",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15534,7 +15534,7 @@ $(function () {
             ]
           ],
           name: "maleficient",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15618,7 +15618,7 @@ $(function () {
             ]
           ],
           name: "piratesofthecaribbean4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15751,7 +15751,7 @@ $(function () {
             ]
           ],
           name: "shrek4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15877,7 +15877,7 @@ $(function () {
             ]
           ],
           name: "fast6",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -15982,7 +15982,7 @@ $(function () {
             ]
           ],
           name: "bearandthebow",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16087,7 +16087,7 @@ $(function () {
             ]
           ],
           name: "oz",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16220,7 +16220,7 @@ $(function () {
             ]
           ],
           name: "x3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16388,7 +16388,7 @@ $(function () {
             ]
           ],
           name: "waroftheworlds",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16542,7 +16542,7 @@ $(function () {
             ]
           ],
           name: "xmen2014",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16574,7 +16574,7 @@ $(function () {
             ]
           ],
           name: "castaway",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16743,7 +16743,7 @@ $(function () {
             ]
           ],
           name: "jurassicpark2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -16885,7 +16885,7 @@ $(function () {
             ]
           ],
           name: "startrek12",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17060,7 +17060,7 @@ $(function () {
             ]
           ],
           name: "scott2016",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17167,7 +17167,7 @@ $(function () {
             ]
           ],
           name: "signs",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17254,7 +17254,7 @@ $(function () {
             ]
           ],
           name: "hancock",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17394,7 +17394,7 @@ $(function () {
             ]
           ],
           name: "bourneultimatum",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17434,7 +17434,7 @@ $(function () {
             ]
           ],
           name: "rushhour2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17535,7 +17535,7 @@ $(function () {
             ]
           ],
           name: "wall-e",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17641,7 +17641,7 @@ $(function () {
             ]
           ],
           name: "disney2014",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17728,7 +17728,7 @@ $(function () {
             ]
           ],
           name: "nationaltreasure2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -17870,7 +17870,7 @@ $(function () {
             ]
           ],
           name: "alvinandthechipmunksii",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18010,7 +18010,7 @@ $(function () {
             ]
           ],
           name: "ted",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18145,7 +18145,7 @@ $(function () {
             ]
           ],
           name: "kingkong05",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18285,7 +18285,7 @@ $(function () {
             ]
           ],
           name: "howtotrainyourdragon",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18384,7 +18384,7 @@ $(function () {
             ]
           ],
           name: "davincicode",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18566,7 +18566,7 @@ $(function () {
             ]
           ],
           name: "alvinandthechipmunks",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18818,7 +18818,7 @@ $(function () {
             ]
           ],
           name: "savingprivateryan",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -18972,7 +18972,7 @@ $(function () {
             ]
           ],
           name: "madagascar3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19119,7 +19119,7 @@ $(function () {
             ]
           ],
           name: "kungfupanda",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19217,7 +19217,7 @@ $(function () {
             ]
           ],
           name: "mi2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19378,7 +19378,7 @@ $(function () {
             ]
           ],
           name: "x2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19546,7 +19546,7 @@ $(function () {
             ]
           ],
           name: "lorax",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19624,7 +19624,7 @@ $(function () {
             ]
           ],
           name: "austinpowers3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -19771,7 +19771,7 @@ $(function () {
             ]
           ],
           name: "300",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20053,7 +20053,7 @@ $(function () {
             ]
           ],
           name: "backtothefuture",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20179,7 +20179,7 @@ $(function () {
             ]
           ],
           name: "fastfive",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20320,7 +20320,7 @@ $(function () {
             ]
           ],
           name: "mi4",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20414,7 +20414,7 @@ $(function () {
             ]
           ],
           name: "weddingcrashers",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20561,7 +20561,7 @@ $(function () {
             ]
           ],
           name: "sherlockholmes",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20708,7 +20708,7 @@ $(function () {
             ]
           ],
           name: "dawnoftheapes",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -20867,7 +20867,7 @@ $(function () {
             ]
           ],
           name: "batmanbegins",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21035,7 +21035,7 @@ $(function () {
             ]
           ],
           name: "charliechocolate",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21126,7 +21126,7 @@ $(function () {
             ]
           ],
           name: "ratatouille",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21217,7 +21217,7 @@ $(function () {
             ]
           ],
           name: "thor2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21249,7 +21249,7 @@ $(function () {
             ]
           ],
           name: "austinpowers2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21406,7 +21406,7 @@ $(function () {
             ]
           ],
           name: "terminator2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21511,7 +21511,7 @@ $(function () {
             ]
           ],
           name: "amazingspiderman2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21644,7 +21644,7 @@ $(function () {
             ]
           ],
           name: "worldwarz",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21819,7 +21819,7 @@ $(function () {
             ]
           ],
           name: "mummyreturns",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21842,7 +21842,7 @@ $(function () {
             ]
           ],
           name: "armageddon",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -21934,7 +21934,7 @@ $(function () {
             ]
           ],
           name: "cinderella2015",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22045,7 +22045,7 @@ $(function () {
             ]
           ],
           name: "rapunzel",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22171,7 +22171,7 @@ $(function () {
             ]
           ],
           name: "godzilla2012",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22321,7 +22321,7 @@ $(function () {
             ]
           ],
           name: "superman06",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22471,7 +22471,7 @@ $(function () {
             ]
           ],
           name: "bond24",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22541,7 +22541,7 @@ $(function () {
             ]
           ],
           name: "pearlharbor",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22716,7 +22716,7 @@ $(function () {
             ]
           ],
           name: "monstersvsaliens",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22912,7 +22912,7 @@ $(function () {
             ]
           ],
           name: "happyfeet",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -22937,7 +22937,7 @@ $(function () {
             ]
           ],
           name: "indianajonesandthelastcrusade",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23093,7 +23093,7 @@ $(function () {
             ]
           ],
           name: "iceage3",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23261,7 +23261,7 @@ $(function () {
             ]
           ],
           name: "iceage2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23373,7 +23373,7 @@ $(function () {
             ]
           ],
           name: "mi5",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23534,7 +23534,7 @@ $(function () {
             ]
           ],
           name: "madagascar",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23689,7 +23689,7 @@ $(function () {
             ]
           ],
           name: "twilight08",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23811,7 +23811,7 @@ $(function () {
             ]
           ],
           name: "toystory",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -23934,7 +23934,7 @@ $(function () {
             ]
           ],
           name: "21jumpstreet2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24018,7 +24018,7 @@ $(function () {
             ]
           ],
           name: "cars2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24144,7 +24144,7 @@ $(function () {
             ]
           ],
           name: "tmnt2013",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24227,7 +24227,7 @@ $(function () {
             ]
           ],
           name: "meninblack2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24367,7 +24367,7 @@ $(function () {
             ]
           ],
           name: "rebootralph",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24523,7 +24523,7 @@ $(function () {
             ]
           ],
           name: "interstellar",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24792,7 +24792,7 @@ $(function () {
             ]
           ],
           name: "gladiator",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -24995,7 +24995,7 @@ $(function () {
             ]
           ],
           name: "croods",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25128,7 +25128,7 @@ $(function () {
             ]
           ],
           name: "sherlockholmes2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25289,7 +25289,7 @@ $(function () {
             ]
           ],
           name: "dayaftertomorrow",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25464,7 +25464,7 @@ $(function () {
             ]
           ],
           name: "mrandmrssmith",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25562,7 +25562,7 @@ $(function () {
             ]
           ],
           name: "pitchperfect2",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25730,7 +25730,7 @@ $(function () {
             ]
           ],
           name: "batmanforever",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25828,7 +25828,7 @@ $(function () {
             ]
           ],
           name: "oceanseleven",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -25970,7 +25970,7 @@ $(function () {
             ]
           ],
           name: "polarexpress",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -26124,7 +26124,7 @@ $(function () {
             ]
           ],
           name: "simpsons",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -26185,7 +26185,7 @@ $(function () {
             ]
           ],
           name: "whatwomenwant",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -26266,7 +26266,7 @@ $(function () {
             ]
           ],
           name: "perfectstorm",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },
@@ -26420,7 +26420,7 @@ $(function () {
             ]
           ],
           name: "lincoln",
-          showInLegend: false,
+          showInLegend: true,
           marker: {
             enabled: false
           },

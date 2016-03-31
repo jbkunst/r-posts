@@ -543,7 +543,7 @@ for (id in unique(dfgross$box_id)) {
 }
 
 hcgross1
-hcgross2
+hcgross2 <- hcgross2 %>% hc_chart(marginRight = 120)
 
 
 try(dir.create("js"))
@@ -551,4 +551,58 @@ export_hc(hcscttr, "js/mvie-scatter.js")
 export_hc(hcgross1, "js/mvie-gross1.js")
 export_hc(hcgross2, "js/mvie-gross2.js")
 
+
+#### LEGEND
+hcgross3 <- hcgross2
+
+hcgross3$x$hc_opts$series <- map(hcgross3$x$hc_opts$series, function(x){
+  x$showInLegend <- TRUE
+  x
+})
+
+hcgross3
+
+export_hc(hcgross3, "js/mvie-gross3.js")
+
+#### GROUPED
+dfmovie <- dfmovie %>% 
+  mutate(genre2 = ifelse(str_detect(genre, " "), str_extract(genre, ".* "), genre),
+         genre2 = str_trim(genre2),
+         genre2 = str_replace(genre2, " /", ""))
+
+dfmovie %>% count(genre2) %>% arrange(desc(n))
+genrs <- dfmovie %>% count(genre2) %>% arrange(desc(n)) %>% head(6) %>% .$genre2
+
+dfmovie <- dfmovie %>% 
+  mutate(genre3 = ifelse(genre2 %in% genrs, genre2, "Other"))
+
+dfgenres <- dfmovie %>%
+  count(genre3) %>%
+  arrange(desc(n))
+dfgenres$color <- as.vector(hc_theme_flat()$colors[seq(length(genrs)+1)])
+
+dfmovie3 <- dfmovie %>% 
+  select(box_id, genre3) %>% 
+  left_join(dfgenres) %>% 
+  mutate(colorrgb = hex_to_rgba(color, 0.75))
+
+hcgross4 <- hcgross2
+
+hcgross4$x$hc_opts$series <- map(hcgross2$x$hc_opts$series, function(x){
+  # x <- hcgross4$x$hc_opts$series[[1]]
+  dfaux <- dfmovie3 %>% filter(box_id == x$name)
+  x$color <- dfaux$colorrgb
+  x$linkedTo <- dfaux$genre3  
+  x
+})
+
+
+for(g in c(genrs, "Other")) {
+  hcgross4 <- hcgross4 %>% 
+    hc_add_series(name = g, data = 0, id = g, color = dfgenres %>% filter(genre3==g) %>% .$color)
+}
+
+hcgross4
+
+export_hc(hcgross4, "js/mvie-gross4.js")
 
