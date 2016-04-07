@@ -37,31 +37,14 @@ library("viridisLite")
 #' 
 URL <- "http://graphics8.nytimes.com/newsgraphics/2016/01/15/drug-deaths/c23ba79c9c9599a103a8d60e2329be1a9b7d6994/data.json"
 
-color_stops <- function(n = 10, option = "D") {
-  
-  data.frame(q = seq(0, n)/n,
-             c = substring(viridis(n + 1, option = "D"), 0, 7)) %>% 
-    list.parse2()
-}
-  
-
 data("uscountygeojson")
 data("unemployment")
 
 data <-  fromJSON(URL) %>% 
   tbl_df() %>% 
   gather(year, value, -fips) %>% 
-  mutate(year = sub("^y", "", year))
-
-count(data, year)
-# 
-# highchart() %>% 
-#   hc_add_series_map(map = uscountygeojson,
-#                     df = data %>% filter(year == max(year)) %>% select(fips, value),
-#                     value = "value", joinBy = c("fips"),
-#                     borderWidth = 0.1) %>% 
-#   hc_colorAxis(stops = color_stops()) 
-
+  mutate(year = sub("^y", "", year),
+         value = ifelse(is.na(value), 0, value))
 
 ds <- data %>% 
   group_by(fips) %>% 
@@ -71,14 +54,13 @@ ds <- data %>%
     value = first(.$value))) %>% 
   .$item
 
-
 hc <- highchart(type = "map") %>% 
   hc_add_series(data = ds,
                 name = "drug deaths per 100,000",
                 mapData = uscountygeojson,
                 joinBy = "fips",
                 borderWidth = 0.01) %>% 
-  hc_colorAxis(stops = color_stops()) %>% 
+  hc_colorAxis(stops = color_stops(option = "A")) %>% 
   hc_motion(
     enabled = TRUE,
     axisLabel = "year",
@@ -89,7 +71,10 @@ hc <- highchart(type = "map") %>%
      round = "floor",
      step = 0.1
     )
-  )
+  ) %>% 
+  hc_title(text = "How the Epidemic of Drug Overdose Deaths Ripples") %>% 
+  hc_add_theme(hc_theme_smpl())
+
 
 hc
 
