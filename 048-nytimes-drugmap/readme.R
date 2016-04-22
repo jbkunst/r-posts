@@ -54,6 +54,9 @@ ds <- data %>%
     value = first(.$value))) %>% 
   .$item
 
+ds[[1]]
+uscountygeojson$features[[1]]$properties
+
 hc <- highchart(type = "map") %>% 
   hc_add_series(data = ds,
                 name = "drug deaths per 100,000",
