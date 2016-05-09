@@ -17,11 +17,14 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE,
 #' 
 #' * https://rpubs.com/chengjiun/52658
 #' * http://amunategui.github.io/blending-models/
+#' 
 
 #' 
 #' # Data
 library(dplyr)
 library(lubridate)
+library(caret)
+
 df <- readr::read_csv("train.csv")
 
 head(df)
@@ -31,17 +34,18 @@ df <- df %>%
          month = month(datetime),
          day = day(datetime),
          hour = hour(datetime)) %>% 
-  dplyr::select(-datetime)
+  dplyr::select(-datetime, -year)
 
 #' Samples
 set.seed(123)
 
-trainIndex <- createDataPartition(df$count, p = 0.8, list = FALSE, times = 1)
+trainIndex <- createDataPartition(df$count, p = 0.5, list = FALSE, times = 1)
 
 dftrain <- df[trainIndex, ]
 dftest <- df[-trainIndex, ]
 
-
+x <- dftrain %>% select(-count)
+y <- dftrain[["count"]]
 #'
 #' # Feature Selection
 
@@ -49,6 +53,34 @@ dftest <- df[-trainIndex, ]
 #' ## RRF
 library(RRF)
 
+formula <- count ~ .
+
+rrf <- RRF(formula, dftrain)
+
+rrfimp <- importance(rrf) %>% 
+  as.data.frame() %>% 
+  add_rownames("variable") %>% 
+  arrange(desc(IncNodePurity))
+
+
+#'
+#' ## RFE
+#'
+rfeCtrl <- rfeControl(functions = lmFuncs, method = "repeatedcv", repeats = 10, verbose = FALSE)
+
+lmProfile <- rfe(x, y, sizes = c(1:5, 10, 15), rfeControl = rfeCtrl)
+
+names(lmProfile)
+
+lmProfile$fit
+  
+#'
+#' ## Filters
+filterCtrl <- sbfControl(functions = rfSBF, method = "repeatedcv", repeats = 10)
+
+rfWithFilter <- sbf(x, y, sbfControl = filterCtrl)
+
+rfWithFilter
 
 #'
 #' # Models
@@ -64,14 +96,26 @@ map(getModelInfo(), "type") %>%
   {.[.]} %>% 
   names()
 
-formula <- count ~ .
+mods_names <- c("neuralnet", "glmboost", "kknn", "ctree", "gbm", "lasso", "gamboost", "xgbTree")
 
-mods_names <- c("neuralnet", "glmboost", "kknn", "ctree", "gbm", "lasso", "gamboost")
+seqnvars <- seq(nrow(rrfimp))
 
-mods_fit <- map(mods_names, function(x){
-  message(x)
-  train(formula, data = dftrain, method = x) 
+
+map(seqnvars, function(nvars){
+  
+  dftrainsub <- dftrain[, seq(1, 1 + nvars)]
+  
+  mods_fit <- map(mods_names, function(modname){
+    
+    message(nvars, " : ", modname)
+    
+    train(formula, data = dftrain, method = modname, trControl = trainControl(method = "none")) 
+    
+  })
+  
 })
+
+
 
 #'
 #' # Validation
