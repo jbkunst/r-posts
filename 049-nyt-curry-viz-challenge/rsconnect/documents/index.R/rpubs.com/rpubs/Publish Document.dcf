@@ -1,0 +1,7 @@
+name: Publish Document
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/173790/28a6ff3c74bd4b59a2e071a17f113816
+bundleId: https://api.rpubs.com/api/v1/document/173790/28a6ff3c74bd4b59a2e071a17f113816
+url: http://rpubs.com/jbkunst/173790
+when: 1461347997.66596
