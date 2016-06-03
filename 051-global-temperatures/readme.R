@@ -1,5 +1,5 @@
 #' ---
-#' title: ""
+#' title: "Global Temperatures"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -18,7 +18,7 @@ library("tidyr")
 library("lubridate")
 library("purrr")
 library("viridis")
-options(highcharter.theme = hc_theme_smpl())
+options(highcharter.theme = hc_theme_darkunica(chart  = list(style = list(fontFamily = "Roboto Condensed"))))
 
 #'
 #' ## Data
@@ -30,15 +30,16 @@ df <- df %>%
   mutate(date = ymd(year_mon),
          tmpstmp = datetime_to_timestamp(date),
          year = year(date),
-         month = month(date, label = TRUE))
+         month = month(date, label = TRUE),
+         color_m = colorize(colorize(median, viridis(10))),
+         color_m = hex_to_rgba(color_m, 0.65))
 
 dfcolyrs <- df %>% 
   group_by(year) %>% 
   summarise(median = median(median)) %>% 
   ungroup() %>% 
-  mutate(color = colorize(median, viridis(10)),
-         color = hex_to_rgba(color, 0.65),
-         delay = seq(1, 5000, length.out = nrow(.))) %>% 
+  mutate(color_y = colorize(median, viridis(10)),
+         color_y = hex_to_rgba(color_y, 0.65)) %>% 
   select(-median)
 
 df <- left_join(df, dfcolyrs, by = "year")
@@ -48,31 +49,28 @@ df <- left_join(df, dfcolyrs, by = "year")
 #' 
 lsseries <- df %>% 
   group_by(year) %>% 
-  do(series = list(
-    name = first(.$year),
+  do(
     data = .$median,
-    color = first(.$color),
-    animation = list(delay = first(.$delay))
-  )) %>% 
-  .$series
-
-lsseries[[1]]
-
+    color = first(.$color_y)) %>% 
+  mutate(name = year) %>% 
+  list.parse3()
 
 hc1 <- highchart() %>% 
   hc_chart(polar = TRUE) %>% 
   hc_plotOptions(series = list(marker = list(enabled = FALSE), animation = TRUE, pointIntervalUnit = "month")) %>%
   hc_legend(enabled = FALSE) %>% 
-  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%b}")) %>% 
+  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%b}")) %>%
+  hc_tooltip(headerFormat = "{point.key}") %>% 
   hc_add_series_list(lsseries)
 
-hc1 
+hc1
 
 #'
 #' ## Sesonalplot
 #' 
 hc2 <- hc1 %>% 
-  hc_chart(polar = FALSE, type = "line") %>% 
+  hc_chart(polar = FALSE, type = "spline") %>% 
+  hc_tooltip(headerFormat = "{point.key}") %>% 
   hc_xAxis(max = (365 - 1) * 24 * 36e5)
 
 hc2
@@ -83,7 +81,7 @@ hc2
 
 ds <- df %>% 
   mutate(name = paste(decade, month)) %>% 
-  select(x = tmpstmp, low = lower, high = upper, name, color)
+  select(x = tmpstmp, low = lower, high = upper, name, color = color_m)
 
 hc3 <- highchart() %>% 
   hc_chart(type = "columnrange") %>% 
@@ -103,6 +101,8 @@ m <- df %>%
 
 rownames(m) <- month.abb
 
-hchart(m)
+hc4 <- hchart(m) %>% 
+  hc_colorAxis(stops = color_stops(10, viridis(10))) %>% 
+  hc_yAxis(title = list(text = NULL))
 
-
+hc4
