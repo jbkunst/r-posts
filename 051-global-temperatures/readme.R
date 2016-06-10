@@ -31,7 +31,7 @@ df <- df %>%
          tmpstmp = datetime_to_timestamp(date),
          year = year(date),
          month = month(date, label = TRUE),
-         color_m = colorize(colorize(median, viridis(10))),
+         color_m = colorize(median, viridis(10)),
          color_m = hex_to_rgba(color_m, 0.65))
 
 dfcolyrs <- df %>% 
@@ -59,18 +59,63 @@ hc1 <- highchart() %>%
   hc_chart(polar = TRUE) %>% 
   hc_plotOptions(series = list(marker = list(enabled = FALSE), animation = TRUE, pointIntervalUnit = "month")) %>%
   hc_legend(enabled = FALSE) %>% 
-  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%b}")) %>%
-  hc_tooltip(headerFormat = "{point.key}") %>% 
+  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%B}")) %>%
+  hc_tooltip(headerFormat = "{point.key}", xDateFormat = "%B", pointFormat = " {series.name}: {point.y}") %>% 
   hc_add_series_list(lsseries)
 
 hc1
+
+#' ### Spiral w/animation
+
+lsseries2 <- df %>% 
+  group_by(year) %>% 
+  do(
+    data = .$median,
+    color = "transparent",
+    enableMouseTracking = FALSE,
+    color2 = first(.$color_y)) %>% 
+  mutate(name = year) %>% 
+  list.parse3()
+
+hc11 <- highchart() %>% 
+  hc_chart(polar = TRUE) %>% 
+  hc_plotOptions(series = list(marker = list(enabled = FALSE), animation = TRUE, pointIntervalUnit = "month")) %>%
+  hc_legend(enabled = FALSE) %>% 
+  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%B}")) %>%
+  hc_tooltip(headerFormat = "{point.key}", xDateFormat = "%B", pointFormat = " {series.name}: {point.y}") %>% 
+  hc_add_series_list(lsseries2) %>% 
+  hc_chart(
+    events = list(
+      load = JS("
+
+function() {
+  console.log('ready');
+  var duration = 16 * 1000
+  var delta = duration/this.series.length;
+  var delay = 0;
+
+  this.series.map(function(e){
+    setTimeout(function() {
+      e.update({color: e.options.color2, enableMouseTracking: true});
+      e.chart.setTitle(null, {text: e.name})
+    }, delay)
+    delay = delay + delta;
+  });
+}
+                ")
+    )
+  )
+
+# rm theme
+hc11$x$theme <- list(chart = list(divBackgroundImage = NULL))
+
+hc11
 
 #'
 #' ## Sesonalplot
 #' 
 hc2 <- hc1 %>% 
   hc_chart(polar = FALSE, type = "spline") %>% 
-  hc_tooltip(headerFormat = "{point.key}") %>% 
   hc_xAxis(max = (365 - 1) * 24 * 36e5)
 
 hc2
