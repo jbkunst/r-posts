@@ -1,5 +1,5 @@
 #' ---
-#' title: "Global Temperatures"
+#' title: "Anima Temperatures"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -11,7 +11,7 @@
 #' Time time ago an gif appears showing the change of the global temperatures
 #' over time.
 #' 
-#' <img src="https://i.kinja-img.com/gawker-media/image/upload/s--sy8MLJrE--/c_scale,fl_progressive,q_80,w_800/oo0q9awrmmsctypfh6yb.gif" width="200px">
+#' <img src="https://i.kinja-img.com/gawker-media/image/upload/s--sy8MLJrE--/c_scale,fl_progressive,q_80,w_800/oo0q9awrmmsctypfh6yb.gif" width="350px">
 #' 
 #' Well, some sites like http://gizmodo.com/ made a reference to this animation
 #' as [one-of-the-most-convincing-climate-change-visualization](http://gizmodo.com/one-of-the-most-convincing-climate-change-visualization-1775743779).
@@ -26,7 +26,8 @@
 #' <img src="https://i.imgflip.com/16a5b7.jpg" width="400px">
 #' 
 #' Other thing I don't like so much about this spiral is there'are so much data 
-#' overlaped missing information about the speed of increment in the temperatures.
+#' overlaped at the end of animation hiding information about the speed of increment 
+#' in the data.
 #' 
 #' So this post will be about if we can show this data in other ways to **try** to 
 #' tell more clearly the **Oh! *Foo!* is this rly happening?** story.
@@ -48,8 +49,8 @@ library("jbkmisc")
 #' `geom_segment`/column range viz.
 #' 
 #' About the packages. Here we'll use a lot of `dplyr`, `tidyr`, `purrr` for the data manipulation,
-#' for the colors we'll use `viridis` and last, for the charts 
-#' [`highcharter`](jkunst.com/highcharter)
+#' for the colors we'll use `viridis`, lastly I'll use [`highcharter`](jkunst.com/highcharter)
+#' for charts 
 #'   
 
 library("highcharter")
@@ -99,7 +100,7 @@ head(df)
 #' ## Spiral
 #' 
 #' First of all let's try to replicate the chart/gif/animation that's reason
-#' to write this post. Here we'll construtc a `list` of series to use 
+#' to write this post. Here we'll construtct a `list` of series to use 
 #' with `hc_add_series_list` function.
 #' 
 lsseries <- df %>% 
@@ -112,10 +113,18 @@ lsseries <- df %>%
 
 hc1 <- highchart() %>% 
   hc_chart(polar = TRUE) %>% 
-  hc_plotOptions(series = list(marker = list(enabled = FALSE), animation = TRUE, pointIntervalUnit = "month")) %>%
+  hc_plotOptions(
+    series = list(
+      marker = list(enabled = FALSE),
+      animation = TRUE,
+      pointIntervalUnit = "month")
+    ) %>%
   hc_legend(enabled = FALSE) %>% 
-  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5, labels = list(format = "{value:%B}")) %>%
-  hc_tooltip(headerFormat = "{point.key}", xDateFormat = "%B", pointFormat = " {series.name}: {point.y}") %>% 
+  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,
+           labels = list(format = "{value:%B}")) %>%
+  hc_tooltip(headerFormat = "{point.key}",
+             xDateFormat = "%B",
+             pointFormat = " {series.name}: {point.y}") %>% 
   hc_add_series_list(lsseries)
 
 hc1
@@ -150,8 +159,10 @@ hc11 <- highchart() %>%
     animation = TRUE,
     pointIntervalUnit = "month")) %>%
   hc_legend(enabled = FALSE) %>% 
-  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,  labels = list(format = "{value:%B}")) %>%
-  hc_tooltip(headerFormat = "{point.key}", xDateFormat = "%B", pointFormat = " {series.name}: {point.y}") %>% 
+  hc_xAxis(type = "datetime", min = 0, max = 365 * 24 * 36e5,
+           labels = list(format = "{value:%B}")) %>%
+  hc_tooltip(headerFormat = "{point.key}", xDateFormat = "%B",
+             pointFormat = " {series.name}: {point.y}") %>% 
   hc_add_series_list(lsseries2) %>% 
   hc_chart(
     events = list(
@@ -227,7 +238,7 @@ hc3
 #' but with colors is not so easy to quantify that change.
 #' 
 #'
-#' ## Line, time series
+#' ## Line / Time Series
 #' 
 #' Let's try now the most simply chart. And let's represent
 #' the data as a time series.
@@ -236,15 +247,13 @@ dsts <- df %>%
   mutate(name = paste(decade, month)) %>% 
   select(x = tmpstmp, y = median, name)
 
-hc4 <- highchart(type = "stock") %>% 
+hc4 <- highchart() %>% 
   hc_xAxis(type = "datetime") %>%
   hc_add_series_df(dsts, name = "Global Temperature",
                    type = "line", color = hex_to_rgba("#90ee7e", 0.5),
                    lineWidth = 1,
                    states = list(hover = list(lineWidth = 1)),
-                   shadow = FALSE) %>% 
-  hc_rangeSelector(enabled = FALSE)
-
+                   shadow = FALSE) 
 hc4
 
 #' 
@@ -274,14 +283,15 @@ hc5
 #'
 #' (IMHO) This is the best way to show what we want to say:
 #' 
-#' * Via the time series chart it's wasy compare the past with the 
+#' * Via a time series chart it's wasy compare the past with the 
 #' actual period of time.
 #' * The color, in particular the last *yellowish* part, add importance and guide our
 #' eyes to that part of the chart before to start to compare.
 #' 
-#' Beatiful
-#' 
-#' 
+
+#+ echo=FALSE
+giphy("RgfGmnVvt8Pfy")
+
 #' 
 #' Do you have other ways to represent this data?
 #' 
