@@ -1,6 +1,6 @@
 # History files
 .Rhistory
 
-
+*.html
 */cache/*
 */*_cache/*
