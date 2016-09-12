@@ -24,6 +24,9 @@ library(stringr)
 load(url("http://www.stolaf.edu/people/olaf/cs125/MSP2012.RData"))
 
 
+data <- read_csv("http://academic.udayton.edu/kissock/http/Weather/gsod95-current/CASANFRA.txt",
+                 col_names = )
+
 data <- tbl_df(MSP2012) %>%
   mutate(date = str_c("2012", month, day, sep = "-"),
          date = ymd(date))
