@@ -1,5 +1,5 @@
 #' ---
-#' title: ""
+#' title: "Wheather chart a la Tufte"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -19,41 +19,35 @@ library(highcharter)
 library(lubridate)
 library(stringr)
 
-
 #' # Data
 load(url("http://www.stolaf.edu/people/olaf/cs125/MSP2012.RData"))
 
-
-data <- read_csv("http://academic.udayton.edu/kissock/http/Weather/gsod95-current/CASANFRA.txt",
-                 col_names = )
-
 data <- tbl_df(MSP2012) %>%
   mutate(date = str_c("2012", month, day, sep = "-"),
-         date = ymd(date))
-         
-col_to_hex <- function(name = c("wheat", "red")) {
-  name %>% 
-    col2rgb() %>% 
-    t() %>% 
-    {./255} %>% 
-    rgb()
-}
+         date = ymd(date),
+         tmps = datetime_to_timestamp(date))
 
+head(data)
 options(highcharter.theme = hc_theme_smpl())
 
-#These color codes will be useful for building your graphics:
-colors<-c(background="#e4dcd5", record="#cbc3aa", normal="#9f9786", daily="#763f59", axis="#a59d8b")
-
+#' # Chart
 
 highchart() %>%
-  hc_xAxis(type = "datetime") %>% 
-  hc_add_series_df(data, type = "columnrange", x = date, low = recordLo, high = recordHi, name = "Record") %>% 
-  hc_add_series_df(data, type = "columnrange", x = date, low = normalLo, high = normalHi, name = "Normal") %>% 
-  hc_add_series_df(data, type = "columnrange", x = date, low = observedLo, high = observedHi, name = "Observed") %>% 
+  # details
+  hc_chart(backgroundColor = "#E4DCD5") %>% 
+  hc_xAxis(type = "datetime", dateTimeLabelFormats = list(month = "%B")) %>% 
+  hc_plotOptions(series = list(borderColor = "transparent")) %>% 
+  # data
+  hc_add_series(data = list_parse(select(data, x = tmps, low = recordLo, high = recordHi)),
+                type = "columnrange", name = "Record", color = "#CBC3AA") %>% 
+  hc_add_series(data = list_parse(select(data, x = tmps, low = normalLo, high = normalHi)),
+                   type = "columnrange", name = "Normal", color = "#9F9786") %>% 
+  hc_add_series(data = list_parse(select(data, x = tmps, low = observedLo, high = observedHi)),
+                   type = "columnrange", name = "Observed", color = "#543946") %>% 
   hc_tooltip(
     shared = TRUE,
     useHTML = TRUE,
-    headerFormat = as.character(tags$small("{point.x: %b %d}<br>"))
+    headerFormat = as.character(tags$small("{point.x: %b %d}", tags$br()))
   ) 
   
   
