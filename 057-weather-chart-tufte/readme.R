@@ -20,35 +20,52 @@ library(lubridate)
 library(stringr)
 
 #' # Data
-load(url("http://www.stolaf.edu/people/olaf/cs125/MSP2012.RData"))
+url_base <- "http://graphics8.nytimes.com/newsgraphics/2016/01/01/weather/assets"
+file <- "san-francisco_ca.csv"
 
-data <- tbl_df(MSP2012) %>%
-  mutate(date = str_c("2012", month, day, sep = "-"),
-         date = ymd(date),
-         tmps = datetime_to_timestamp(date))
+url_file <- file.path(url_base, file)
+
+data <- read_csv(url_file)
 
 head(data)
+
+data <- data %>% 
+  mutate(x = datetime_to_timestamp(date))
+
 options(highcharter.theme = hc_theme_smpl())
 
 #' # Chart
-
-highchart() %>%
-  # details
-  hc_chart(backgroundColor = "#E4DCD5") %>% 
+hc <- highchart() %>%
+  # axis setup
   hc_xAxis(type = "datetime", dateTimeLabelFormats = list(month = "%B")) %>% 
-  hc_plotOptions(series = list(borderColor = "transparent")) %>% 
   # data
-  hc_add_series(data = list_parse(select(data, x = tmps, low = recordLo, high = recordHi)),
-                type = "columnrange", name = "Record", color = "#CBC3AA") %>% 
-  hc_add_series(data = list_parse(select(data, x = tmps, low = normalLo, high = normalHi)),
-                   type = "columnrange", name = "Normal", color = "#9F9786") %>% 
-  hc_add_series(data = list_parse(select(data, x = tmps, low = observedLo, high = observedHi)),
-                   type = "columnrange", name = "Observed", color = "#543946") %>% 
+  hc_add_series(data = data %>% select(x, low = temp_rec_min, high = temp_rec_max),
+                type = "columnrange", name = "Record", color = "#ECEBE3") %>% 
+  hc_add_series(data = data %>% select(x, low = temp_avg_min, high = temp_avg_max),
+                   type = "columnrange", name = "Normal", color = "#C8B8B9") %>% 
+  hc_add_series(data = data %>% select(x, low = temp_min, high = temp_max),
+                   type = "columnrange", name = "Observed", color = "#A90048") %>% 
+  # remove legend
+  hc_legend(enabled = FALSE) %>% 
+  # setting tooltip
   hc_tooltip(
     shared = TRUE,
     useHTML = TRUE,
     headerFormat = as.character(tags$small("{point.x: %b %d}", tags$br()))
   ) 
+
+hc
+
+hc2 <- hchart(data, "line", x = date, y = precip_value, group = month) %>% 
+  hc_xAxis(type = "datetime", dateTimeLabelFormats = list(month = "%B")) %>% 
+  hc_legend(enabled = FALSE) %>% 
+  hc_colors("skyblue") %>% 
+  hc_size(height = 150)
+  
+hc2
+
+hw_grid(hc, hc2, ncol = 1) %>% 
+  htmltools::browsable()
   
   
   
