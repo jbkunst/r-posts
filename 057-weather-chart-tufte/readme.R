@@ -53,25 +53,12 @@ hc <- highchart() %>%
 
 hc
 
-#' ## Adding data
+#' ## Adding temp data
 #' 
-#' The traditional way is 1 by 1 the series
-#' 
-#' 
-#+ eval=FALSE
-hc %>% 
-  hc_add_series(data, type = "columnrange", hcaes(dt, low = temp_rec_min, high = temp_rec_max),
-                name = "Record", color = "#ECEBE3") %>% 
-  hc_add_series(data, type = "columnrange", hcaes(dt, low = temp_avg_min, high = temp_avg_max),
-                name = "Normal", color = "#C8B8B9") %>% 
-  hc_add_series(data, type = "columnrange", hcaes(dt, low = temp_min, high = temp_max),
-                name = "Observed", color = "#A90048") 
-
-#' 
-#' But we can get some fun wrangling the data
+#'  Some fun wrangling the data, some gather, some spread.
 #' 
 #' 
-datagather <- data %>% 
+dtempgather <- data %>% 
 select(dt, starts_with("temp")) %>% 
   select(-temp_rec_high, -temp_rec_low) %>% 
   rename(temp_actual_max = temp_max,
@@ -79,102 +66,33 @@ select(dt, starts_with("temp")) %>%
   gather(key, value, -dt) %>% 
   mutate(key = str_replace(key, "temp_", "")) 
 
-datagather
+dtempgather
 
-dataspread <- datagather %>% 
+dtempspread <- dtempgather %>% 
   separate(key, c("serie", "type"), sep = "_") %>% 
   spread(type, value)
 
-dataspread
+dtempspread
 
 #' Finaly some fixes
 #' 
 
-data2 <- dataspread %>% 
+temps <- dtempspread %>% 
   mutate(serie = factor(serie, levels = c("rec", "avg", "actual")),
          serie = fct_recode(serie, Record = "rec", Normal = "avg", Observed = "actual"))
 
-data2
+temps
 
 #' So, why thiz codez? Just for get a tidy data for easy charting.
 
 hc <- hc %>% 
-  hc_add_series(data2, type = "columnrange",
+  hc_add_series(temps, type = "columnrange",
                 hcaes(dt, low = min, high = max, group = serie),
                 color = c("#ECEBE3", "#C8B8B9", "#A90048")) 
 
 hc
 
-#' ## Adding other data in other axis
-#' 
-#' First create a list with 2 axis and using the  `create_yaxis` helper
-axis <- create_yaxis(
-  naxis = 2,
-  heights = c(3,1),
-  turnopposite = FALSE,
-  showLastLabel = FALSE,
-  startOnTick = FALSE)
-
-#' Manually add titles (I know this can be more elegant)
-axis[[1]]$title <- list(text = "Temperature")
-axis[[1]]$labels <- list(format = "{value}°F")
-axis[[2]]$title <- list(text = "Precipitation")
-
-hc <- hc_yAxis_multiples(hc, axis)
-
-hc
-
-#' Te 2 axis are ready, now just add the data. Here we will add 12 series 
-#' -one for each month- but we want to asociate 1 legend for all these 12 
-#' series, so we need to use `id` and `linkedTo` parameters and obviously
-#' add this data to the second axis.
-
-precipdata <- select(data, dt, precip_value, month)
-
-hc <- hc %>%
-  hc_add_series(precipdata, type = "area", hcaes(dt, precip_value, group = month),
-                name = "Precipitation", color = "skyblue", yAxis = 1,
-                id = c("p", rep(NA, 11)), linkedTo = c(NA, rep("p", 11)))
-
-hc
-
-#' ## Some final touches
-#' 
-#' The records and the title and some credit to the serious touch
-#' 
-#' ### Title
-#' 
-#' Here we will extract the title from the file name, this will usefull if
-#' we want to make it autoamtically if we do some shiny app for example
-city <- file %>%
-  str_extract(".*_") %>%
-  str_replace_all("_", "") %>%
-  str_replace_all("-", " ") %>%
-  str_to_title()
-
-state <- file %>%
-  str_extract("_.*") %>%
-  str_replace_all("_|\\.csv", "") %>%
-  str_to_upper()
-
-title <- paste0(city, ", ", state)
-
-hc <- hc %>%
-  hc_title(text = title)
-
-#' ### Normal precipitations
-precipnormal <- select(data, dt, precip_normal, month) %>% 
-  group_by(month) %>% 
-  filter(row_number() %in% c(1, n())) %>%
-  ungroup() %>% 
-  fill(precip_normal)
-
-hc <- hc %>% 
-  hc_add_series(precipnormal, "line", hcaes(x = dt, y = precip_normal, group = month),
-                name = "Normal Precipitation", color = "#EBEAE2", yAxis = 1,
-                id = c("np", rep(NA, 11)), linkedTo = c(NA, rep("np", 11)))
-  
-#' ### Records
+#' ## Records
 records <- data %>%
   select(dt, temp_rec_high, temp_rec_low) %>% 
   filter(temp_rec_high != "NULL" | temp_rec_low != "NULL") %>% 
@@ -199,6 +117,60 @@ pointsyles <- list(
 hc <- hc %>% 
   hc_add_series(records, "point", hcaes(x = dt, y = value, group = type),
                 marker = pointsyles)
+
+hc
+
+#' ## Adding other data in other axis
+#' 
+#' First create a list with 2 axis and using the  `create_yaxis` helper
+axis <- create_yaxis(
+  naxis = 2,
+  heights = c(3,1),
+  sep = 0.05,
+  turnopposite = FALSE,
+  showLastLabel = FALSE,
+  startOnTick = FALSE)
+
+#' Manually add titles (I know this can be more elegant)
+axis[[1]]$title <- list(text = "Temperature")
+axis[[1]]$labels <- list(format = "{value}°F")
+
+axis[[2]]$title <- list(text = "Precipitation")
+axis[[2]]$min <- 0
+
+hc <- hc_yAxis_multiples(hc, axis)
+
+hc
+
+#' Te 2 axis are ready, now just add the data. Here we will add 12 series 
+#' -one for each month- but we want to asociate 1 legend for all these 12 
+#' series, so we need to use `id` and `linkedTo` parameters and obviously
+#' add this data to the second axis.
+
+precip <- select(data, dt, precip_value, month)
+
+hc <- hc %>%
+  hc_add_series(precip, type = "area", hcaes(dt, precip_value, group = month),
+                name = "Precipitation", color = "skyblue", yAxis = 1,
+                id = c("p", rep(NA, 11)), linkedTo = c(NA, rep("p", 11)))
+
+hc
+
+#' Normal precipitations
+#' 
+precipnormal <- select(data, dt, precip_normal, month) %>% 
+  group_by(month) %>% 
+  filter(row_number() %in% c(1, n())) %>%
+  ungroup() %>% 
+  fill(precip_normal)
+
+hc <- hc %>% 
+  hc_add_series(precipnormal, "line", hcaes(x = dt, y = precip_normal, group = month),
+                name = "Normal Precipitation", color = "#C8B8B9", yAxis = 1,
+                id = c("np", rep(NA, 11)), linkedTo = c(NA, rep("np", 11)),
+                lineWidth = 1)
+  
+
 
 #' ## Volia
 hc
