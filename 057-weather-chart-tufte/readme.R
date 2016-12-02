@@ -1,5 +1,5 @@
 #' ---
-#' title: "Wheather chart a la Tufte"
+#' title: "Interactive Wheather Chart a la Tufte"
 #' author: "Joshua Kunst"
 #' output:
 #'  html_document:
@@ -7,53 +7,86 @@
 #'    keep_md: yes
 #' ---
 
+#' 
+#' So much time since my last post so I want to post something, no matter 
+#' what it is, but I hope this will be somehow helpfull
+#' 
+#' In this post I will show some new features for the next version of
+#' `highcharter` package. The main feature added is `hc_add_series` now is 
+#' a __generic__ function! This mean you can add the `data` argument
+#' can be numeric, data frame, time series (ts, xts, ohlc) amonth others
+#' so the syntaxis will be a little cleaner.
+#' 
+#' What we'll do here? We'll make an interactive version of the 
+#' _well-well-know-and-a-little-repeated_ Tufte weather chart.
+#' 
+#' ![](http://www.edwardtufte.com/bboard/images/00014g-837.gif "Weather Chart")
+#' 
+#' There are good ggplot versions if you can start there.
+#' 
+#' - https://rpubs.com/tyshynsk/133318
+#' - https://rpubs.com/bradleyboehmke/weather_graphic
+#' 
+#' But our focus will be replicate the New York Time App: 
+#' [__How Much Warmer Was Your City in 2015?__][1] where you can choose among
+#' __over 3K cities__!. So let's start. So we need a interactive charting
+#' library and shiny.
+#' 
+#' [1]: http://www.nytimes.com/interactive/2016/02/19/us/2015-year-in-weather-temperature-precipitation.html
+#' 
+#' ## Data
+#' 
+#' If you search/explore in the devTools in the previous link you can
+#' know where is the path of the used data. So to be clear:
+#' 
+#' > All the data used in this post is from http://www.nytimes.com
+#' > -- <cite>Me.</cite>
+#' 
+#' 
 #+ echo=FALSE, message=FALSE, warning=FALSE
 #### setup ws packages ####
 rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
-#'
+
+#' We'll load the `tidyverse`, download the data, and create an auxiliar 
+#' variable `dt` to store the date time in numeric format.
+
 library(tidyverse)
 library(highcharter)
 library(lubridate)
 library(stringr)
 library(forcats)
 
-#' ## Data
-#' 
-#' If you search a little in the devTools in the 
-#' 
 url_base <- "http://graphics8.nytimes.com/newsgraphics/2016/01/01/weather/assets"
 file <- "new-york_ny.csv" # "san-francisco_ca.csv"
 url_file <- file.path(url_base, file)
 
 data <- read_csv(url_file)
-glimpse(data)
-
 data <- mutate(data, dt = datetime_to_timestamp(date))
 
-options(highcharter.theme = hc_theme_smpl())
-
+glimpse(data)
 
 #' ## Setup
 #' 
-#' Lorem lorem setup
+#' Due the data is ready we'll start to create the chart (a highchart object):
 #' 
 hc <- highchart() %>%
   hc_xAxis(type = "datetime", showLastLabel = FALSE,
            dateTimeLabelFormats = list(month = "%B")) %>% 
   hc_tooltip(shared = TRUE, useHTML = TRUE,
              headerFormat = as.character(tags$small("{point.x: %b %d}", tags$br()))) %>% 
-  hc_plotOptions(series = list(borderWidth = 0, pointWidth = 4))
+  hc_plotOptions(series = list(borderWidth = 0, pointWidth = 4)) %>% 
+  hc_add_theme(hc_theme_smpl())
 
 hc
 
-#' _No data to display_. All acording to the plan XD.
+#' > _No data to display_. All acording to the plan XD.
 #' 
 #' ## Temperature Data
 #' 
 #' We'll select the temperature columns from the data and do some wrangling,
-#' gather, spread, separate and recodes to get a nice tidy data frame.
+#' gather, spread, separate and recodes to get a nice __tidy data frame__.
 #' 
 dtempgather <- data %>% 
   select(dt, starts_with("temp")) %>% 
@@ -71,7 +104,7 @@ temps <- dtempspread %>%
   mutate(serie = factor(serie, levels = c("rec", "avg", "actual")),
          serie = fct_recode(serie, Record = "rec", Normal = "avg", Observed = "actual"))
 
-temps
+head(temps)
 
 #' Now whe can add this data to the _highchart_ object using `hc_add_series`:
 
@@ -84,7 +117,7 @@ hc
 
 #' A really similar chart of what we want!
 #' 
-#' The chart show records of temprerature. So 
+#' The original chart show records of temprerature. So 
 #' we need to filter the days with temperature records using the columns
 #' `temp_rec_high` and `temp_rec_low`, then some gathers and tweaks. Then
 #' set some options to show the points, like use fill color and some longer
@@ -99,8 +132,6 @@ records <- data %>%
   mutate(type = str_replace(type, "temp_rec_", ""),
          type = paste("This year record", type))
 
-records
-
 pointsyles <- list(
   symbol = "circle",
   lineWidth= 1,
@@ -109,6 +140,7 @@ pointsyles <- list(
   lineColor= NULL
 )
 
+head(records)
 
 hc <- hc %>% 
   hc_add_series(records, "point", hcaes(x = dt, y = value, group = type),
@@ -132,7 +164,7 @@ axis <- create_yaxis(
   startOnTick = FALSE)
 
 #' 
-#' Manually add titles (I know this can be more elegant) adn options.
+#' Manually add titles (I know this can be more elegant) and options.
 #' 
 axis[[1]]$title <- list(text = "Temperature")
 axis[[1]]$labels <- list(format = "{value}°F")
@@ -177,14 +209,19 @@ hc <- hc %>%
 #' 
 #' ## Volia
 #' 
-#' Curious how the chart looks? Me too! Crossing fingers...
+#' Curious how the chart looks? Me too! Nah, I saw the chart before this post.
 #' 
 hc
 
 
-#' So, with R you can create a press style chart with some wrangling and charting. 
+#' With R you can create a press style chart with some wrangling and charting. 
 #' Now with a little of love we can make the code resuable to make a shiny app.
 #' 
 #' <iframe src="https://jbkunst.shinyapps.io/shiny-nyt-temp/" width="100%" height="750px"
 #' style="border:none;"></iframe>
+#' 
+#' ## Homework
+#' 
+#' Someone put the grid lines for the 2 axis as the original NYT app please to
+#' these charts! I will grateful if someone code that details.
 #' 
