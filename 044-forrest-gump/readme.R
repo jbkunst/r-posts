@@ -8,17 +8,19 @@
 #' ---
 
 #+ echo=FALSE, message=FALSE, warning=FALSE
-#### setup ws packages ####
 rm(list = ls())
-knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.showtext = TRUE, dev = "CairoPNG")
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+library(jbkmisc)
 
 #' Packages and options
-library("dplyr")
-library("rvest")
-library("stringr")
-library("purrr")
-library("lubridate")
-library("highcharter")
+library(dplyr)
+library(rvest)
+library(stringr)
+library(purrr)
+library(tidyr)
+library(highcharter)
+
+
 
 options(highcharter.theme = hc_theme_smpl())
 
@@ -26,7 +28,46 @@ options(highcharter.theme = hc_theme_smpl())
 #' > I'm not a smart man but I (*think to*) know what data is.
 #' > <cite>-- Me</cite>
 #' 
-#' 
+
+script <- read_html("http://www.imsdb.com/scripts/Forrest-Gump.html") %>% 
+  html_nodes(".scrtext")
+
+script <- as.vector(as.character(script))
+script <- unlist(str_split(script, "\n"))
+
+
+
+data <- data_frame(
+  id_line = seq_along(script),
+  line = script) %>% 
+  mutate(
+    line_clean = str_replace_all(line, "<b>|</b>|EXT.|INT.", ""),
+    scene = ifelse(str_detect(line, "EXT.|INT."), line, NA),
+    scene_number = cumsum(str_detect(line, "EXT.|INT.")),
+    character = str_detect(line, "<b>"),
+    dialog = str_detect(line, "^\\s{25}|</b>\\s{25}"),
+    narrative = str_detect(line, "^\\s{15}") & !dialog
+  ) %>% 
+  dmap_if(is.logical, as.numeric) 
+
+  
+
+data <- data %>% 
+  mutate(scene)
+  mutate(character2 = NA,
+         character2 = ifelse(character, line_clean, character2),
+         character2 = ifelse(narrative, "NARRATIVE", character2)) %>% 
+  fill(character2)
+
+count(data, character2, sort = TRUE)
+           
+
+
+data %>% 
+  View()
+
+
+
 #' ## A _simple_ timeline
 #' 
 #' Let's start with e
@@ -82,18 +123,3 @@ options(highcharter.theme = hc_theme_smpl())
 # hctl
 
 #' 
-script <- read_html("http://www.imsdb.com/scripts/Forrest-Gump.html") %>% 
-  html_nodes(".scrtext")
-
-script <- as.vector(as.character(script))
-script <- unlist(str_split(script, "\n"))
-
-data <- data_frame(line = script) %>% 
-  mutate(
-    scene = str_detect(line, "EXT.|INT."),
-    scene = cumsum(scene),
-    character = str_detect(line, "<b>\\s{37}"),
-    dialog_srt = character,
-    dialog_end = str_detect(line, "^$")
-  )
-
