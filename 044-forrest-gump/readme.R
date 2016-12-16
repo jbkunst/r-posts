@@ -35,38 +35,39 @@ script <- read_html("http://www.imsdb.com/scripts/Forrest-Gump.html") %>%
 script <- as.vector(as.character(script))
 script <- unlist(str_split(script, "\n"))
 
-
+script[100:120]
 
 data <- data_frame(
   id_line = seq_along(script),
   line = script) %>% 
   mutate(
-    line_clean = str_replace_all(line, "<b>|</b>|EXT.|INT.", ""),
-    scene = ifelse(str_detect(line, "EXT.|INT."), line, NA),
-    scene_number = cumsum(str_detect(line, "EXT.|INT.")),
-    character = str_detect(line, "<b>"),
-    dialog = str_detect(line, "^\\s{25}|</b>\\s{25}"),
-    narrative = str_detect(line, "^\\s{15}") & !dialog
+    line_is_scen = str_detect(line, "EXT.|INT."),
+    line_is_char = str_detect(line, "<b>") & !line_is_scen,
+    line_is_dial = str_detect(line, "^\\s{25}|</b>\\s{25}"),
+    line_is_narr = str_detect(line, "^\\s{15}") & !line_is_dial &! line_is_scen
   ) %>% 
   dmap_if(is.logical, as.numeric) 
 
-  
+data %>% 
+  count(line_is_scen, line_is_char, line_is_dial, line_is_narr,
+        sum = line_is_scen + line_is_char + line_is_dial  + line_is_narr)
 
 data <- data %>% 
-  mutate(scene)
-  mutate(character2 = NA,
-         character2 = ifelse(character, line_clean, character2),
-         character2 = ifelse(narrative, "NARRATIVE", character2)) %>% 
-  fill(character2)
+  mutate(line_clean = str_replace_all(line, "<b>|</b>|EXT.|INT." , ""),
+         scene = ifelse(line_is_scen, line_clean, NA),
+         character = ifelse(line_is_char, line_clean, NA),
+         character = ifelse(line_is_narr, "NARRATIVE", character),
+         text = ifelse(line_is_dial | line_is_narr, line_clean, NA),
+         # full stop
+         character = ifelse(is.na(character) & is.na(text), "FS", character)) %>% 
+  fill(scene, character) %>% 
+  filter(!is.na(scene), character != "FS") 
 
-count(data, character2, sort = TRUE)
+data <- select(data, scene, character, text) 
+
+data
+
            
-
-
-data %>% 
-  View()
-
-
 
 #' ## A _simple_ timeline
 #' 
