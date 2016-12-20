@@ -9,8 +9,7 @@
 
 #+ echo=FALSE, message=FALSE, warning=FALSE
 rm(list = ls())
-knitr::opts_chunk$set(message = FALSE, warning = FALSE,
-                      fig.showtext = TRUE, dev = "CairoPNG")
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 
 #'
 rm(list = ls())
@@ -75,9 +74,9 @@ hcme <- highchart(type = "map") %>%
   hc_add_series(data = frsts, type = "map", color = "#228B22", name = "Forest") %>%
   hc_add_series(data = lakes, type = "map", color = "#7e88ee", name = "Lakes") %>%
   hc_add_series(data = cties, type = "mappoint", color = "black", name = "Cities",
-                dataLabels = list(enabled = TRUE), marker = list(radius = 4, lineColor = "black")) %>% 
+                dataLabels = list(enabled = TRUE), marker = list(radius = 4, lineColor = "black")) %>%
   hc_add_series(data = towns, type = "mappoint", color = "black", name = "Towns",
-                dataLabels = list(enabled = TRUE), marker = list(radius = 1, fillColor = "rgba(190,190,190,0.7)")) %>% 
+                dataLabels = list(enabled = TRUE), marker = list(radius = 1, fillColor = "rgba(190,190,190,0.7)")) %>%
   hc_plotOptions(
     series = list(
       marker = pointsyles,
@@ -90,3 +89,34 @@ hcme <- highchart(type = "map") %>%
 hcme
 
 # htmlwidgets::saveWidget(hcme, file = "me-map.html")
+
+library(purrr)
+library(jsonlite)
+library(readr)
+
+hcmemin <- hcme
+
+hcmemin$x$hc_opts$series <- map(hcmemin$x$hc_opts$series, function(x){
+  
+  y <<- x
+  # x <- y
+  nm <- x$name
+  nmid <- str_to_id(nm)
+  
+  print(nmid)
+  str(x$data, max.level = 1)
+  
+  data <- x$data
+  class(data) <- "list"
+  str(data, max.level = 1)
+  
+  json <- toJSON(data, pretty = TRUE, auto_unbox = TRUE)
+  json <- paste(nmid, " = ", json)
+  
+  write_lines(json, path = paste0(str_to_id(nm), ".js"))
+  
+  x$data <- JS(nmid)
+  x
+})
+
+export_hc(hcmemin, "middle-earth.js")

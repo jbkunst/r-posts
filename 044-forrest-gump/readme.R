@@ -46,7 +46,8 @@ data <- data_frame(
     line_is_dial = str_detect(line, "^\\s{25}|</b>\\s{25}"),
     line_is_narr = str_detect(line, "^\\s{15}") & !line_is_dial &! line_is_scen
   ) %>% 
-  dmap_if(is.logical, as.numeric) 
+  dmap_if(is.logical, as.numeric) %>% 
+  dmap_if(is.character, str_trim) 
 
 data %>% 
   count(line_is_scen, line_is_char, line_is_dial, line_is_narr,
@@ -61,13 +62,39 @@ data <- data %>%
          # full stop
          character = ifelse(is.na(character) & is.na(text), "FS", character)) %>% 
   fill(scene, character) %>% 
-  filter(!is.na(scene), character != "FS") 
+  filter(!is.na(scene)) 
 
 data <- select(data, scene, character, text) 
 
-data
 
-           
+x <- c("a", "a", "a", "b", "b", "c", "c", "a", "b", "b", "c")
+y <- c(TRUE, head(x, -1) != tail(x, -1))
+z <- cumsum(y)
+data_frame(x, y, z)
+
+data <- data %>% 
+  mutate(scene_id = !duplicated(scene),
+         scene_id = cumsum(scene_id),
+         change_char = c(TRUE, head(character, -1) != tail(character, -1)),
+         dialog_id = cumsum(change_char),
+         text = ifelse(is.na(text), "", text))
+
+data
+datdy <- data %>% 
+  group_by(scene_id, scene, dialog_id) %>% 
+  summarise(
+    character = first(character),
+    dialog = paste(text, collapse = "")
+  ) %>% 
+  ungroup() %>% 
+  filter(character != "FS") %>% 
+  mutate(dialog_id = seq(1, nrow(.)))
+
+datdy
+
+View(count(datdy, character, sort = TRUE))
+
+
 
 #' ## A _simple_ timeline
 #' 
