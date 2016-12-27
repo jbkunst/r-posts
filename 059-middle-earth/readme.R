@@ -65,6 +65,8 @@ pointsyles <- list(
   lineColor= NULL
 )
 
+options(highcharter.verbose = TRUE)
+
 hcme <- highchart(type = "map") %>% 
   hc_chart(style = list(fontFamily = "Macondo"), backgroundColor = "#F4C283") %>% 
   hc_title(text = "The Middle Earth", style = list(fontFamily = "Tangerine", fontSize = "40px")) %>% 
@@ -107,16 +109,27 @@ hcmemin$x$hc_opts$series <- map(hcmemin$x$hc_opts$series, function(x){
   str(x$data, max.level = 1)
   
   data <- x$data
+  
+  print(as.character(cties))
+  
+  if(class(x$data)[1] == "json") {
+    
+    data <- fromJSON(as.character(x$data), simplifyVector = FALSE)
+    
+  }
+  
   class(data) <- "list"
   str(data, max.level = 1)
   
   json <- toJSON(data, pretty = TRUE, auto_unbox = TRUE)
   json <- paste(nmid, " = ", json)
   
-  write_lines(json, path = paste0(str_to_id(nm), ".js"))
+  write_lines(json, path = paste0("~/", str_to_id(nm), ".js"))
   
   x$data <- JS(nmid)
+  x$geojson <- NULL
   x
+  
 })
 
-export_hc(hcmemin, "middle-earth.js")
+export_hc(hcmemin, "~/middle-earth.js")
