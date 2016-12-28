@@ -50,13 +50,6 @@ towns <- shp_points_to_geoj("Towns.shp")
 head(jsonlite::fromJSON(cties)$features$properties)
 head(lakes$features[[1]]$properties)
   
-thm <- hc_theme(
-  chart = list(
-    style = list(fontFamily = "Macondo"),
-    backgroundColor = "#F4C283"
-  )
-)
-
 pointsyles <- list(
   symbol = "circle",
   lineWidth= 1,
@@ -77,8 +70,8 @@ hcme <- highchart(type = "map") %>%
   hc_add_series(data = lakes, type = "map", color = "#7e88ee", name = "Lakes") %>%
   hc_add_series(data = cties, type = "mappoint", color = "black", name = "Cities",
                 dataLabels = list(enabled = TRUE), marker = list(radius = 4, lineColor = "black")) %>%
-  hc_add_series(data = towns, type = "mappoint", color = "black", name = "Towns",
-                dataLabels = list(enabled = TRUE), marker = list(radius = 1, fillColor = "rgba(190,190,190,0.7)")) %>%
+  # hc_add_series(data = towns, type = "mappoint", color = "black", name = "Towns",
+  #               dataLabels = list(enabled = TRUE), marker = list(radius = 1, fillColor = "rgba(190,190,190,0.7)")) %>%
   hc_plotOptions(
     series = list(
       marker = pointsyles,
@@ -90,7 +83,7 @@ hcme <- highchart(type = "map") %>%
 
 hcme
 
-# htmlwidgets::saveWidget(hcme, file = "me-map.html")
+# htmlwidgets::saveWidget(hcme, file = "~/hcme.html", selfcontained = FALSE)
 
 library(purrr)
 library(jsonlite)
