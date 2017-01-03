@@ -1,4 +1,4 @@
-# packages ----------------------------------------------------------------
++# packages ----------------------------------------------------------------
 rm(list = ls())
 library(dplyr)
 library(tidyr)
@@ -8,6 +8,7 @@ library(highcharter)
 library(lubridate)
 library(ggmap)
 library(purrr)
+library(viridisLite)
 options(highcharter.debug = TRUE)
 
 
@@ -81,14 +82,22 @@ dateseq <- seq(min(dfym$ym), max(dfym$ym), by = "month")
 
 sequences <- map2(dfym$ym, dfym$z, function(x, y){ ifelse(x > dateseq, 0, y)})
 
-dfym <- mutate(dfym, sequence = sequences)
-dfym$color <- NULL
+
+
+cols <- inferno(10, begin = 0.2)
+scales::show_col(cols)  
+
+
+dfym <- mutate(dfym, sequence = sequences, color = colorize(revenue, cols))
+
+dateslabels <- format(dateseq, "%Y/%m")
 
 world %>% 
-  hc_add_series(data = dfym, type = "mapbubble", name = "Concerts",
-                color = "white", minSize = 0, maxSize = 15, animation = FALSE,
+  hc_add_series(data = dfym, type = "mapbubble", name = "Concerts", 
+                minSize = 0, maxSize = 15, animation = FALSE,
                 tooltip = list(valueDecimals = 0, valuePrefix = "$", valueSuffix = " USD")) %>% 
-  hc_motion(enabled = TRUE, series = 1, labels = dateseq,
-            updateInterval = 50, magnet = list(step =  0.1))
+  hc_motion(enabled = TRUE, series = 1, labels = dateslabels,
+            loop = TRUE, autoPlay = TRUE, 
+            updateInterval = 1000, magnet = list(step =  1))
 
 
