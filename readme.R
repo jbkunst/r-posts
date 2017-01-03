@@ -9,7 +9,7 @@
 
 #+ echo=FALSE, message=FALSE, warning=FALSE
 rm(list = ls())
-knitr::opts_chunk$set(message = FALSE, warning = FALSE,
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.cap = "",
                       fig.showtext = TRUE, dev = "CairoPNG")
 
 #'

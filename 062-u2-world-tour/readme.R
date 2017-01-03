@@ -88,5 +88,7 @@ world %>%
   hc_add_series(data = dfym, type = "mapbubble", name = "Concerts",
                 color = "white", minSize = 0, maxSize = 15, animation = FALSE,
                 tooltip = list(valueDecimals = 0, valuePrefix = "$", valueSuffix = " USD")) %>% 
-  hc_motion(enabled = TRUE, series = 1, labels = dateseq,  updateInterval = 0.01,
-            magnet = list(round = 'round', step = 0.001))
+  hc_motion(enabled = TRUE, series = 1, labels = dateseq,
+            updateInterval = 50, magnet = list(step =  0.1))
+
+
