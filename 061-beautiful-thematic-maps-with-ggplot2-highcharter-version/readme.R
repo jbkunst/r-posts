@@ -11,7 +11,7 @@
 rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE,  fig.cap = "", dev = "CairoPNG")
 
-#' Last week all the _rstatsosphere_ see the beatiful 
+#' Last week all the _rstatsosphere_ see the beautiful 
 #' [Timo Grossenbacher](timogrossenbacher.ch) work.
 #' 
 #' The last month, yep, the past year I've working on create map
