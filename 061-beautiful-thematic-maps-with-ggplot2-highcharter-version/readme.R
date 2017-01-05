@@ -44,7 +44,7 @@ library(purrr)
 #' 
 #+ echo=FALSE
 # data --------------------------------------------------------------------
-folder <- "~/../Downloads/thematic-maps-ggplot2-master/thematic-maps-ggplot2-master/"
+folder <- "~/../Downloads/thematic-maps-ggplot2-master/"
 
 map <- readShapeSpatial(file.path(folder, "input/geodata/gde-1-1-15.shp"))
 map <- ms_simplify(map, keep = 1) # because ms_simplify fix the ü's
