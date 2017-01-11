@@ -7,18 +7,21 @@
 #'    keep_md: yes
 #' ---
 
-#' 
-#' So much time since my last post so I want to post something, no matter 
-#' what it is, but I hope this will be somehow helpfull
-#' 
-#' In this post I will show some new features for the next version of
-#' `highcharter` package. The main feature added is `hc_add_series` now is 
-#' a __generic__ function! This mean you can add the `data` argument
-#' can be numeric, data frame, time series (ts, xts, ohlc) amonth others
-#' so the syntaxis will be a little cleaner.
+#' So much time since my last post, so I decided  to post something, no matter
+#' what it is, but I hope this will be somehow helpful.
+#'  
+#' In this post, I will show some new features for the next version of 
+#' Highcharter package. The main feature added is `hc_add_series`, now it is a
+#' _generic_ function! This mean you can add the data argument as numeric,
+#' data frame, time series (ts, xts, ohlc) among others, this way the syntax
+#' is much cleaner.
 #' 
 #' What we'll do here? We'll make an interactive version of the 
 #' _well-well-know-and-a-little-repeated_ Tufte weather chart.
+#' 
+#' The goal is to set up a chart similar to the New York Time App: _How Much
+#' Warmer Was Your City in 2015?_ Where you can choose among 
+#' over _3K cities_!. Let's start. 
 #' 
 #' ![](http://www.edwardtufte.com/bboard/images/00014g-837.gif "Weather Chart")
 #' 
@@ -27,16 +30,11 @@
 #' - https://rpubs.com/tyshynsk/133318
 #' - https://rpubs.com/bradleyboehmke/weather_graphic
 #' 
-#' But our focus will be replicate the New York Time App: 
-#' [__How Much Warmer Was Your City in 2015?__][1] where you can choose among
-#' __over 3K cities__!. So let's start. So we need a interactive charting
-#' library and shiny.
-#' 
-#' [1]: http://www.nytimes.com/interactive/2016/02/19/us/2015-year-in-weather-temperature-precipitation.html
-#' 
 #' ## Data
 #' 
-#' If you search/explore in the devTools in the previous link you can
+#' First, last start with locating the data; A quick search...
+#' 
+#' If you search/explore in the devTools in the previous link, you can
 #' know where is the path of the used data. So to be clear:
 #' 
 #' > All the data used in this post is from http://www.nytimes.com
@@ -81,6 +79,9 @@ hc <- highchart() %>%
 
 hc
 
+#+ echo=FALSE
+export_hc(hc, "nyt01.js")
+
 #' > _No data to display_. All acording to the plan XD.
 #' 
 #' ## Temperature Data
@@ -115,6 +116,9 @@ hc <- hc %>%
 
 hc
 
+#+ echo=FALSE
+export_hc(hc, "nyt02.js")
+
 #' A really similar chart of what we want!
 #' 
 #' The original chart show records of temprerature. So 
@@ -137,7 +141,7 @@ pointsyles <- list(
   lineWidth= 1,
   radius= 4,
   fillColor= "#FFFFFF",
-  lineColor= NULL
+  lineColor = NULL
 )
 
 head(records)
@@ -147,6 +151,9 @@ hc <- hc %>%
                 marker = pointsyles)
 
 hc
+
+#+ echo=FALSE
+export_hc(hc, "nyt03.js")
 
 #' We're good.
 #' 
@@ -176,12 +183,15 @@ hc <- hc_yAxis_multiples(hc, axis)
 
 hc
 
-#' The 2 axis are ready, now we need add the data. We will add 12 series 
-#' -one for each month- but we want to asociate 1 legend for all these 12 
-#' series, so we need to use `id` and `linkedTo` parameters and obviously. 
-#' That's why the `id` will be a `'p'` for the firt element and then `r NA`
-#' to the other 11. And then linked this 11 to the first series (`id = 'p'`).
+#+ echo=FALSE
+export_hc(hc, "nyt04.js")
 
+#' The two axes are ready, now we need to add the data. We will add 12 series
+#' -one for each month- but we want to associate one legend for all these 
+#' 12 series, so we need to use `id` and `linkedTo` parameters and obviously. 
+#' That's why the id will be a `"p"` for the first element and then `NA` to
+#' the other 11 elements and then linked those 11 elements to the first series
+#' (`id = 'p'`).
 precip <- select(data, dt, precip_value, month)
 
 hc <- hc %>%
@@ -213,8 +223,10 @@ hc <- hc %>%
 #' 
 hc
 
+#+ echo=FALSE
+export_hc(hc, "nyt05.js")
 
-#' With R you can create a press style chart with some wrangling and charting. 
+#' With R you can create press style chart with some wrangling and charting. 
 #' Now with a little of love we can make the code resuable to make a shiny app.
 #' 
 #' <iframe src="https://jbkunst.shinyapps.io/shiny-nyt-temp/" width="100%" height="750px"
@@ -222,6 +234,8 @@ hc
 #' 
 #' ## Homework
 #' 
-#' Someone put the grid lines for the 2 axis as the original NYT app please to
-#' these charts! I will grateful if someone code that details.
+#' I will be grateful if someone will set grid lines for two axes as 
+#' the original app, feel free to share the code.
+#' 
+#' See you :B!
 #' 
