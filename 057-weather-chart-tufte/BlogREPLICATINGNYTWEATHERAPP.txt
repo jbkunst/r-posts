@@ -1,0 +1,89 @@
+﻿source : http://jkunst.com/r/replicating-nyt-weather-app/
+
+
+
+
+So much time since my last post, so I decided  to post something, no matter what it is, but I hope this will be somehow helpful.
+In this post, I will show some new features for the next version of Highcharter package. The main feature added is hc_add_series, now it is a generic function! This mean you can add the data argument as numeric, data frame, time series (ts, xts, ohlc) among others, this way the syntaxe is much cleaner.
+What we’ll do here? We’ll make an interactive version of the well-well-know-and-a-little-repeated Tufte weather chart.
+
+
+  
+
+There are good ggplot versions if you can start https://rpubs.com/tyshynsk/133318 andhttps://rpubs.com/bradleyboehmke/weather_graphic.
+But our focus will be replicate the New York Time App: How Much Warmer Was Your City in 2015? Where you can choose among over 3K cities!. So let’s start. So we need an interactive charting library and shiny.
+DATA
+If you search/explore in the devTools in the previous link, you can know where is the path of the used data. So to be clear:
+All the data used in this post is from http://www.nytimes.com – Me.
+We’ll load the tidy verse, download the data, and create an auxiliar variable dt to store the date time in numeric format.
+  
+
+SETUP
+Due the data is ready we’ll start to create the chart (a Highchart object):
+  
+
+
+
+http://jkunst.com/htmlwidgets/replicating-nyt-weather-app/highchart_soxnjab.html
+  
+
+
+
+No data to display. All according to the plan XD.
+TEMPERATURE DATA
+We’ll select the temperature columns from the data and do some wrangling, gather, spread, separate and recodes to get a nice tidy data frame.
+  
+
+  
+
+Now, we can add this data to the highchart object using hc_add_series:
+  
+
+http://jkunst.com/htmlwidgets/replicating-nyt-weather-app/highchart_qshofia.html
+  
+
+A really similar chart of what we want!
+The original chart shows records of temperature. So we need to filter the days with temperature records using the columnstemp_rec_high and temp_rec_low, then some gathers and tweaks. Then set some options to show the points, like use fill color and some longer radius.
+  
+
+http://jkunst.com/htmlwidgets/replicating-nyt-weather-app/highchart_jozckma.html
+  
+
+We’re good.
+PRECIPITATION DATA
+A nice feature of the NYTs app is and the chart is show the precipitation by month. This data is in another axis. So we need to create a list with two axes using the create_yaxis helper and then  to add those axes to the chart.
+
+
+  
+
+Manually add titles (I know this can be more elegant) and options.
+  
+
+
+
+http://jkunst.com/htmlwidgets/replicating-nyt-weather-app/highchart_nyugcaq.html
+  
+
+The two axes are ready, now we need to add the data. We will add 12 series -one for each month- but we want to associate one legend for all these 12 series, so we need to use id and linkedTo parameters and obviously. That’s why the id will be a 'p' for the first element and then NA to the other 11 elements and then linked those 11 elements to the first series (id = 'p').
+  
+
+The same way we’ll add the normal precipitations by month.
+  
+
+VOLIA
+Curious how the chart looks? Me too! Nah, I saw the chart before this post.
+  
+
+http://jkunst.com/htmlwidgets/replicating-nyt-weather-app/highchart_huqtary.html
+  
+
+With R you can create a press style chart with some wrangling and charting. Now with a little of love we can make the code reusable to make a shiny app.
+  
+
+HOMEWORK
+
+
+I will be grateful if someone will set grid lines for two axes as the original app, feel free to share the code.
+See you :B!
+ giphy gif 
+source

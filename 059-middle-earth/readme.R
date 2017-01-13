@@ -22,7 +22,7 @@ options(highcharter.debug = TRUE)
 
 fldr <- "~/ME-GIS-master"
 
-shp_to_geoj_smpl <- function(file = "Coastline2.shp", k = 0.5) {
+shp_to_geoj_smpl <- function(file = "Coastline2.shp", k = 0.05) {
   d <- readShapeSpatial(file.path(fldr, file))
   d <- ms_simplify(d, keep = k)
   d <- geojson_list(d)
@@ -36,11 +36,11 @@ shp_points_to_geoj <- function(file) {
 }
 
   
-cstln <- shp_to_geoj_smpl("Coastline2.shp", .65)
+cstln <- shp_to_geoj_smpl("Coastline2.shp", 1)
 rvers <- shp_to_geoj_smpl("Rivers19.shp", .01)
-frsts <- shp_to_geoj_smpl("Forests.shp", 0.90)
-lakes <- shp_to_geoj_smpl("Lakes2.shp", 0.1)
-roads <- shp_to_geoj_smpl("PrimaryRoads.shp", 1)
+frsts <- shp_to_geoj_smpl("Forests.shp", 0.05)
+lakes <- shp_to_geoj_smpl("Lakes2.shp", 0.05)
+roads <- shp_to_geoj_smpl("PrimaryRoads.shp", 0.1)
 
 
 cties <- shp_points_to_geoj("Cities.shp")
@@ -124,5 +124,6 @@ hcmemin$x$hc_opts$series <- map(hcmemin$x$hc_opts$series, function(x){
   x
   
 })
+
 
 export_hc(hcmemin, "~/middle-earth.js")
