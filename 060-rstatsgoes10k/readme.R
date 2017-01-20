@@ -88,9 +88,9 @@ tail(z)
 #'  time to make the predictions in my previous tests. So, in the spirit to 
 #'  be parsimonious and simple we will remove this model from the fit.
 
-# hm <- hybridModel(z, models = "aefns", weights = "cv.errors", errorMethod = "MASE")
+hm <- hybridModel(z, models = "aefns", weights = "cv.errors", errorMethod = "MASE")
 # saveRDS(hm, "hm.rds")
-hm <- readRDS("hm.rds")
+# hm <- readRDS("hm.rds")
 hm
 
 #' Make the forecast is really simple. After the calculate them we will
