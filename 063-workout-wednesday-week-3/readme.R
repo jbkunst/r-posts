@@ -18,21 +18,26 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.cap = "",
 #'    keep_md: true
 #' ---
 #+ message=FALSE
-library(ggplot2)
-library(hrbrmisc)
+# library(ggplot2)
+# library(hrbrmisc)
 library(readxl)
 library(tidyverse)
+library(highcharter)
+
+options(highcharter.theme = hc_theme_smpl())
 
 # Use official BLS annual unemployment data vs manually calculating the average
 # Source: https://data.bls.gov/timeseries/LNU04000000?years_option=all_years&periods_option=specific_periods&periods=Annual+Data
-read_excel("SeriesReport-20170119223055_e79754.xlsx", skip=10) %>%
-  mutate(Year=as.character(as.integer(Year)), Annual=Annual/100) -> annual_rate
+annual_rate <- read_excel("SeriesReport-20170119223055_e79754.xlsx", skip=10) %>%
+  mutate(Year = as.character(as.integer(Year)),
+         Annual=Annual/100)
 
+annual_rate
 
 # The data source Andy Kriebel curated for you/us: https://1drv.ms/x/s!AhZVJtXF2-tD1UVEK7gYn2vN5Hxn #ty Andy!
-read_excel("staadata.xlsx") %>%
+df <- read_excel("staadata.xlsx") %>%
   left_join(annual_rate) %>%
-  filter(State != "District of Columbia") %>%
+  # filter(State != "District of Columbia") %>%
   mutate(
     year = as.Date(sprintf("%s-01-01", Year)),
     pct = (Unemployed / `Civilian Labor Force Population`),
@@ -40,27 +45,117 @@ read_excel("staadata.xlsx") %>%
     col = ifelse(us_diff<0,
                  "Better than U.S. National Average",
                  "Worse than U.S. National Average")
-  ) -> df
+    )
 
-credits <- "Notes: Excludes the District of Columbia. 2016 figure represents October rate.\nData: U.S. Bureau of Labor Statistics <https://www.bls.gov/lau/staadata.txt>\nCredit: Matt Stiles/The Daily Viz <thedailyviz.com>"
+df
 
-# + state_of_us, fig.height=21.5, fig.width=8.75, fig.retina=2
-# ggplot(df, aes(year, us_diff, group=State)) +
-#   geom_segment(aes(xend=year, yend=0, color=col), size=0.5) +
-#   scale_x_date(expand=c(0,0), date_labels="'%y") +
-#   scale_y_continuous(expand=c(0,0), label=scales::percent, limit=c(-0.09, 0.09)) +
-#   scale_color_manual(name=NULL, expand=c(0,0),
-#                      values=c(`Better than U.S. National Average`="#4575b4",
-#                               `Worse than U.S. National Average`="#d73027")) +
-#   facet_wrap(~State, ncol=5, scales="free_x") +
-#   labs(x=NULL, y=NULL, title="The State of U.S. Jobs: 1976-2016",
-#        subtitle="Percentage points below or above the national unemployment rate, by state. Negative values represent unemployment rates\nthat were lower - or better, from a jobs perspective - than the national rate.",
-#        caption=credits) +
-#   # theme_hrbrmstr_msc(grid="Y", strip_text_size=9) +
-#   theme(panel.background=element_rect(color="#00000000", fill="#f0f0f055")) +
-#   theme(panel.spacing=unit(0.5, "lines")) +
-#   theme(plot.subtitle=element_text(family="MuseoSansCond-300")) +
-#   theme(legend.position="top")
+
+
+# wrangling ---------------------------------------------------------------
+library(tidyr)
+
+df2 <- df %>% 
+  arrange(State, Year) %>% 
+  select(state = State, year = Year, us_diff) %>% 
+  spread(year, us_diff)
+
+df3 <- select(df2, -state)
+df3
+
+
+
+# autoencoder -------------------------------------------------------------
+library(h2o)
+
+localH2O <- h2o.init(nthreads = -2)
+
+dfh2o <- as.h2o(df3)
+
+mod.autoenc <- h2o.deeplearning(
+  x = names(dfh2o),
+  training_frame = dfh2o,
+  hidden = c(1000, 400, 200, 2, 200, 400, 1000),
+  epochs = 600,
+  activation = "Tanh",
+  autoencoder = TRUE
+)
+
+df_auto_enc <- h2o.deepfeatures(mod.autoenc, dfh2o, layer = 4) %>% 
+  as.data.frame() %>% 
+  tbl_df() %>% 
+  setNames(c("x", "y")) %>% 
+  mutate(name = df2$state)
+
+df_auto_enc
+
+
+hchart(df_auto_enc, "bubble", hcaes(x, y, name = name),
+       maxSize = 15, dataLabels = list(enabled = TRUE, format = "{point.name}")) %>% 
+  hc_add_theme(hc_theme_null(chart = list(style = list(fontFamily = "Alegreya Sans"))))
+
+
+
+# hclust ------------------------------------------------------------------
+
+# Compute pairewise distance matrices
+dist.res <- dist(iris.scaled, method = "euclidean")
+# Hierarchical clustering results
+hc <- hclust(dist.res, method = "complete")
+# Visualization of hclust
+plot(hc, labels = FALSE, hang = -1)
+# Add rectangle around 3 groups
+rect.hclust(hc, k = 3, border = 2:4) 
+
+hclst <- df_auto_enc %>%
+  select(x, y) %>% 
+  dist() %>% 
+  hclust()
+
+
+plot(hclst, labels = FALSE, hang = -1)
+rect.hclust(hclst, k = 3, border = 2:4) 
+
+cutree(hclst, k = 3)
+
+
+# k-means -----------------------------------------------------------------
+df_auto_enc_h2o <-  df_auto_enc %>% 
+  select(-name) %>% 
+  as.h2o()
+
+df_kmod <- map_df(1:10, function(k){
+  mod.km <- h2o.kmeans(training_frame = df_auto_enc_h2o, k = k, x = names(df_auto_enc_h2o))  
+  mod.km@model$model_summary
+})
+
+df_kmod <- df_kmod %>%
+  tbl_df() %>% 
+  mutate(wc_ss = within_cluster_sum_of_squares/total_sum_of_squares,
+         bt_ss = between_cluster_sum_of_squares/total_sum_of_squares)
+
+df_kmod
+
+hchart(df_kmod, "line", hcaes(number_of_clusters, wc_ss))
+
+source("https://raw.githubusercontent.com/echen/gap-statistic/master/gap-statistic.R")
+gap <- gap_statistic(select(df_auto_enc, -name))
+
+
+K <- 3
+mod.km <-  h2o.kmeans(training_frame = df_auto_enc_h2o, k = K, x = names(df_auto_enc_h2o))  
+mod.km.preds <- h2o.predict(object = mod.km, newdata = df_auto_enc_h2o)
+mod.km.preds <- as.character(as.vector(mod.km.preds) + 1)
+mod.km.preds <- factor(mod.km.preds, seq(1, length(unique(mod.km.preds))))
+
+
+df_auto_enc$cluster <- mod.km.preds
+
+
+
+
+
+
+
 
 
 library(highcharter)
@@ -74,5 +169,6 @@ color <- df %>%
 df %>% 
   mutate(date = paste0(Year, "-01-01"),
          date = as.Date(date, format = "%Y-%m-%d")) %>% 
-  hchart("line", hcaes(date, us_diff, group = State), color = color) %>% 
+  hchart("line", hcaes(date, us_diff, group = State), color = color,
+         showInLegend = FALSE) %>% 
   hc_tooltip(sort = TRUE, table = TRUE)
