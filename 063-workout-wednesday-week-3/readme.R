@@ -23,8 +23,13 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE, fig.cap = "",
 library(readxl)
 library(tidyverse)
 library(highcharter)
-
 options(highcharter.theme = hc_theme_smpl())
+hc_theme_null2 <- hc_theme_null(
+  chart = list(style = list(fontFamily = "Alegreya Sans")),
+  plotOptions = list(
+    series = list(dataLabels = list(enabled = TRUE, format = "{point.name}")list(fillOpacity)
+    )
+  )
 
 # Use official BLS annual unemployment data vs manually calculating the average
 # Source: https://data.bls.gov/timeseries/LNU04000000?years_option=all_years&periods_option=specific_periods&periods=Annual+Data
@@ -51,7 +56,8 @@ df
 
 
 
-# wrangling ---------------------------------------------------------------
+# autoencoder -------------------------------------------------------------
+library(h2o)
 library(tidyr)
 
 df2 <- df %>% 
@@ -62,113 +68,139 @@ df2 <- df %>%
 df3 <- select(df2, -state)
 df3
 
-
-
-# autoencoder -------------------------------------------------------------
-library(h2o)
-
-localH2O <- h2o.init(nthreads = -2)
+localH2O <- h2o.init(nthreads = -1)
 
 dfh2o <- as.h2o(df3)
 
 mod.autoenc <- h2o.deeplearning(
   x = names(dfh2o),
   training_frame = dfh2o,
-  hidden = c(1000, 400, 200, 2, 200, 400, 1000),
-  epochs = 600,
+  hidden = c(1000, 500, 2, 500, 1000),
+  epochs = 1000,
   activation = "Tanh",
   autoencoder = TRUE
 )
 
-df_auto_enc <- h2o.deepfeatures(mod.autoenc, dfh2o, layer = 4) %>% 
+df_autoenc <- h2o.deepfeatures(mod.autoenc, dfh2o, layer = 3) %>% 
   as.data.frame() %>% 
   tbl_df() %>% 
-  setNames(c("x", "y")) %>% 
-  mutate(name = df2$state)
+  setNames(c("x", "y"))
 
-df_auto_enc
+df_autoenc <- df_autoenc %>% 
+  mutate(name = df2$state) %>% 
+  select(name, everything())
 
-
-hchart(df_auto_enc, "bubble", hcaes(x, y, name = name),
-       maxSize = 15, dataLabels = list(enabled = TRUE, format = "{point.name}")) %>% 
-  hc_add_theme(hc_theme_null(chart = list(style = list(fontFamily = "Alegreya Sans"))))
-
+hchart(df_autoenc, "scatter", hcaes(x, y, name = name)) %>% 
+  hc_add_theme(hc_theme_null2)
 
 
-# hclust ------------------------------------------------------------------
 
-# Compute pairewise distance matrices
-dist.res <- dist(iris.scaled, method = "euclidean")
-# Hierarchical clustering results
-hc <- hclust(dist.res, method = "complete")
-# Visualization of hclust
-plot(hc, labels = FALSE, hang = -1)
-# Add rectangle around 3 groups
-rect.hclust(hc, k = 3, border = 2:4) 
-
-hclst <- df_auto_enc %>%
+# clustering --------------------------------------------------------------
+# hclust
+hclst <- df_autoenc %>%
   select(x, y) %>% 
   dist() %>% 
   hclust()
 
+plot(hclst)
 
-plot(hclst, labels = FALSE, hang = -1)
-rect.hclust(hclst, k = 3, border = 2:4) 
+K <- 4
+rect.hclust(hclst, k = K, border = 2:4) 
 
-cutree(hclst, k = 3)
+df_autoenc <- mutate(df_autoenc, cluster_hc = cutree(hclst, k = K))
 
-
-# k-means -----------------------------------------------------------------
-df_auto_enc_h2o <-  df_auto_enc %>% 
-  select(-name) %>% 
-  as.h2o()
-
-df_kmod <- map_df(1:10, function(k){
-  mod.km <- h2o.kmeans(training_frame = df_auto_enc_h2o, k = k, x = names(df_auto_enc_h2o))  
-  mod.km@model$model_summary
+# k-means
+df_kmods <- map_df(1:10, function(k){ # k <- 4
+  
+  set.seed(123)
+  mod_km <- kmeans(select(df_autoenc, x, y), centers = k)
+  
+  data_frame(k = k, wc_ss =  mod_km$tot.withinss / mod_km$totss)
+  
 })
 
-df_kmod <- df_kmod %>%
-  tbl_df() %>% 
-  mutate(wc_ss = within_cluster_sum_of_squares/total_sum_of_squares,
-         bt_ss = between_cluster_sum_of_squares/total_sum_of_squares)
-
-df_kmod
-
-hchart(df_kmod, "line", hcaes(number_of_clusters, wc_ss))
-
-source("https://raw.githubusercontent.com/echen/gap-statistic/master/gap-statistic.R")
-gap <- gap_statistic(select(df_auto_enc, -name))
-
+hchart(df_kmods, "line", hcaes(k, wc_ss))
 
 K <- 3
-mod.km <-  h2o.kmeans(training_frame = df_auto_enc_h2o, k = K, x = names(df_auto_enc_h2o))  
-mod.km.preds <- h2o.predict(object = mod.km, newdata = df_auto_enc_h2o)
-mod.km.preds <- as.character(as.vector(mod.km.preds) + 1)
-mod.km.preds <- factor(mod.km.preds, seq(1, length(unique(mod.km.preds))))
+mod_km <- kmeans(select(df_autoenc, x, y), centers = K)
+
+df_autoenc <- mutate(df_autoenc, cluster_km = mod_km$cluster)
 
 
-df_auto_enc$cluster <- mod.km.preds
+# paste
+df_autoenc <- df_autoenc %>% 
+  unite(group, starts_with("cluster"), remove = FALSE) %>% 
+  mutate(group = as.character(as.factor(group)))
+
+df_autoenc
+
+hchart(df_autoenc, "point", hcaes(x, y, name = name, group = group)) %>% 
+  hc_add_theme(hc_theme_null2)
 
 
+# back to original data ---------------------------------------------------
+dff <- left_join(df, df_autoenc %>% select(name, group),
+                by = c("State" = "name"))
+
+dff_summ <- dff %>% 
+  group_by(group) %>% 
+  summarise(us_diff_mean = mean(us_diff)) %>% 
+  ungroup() %>% 
+  arrange(desc(us_diff_mean)) %>% 
+  mutate(color = colorize(seq_len(nrow(.)), c("blue", "gray", "red")))
+
+count(df_autoenc, group)
+
+dff <- dff %>% 
+  mutate(
+    group = factor(group,
+                   levels = dff_summ$group,
+                   labels = seq_len(nrow(dff_summ))
+                   )
+    )
 
 
+library(viridis)
+# library(directlabels)
 
+ggplot(dff, aes(as.numeric(Year), us_diff)) + 
+  geom_line(aes(group = State), alpha = 0.1) +
+  # geom_dl(aes(label = State), method="last.points") + 
+  geom_smooth(aes(group = group, color = group), method = "loess") + 
+  geom_hline(aes(yintercept = 0)) +
+  scale_color_viridis(discrete = TRUE) + 
+  facet_wrap(~group, nrow = 1) + 
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  guides(color = guide_legend(nrow = 1, byrow = TRUE)) + 
+  labs(
+    title = "Clustering Unemployed Series",
+    x = "Year",
+    y = "Diff with US Total"
+  )
 
+uniseries <- dff %>% 
+  group_by(name = State) %>% 
+  do(un = list(.$us_diff))
 
+series <- df_autoenc %>% 
+  left_join(uniseries) %>% 
+  group_by(group) %>% 
+  do(data = list_parse(select(., name, x, y, un))) %>% 
+  ungroup() %>% 
+  left_join(dff_summ) %>% 
+  arrange(desc(us_diff_mean)) %>% 
+  mutate(name = paste("s", seq_len(nrow(.))))
 
+series
 
-library(highcharter)
+highchart() %>% 
+  hc_chart(type = "bubble") %>% 
+  hc_plotOptions(scatter = list(marker = list(symbol = "circle")),
+                 bubble = list(fillOpacity = 0.1)) %>% 
+  hc_add_series_list(series) %>% 
+  hc_add_theme(hc_theme_null2)
+      
+    
+  
 
-color <- df %>% 
-  group_by(State) %>% 
-  summarise(us_diff = median(us_diff)) %>% 
-  mutate(color = colorize(us_diff)) %>% 
-  .$color
-
-df %>% 
-  mutate(date = paste0(Year, "-01-01"),
-         date = as.Date(date, format = "%Y-%m-%d")) %>% 
-  hchart("line", hcaes(date, us_diff, group = State), color = color,
-         showInLegend = FALSE) %>% 
-  hc_tooltip(sort = TRUE, table = TRUE)
