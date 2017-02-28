@@ -74,7 +74,7 @@ hchart(data, "area", hcaes(year, nations),
 # numer two ---------------------------------------------------------------
 library(stringr)
 library(jsonlite)
-
+# https://ourworldindata.org/oil-spills/#data-sources
 json <- read_lines("https://ourworldindata.org/wp-content/uploads/nvd3/nvd3_multiBarChart_Oil/multiBarChart_Oil.html")
 json <- json[seq(
   which(str_detect(json, "var xxx")),
@@ -90,6 +90,7 @@ data <- map_df(json, function(x) {
   df <- as.data.frame(x[["values"]])
   df$key <- x[["key"]]
   tbl_df(df)
+  df
 })
 
 data
@@ -97,17 +98,26 @@ data
 urlimg <- "http://ocean.nationalgeographic.com/u/TvyamNb-BivtNwpvn7Sct0VFDulyAfA9wBcU0gVHVnqC5ghqXjggeitqtJ-1ZIZ1rmCgor42TXOteIQU/"
 # urlimg <- "http://6iee.com/data/uploads/11/693547.jpg"
 # urlimg <- "http://68.media.tumblr.com/21b140a3cdd69eeae22aee32642ca656/tumblr_o2o8h8nsmd1u8z9hho1_1280.jpg"
+urlimg <- "http://www.drodd.com/images14/ocean-wallpaper30.jpg"
 
 hchart(data, "areaspline", hcaes(x, y, group = "key"),
-       color = c("#000000", "#333333")) %>% 
+       color = c("#000000", "#222222"),
+       marker = list(enabled = FALSE)) %>% 
   hc_plotOptions(series = list(stacking = "normal")) %>% 
+  hc_tooltip(sort = TRUE, table = TRUE) %>% 
   hc_xAxis(type = "datetime", opposite = TRUE) %>% 
   hc_yAxis(reversed = TRUE) %>% 
   hc_add_theme(
     hc_theme(
       chart = list(
         divBackgroundImage = urlimg,
-        backgroundColor = hex_to_rgba("white", 0.10)
+        backgroundColor = hex_to_rgba("white", 0.50)
+        ),
+      yAxis = list(
+        gridLineWidth = 0
+      ),
+      xAxis = list(
+        opposite = TRUE
         )
       ) 
   )
