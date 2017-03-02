@@ -20,6 +20,7 @@ library(rvest)
 library(janitor)
 library(stringr)
 library(jsonlite)
+library(countrycode)
 
 options(highcharter.debug = TRUE)
 
@@ -43,31 +44,76 @@ dgames <- read_csv(tf)
 dgames <- mutate(dgames,
                  nations = str_extract(nations, "\\d+"),
                  nations = as.numeric(nations))
+
+count(dgames, country)
 dgames
 
-urlimg <- "http://jkunst.com/images/add-style/winter_olimpics.jpg"
+glimpse(dgames)
 
-hcgames <- hchart(dgames, "area", hcaes(year, nations), name = "Nations")
+hcgames <- hchart(dgames, "areaspline", hcaes(year, nations, name = host), name = "Nations")
 hcgames
 
-hcgames2 <- hcgames %>% 
+
+urlico <- "url(https://raw.githubusercontent.com/tugmaks/flags/2d15d1870266cf5baefb912378ecfba418826a79/flags/flags-iso/flat/24/%s.png)"
+urlimg <- "http://jkunst.com/images/add-style/winter_olimpics.jpg"
+
+dgames <- dgames %>% 
+  mutate(country = str_extract(host, ", .*$"),
+         country = str_replace(country, ", ", ""),
+         country = str_trim(country)) %>% 
+  mutate(countrycode = countrycode(country, origin = "country.name", destination = "iso2c")) %>% 
+  mutate(marker = sprintf(urlico, countrycode),
+         marker = map(marker, function(x) list(symbol = x)),
+         flagicon = sprintf(urlico, countrycode),
+         flagicon = str_replace_all(flagicon, "url\\(|\\)", ""))
+
+glimpse(dgames)
+
+ttvars <- c("host", "nations", "sports", "competitors", "events")
+
+tt <- tooltip_table(
+  ttvars,
+  sprintf("{point.%s}", ttvars) #, img = tags$img(src="{point.flagicon}")
+)
+
+cat(tt)
+
+hcgames2 <- hchart(dgames, "areaspline", hcaes(year, nations), name = "Nations") %>% 
+  hc_add_theme(hc_theme_smpl()) %>% 
   hc_colors(hex_to_rgba("white", 0.8)) %>% 
   hc_xAxis(
     title = list(text = ""),
-    crosshair = TRUE,
-    opposite = TRUE
+    gridLineWidth = 0,
+    labels = list(style = list(color = "white"))
   ) %>% 
   hc_yAxis(
+    lineWidth = 1,
+    tickWidth = 1,
+    tickLength = 10,
     title = list(text = ""),
-    gridLineWidth = 0
+    gridLineWidth = 0,
+    labels = list(style = list(color = "white"))
   ) %>% 
   hc_chart(
     divBackgroundImage = urlimg,
-    backgroundColor = hex_to_rgba("white", 0.10)
+    backgroundColor = hex_to_rgba("black", 0.10)
+    ) %>% 
+  hc_tooltip(
+    pointFormat = tt,
+    useHTML = TRUE,
+    backgroundColor = "transparent",
+    borderColor = "transparent",
+    shadow = FALSE,
+    style = list(color = "white", fontSize = "0.8em"),
+    positioner = JS("function () { return { x: this.chart.plotLeft + 30, y: this.chart.plotTop + 30 }; }"),
+    shape = "square"
+  ) %>% 
+  hc_plotOptions(
+    series = list(
+      states = list(hover = list(halo = list(size  = 30)))
     )
-
+  )
 hcgames2
-
 
 
 #' # Example II: Oil Spilss
