@@ -16,7 +16,7 @@ library(stringr)
 library(widyr)
 library(igraph)
 library(highcharter)
-
+options(highcharter.theme = hc_theme_elementary())
 #'
 #' Read data
 #' 
@@ -37,7 +37,8 @@ data <- read_csv2("data/2015.04_Subidas_paradero_mediahora_web/2015.04_Subidas_p
 data <- data %>% 
   mutate(subidas_laboral_promedio = as.numeric(subidas_laboral_promedio)) %>% 
   filter(!str_detect(paraderosubida, "^(T|L|I|E)?-")) %>% 
-  mutate(paraderosubida = str_to_title(paraderosubida))
+  mutate(paraderosubida = str_to_title(paraderosubida),
+         mediahora = 1000*mediahora)
 
 count(count(data, paraderosubida), n)
 
@@ -50,41 +51,82 @@ data <- filter(data, mediahora != 0)
 
 glimpse(data)
 
+#' ## Correlation
 
 dcor <- data %>%
   pairwise_cor(paraderosubida, mediahora, subidas_laboral_promedio,
-               upper = FALSE)
+               upper = FALSE) %>% 
+  arrange(desc(correlation))
+
+head(dcor)
+data %>% 
+  filter(paraderosubida %in% c("Plaza Maipu", "Laguna Sur")) %>% 
+  hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
+  hc_xAxis(type = "datetime") %>% 
+  hc_tooltip(sort = TRUE, table = TRUE)
+  
+tail(dcor)
+data %>% 
+  filter(paraderosubida %in% c("Universidad De Chile", "Plaza De Puente Alto")) %>% 
+  hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
+  hc_xAxis(type = "datetime") %>% 
+  hc_tooltip(sort = TRUE, table = TRUE)
+
 
 # hchart(dcor, "heatmap", hcaes(item1, item2, value = correlation))
-
 dcor1 <- dcor %>%
   arrange(desc(correlation)) %>%
   filter(row_number() <= 400)
 
+# dcor1 <- dcor1 %>% 
+#   group_by(item1) %>% 
+#   filter(row_number() <= 2) %>% 
+#   ungroup() 
+
 g <- graph_from_data_frame(dcor1, directed = FALSE)
 
-E(g)$weight <- dcor1$correlation
+E(g)$weight <- dcor1$correlation^2
 
-dvert <- data_frame(paraderosubida = V(g)$name) %>% 
-  left_join(data %>%
-              group_by(paraderosubida) %>%
-              summarise(n = sum(subidas_laboral_promedio))) %>% 
-  left_join(data %>% 
-              group_by(paraderosubida) %>% 
-              summarise(tend = cor(seq(1, 37), subidas_laboral_promedio)))
-
-wc <- cluster_edge_betweenness (g)
+wc <- cluster_fast_greedy(g)
 nc <- length(unique(membership(wc)))
 
+dvert <- data_frame(
+  paraderosubida = V(g)$name
+  ) %>% 
+  mutate(
+    comm = membership(wc)
+  ) %>% 
+  left_join(
+    data %>%
+      group_by(paraderosubida) %>%
+      summarise(n = sum(subidas_laboral_promedio))) %>% 
+  left_join(
+    data %>%
+      group_by(paraderosubida) %>% 
+      summarise(tend = cor(seq(1, 37), subidas_laboral_promedio))) %>% 
+  ungroup()
 
-V(g)$label <- V(g)$name
+dvert
+count(dvert, paraderosubida)
+
+# g <- graph_from_data_frame(dcor1, directed = FALSE, vertices = dvert) 
+# 
+# wc <- cluster_edge_betweenness (g)
+# nc <- length(unique(membership(wc)))
+
+V(g)$label <- dvert$paraderosubida
 V(g)$size <- dvert$n
-V(g)$color <- colorize(dvert$tend)
+V(g)$subidas_totals_miles <- dvert$n/1000
 V(g)$comm <- membership(wc)
+V(g)$tendencia <- dvert$tend
+
+# V(g)$color <- colorize(dvert$tend)
+V(g)$color <- colorize(dvert$comm)
 
 
 set.seed(1)
 hchart(g) %>% 
+  hc_tooltip(valueDecimals = 2) %>% 
   hc_add_theme(
     hc_theme_elementary(
       yAxis = list(visible = FALSE),
@@ -92,13 +134,23 @@ hchart(g) %>%
     )
   )
 
-# dcor2 <- dcor %>% 
-#   group_by(item1) %>% 
-#   arrange(desc(correlation)) %>% 
-#   filter(row_number() <= 3) %>% 
-#   ungroup()
-# 
-# g2 <- graph_from_data_frame(dcor2, directed = FALSE)
-# E(g2)$weight <- dcor2$correlation^2
-# 
-# hchart(g2)
+
+# ex ----------------------------------------------------------------------
+left_join(data, dvert) %>% 
+  mutate(comm = ifelse(is.na(comm), "Sin com", comm)) %>% 
+  ggplot(aes(mediahora, subidas_laboral_promedio, group = paraderosubida, color = comm)) +
+  geom_line(alpha = 0.2) +
+  geom_smooth(aes(group = comm)) + 
+  # scale_x_date() +
+  facet_wrap(~comm, ncol = 1, scales = "free_y")
+
+#' ## Autoencoder
+data2 <- data %>% 
+  group_by(paraderosubida) %>% 
+  mutate(subidas_laboral_promedio = scale(subidas_laboral_promedio),
+         mediahora = paste0("m", mediahora)) %>% 
+  ungroup() %>% 
+  spread(mediahora, subidas_laboral_promedio) 
+
+data2
+
