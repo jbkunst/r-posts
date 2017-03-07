@@ -13,7 +13,7 @@ rm(list = ls())
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 library(tidyverse)
 library(stringr)
-library(widyr)
+library(widyr) # devtools::install_github("dgrtwo/widyr")
 library(igraph)
 library(highcharter)
 options(highcharter.theme = hc_theme_elementary())
@@ -59,33 +59,53 @@ dcor <- data %>%
   arrange(desc(correlation))
 
 head(dcor)
-data %>% 
-  filter(paraderosubida %in% c("Plaza Maipu", "Laguna Sur")) %>% 
-  hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
-  hc_xAxis(type = "datetime") %>% 
-  hc_tooltip(sort = TRUE, table = TRUE)
-  
+
+dcor1 <- data %>% 
+  filter(paraderosubida %in% c("Plaza Maipu", "Laguna Sur")) 
+
+hw_grid(
+  dcor1 %>% 
+    hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
+    hc_xAxis(type = "datetime") %>% 
+    hc_tooltip(sort = TRUE, table = TRUE, xDateFormat = "%H:%S"),
+  dcor1 %>% 
+    spread(paraderosubida, subidas_laboral_promedio) %>% 
+    hchart("point", hcaes(`Laguna Sur`, `Plaza Maipu`, size = mediahora), maxSize = "5%") %>% 
+    hc_xAxis(min = 0) %>% 
+    hc_yAxis(min = 0)
+) %>% htmltools::browsable()
+
+
 tail(dcor)
-data %>% 
-  filter(paraderosubida %in% c("Universidad De Chile", "Plaza De Puente Alto")) %>% 
-  hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
-  hc_xAxis(type = "datetime") %>% 
-  hc_tooltip(sort = TRUE, table = TRUE)
+dcor2 <- data %>% 
+  filter(paraderosubida %in% c("Universidad De Chile", "Plaza De Puente Alto"))
 
+hw_grid(
+  dcor2 %>% 
+    hchart("line", hcaes(mediahora, subidas_laboral_promedio, group = paraderosubida)) %>% 
+    hc_xAxis(type = "datetime") %>% 
+    hc_tooltip(sort = TRUE, table = TRUE, xDateFormat = "%H:%S"),
+  dcor2 %>% 
+    spread(paraderosubida, subidas_laboral_promedio) %>% 
+    hchart("point", hcaes(`Plaza De Puente Alto`, `Universidad De Chile`, size = mediahora), maxSize = "5%") %>% 
+    hc_xAxis(min = 0) %>% 
+    hc_yAxis(min = 0)
+) %>% htmltools::browsable()
 
-# hchart(dcor, "heatmap", hcaes(item1, item2, value = correlation))
-dcor1 <- dcor %>%
+rm(dcor1, dcor2)
+
+dcorf <- dcor %>%
   arrange(desc(correlation)) %>%
   filter(row_number() <= 400)
 
-# dcor1 <- dcor1 %>% 
+# dcorf <- dcorf %>% 
 #   group_by(item1) %>% 
 #   filter(row_number() <= 2) %>% 
 #   ungroup() 
 
-g <- graph_from_data_frame(dcor1, directed = FALSE)
+g <- graph_from_data_frame(dcorf, directed = FALSE)
 
-E(g)$weight <- dcor1$correlation^2
+E(g)$weight <- dcorf$correlation^2
 
 wc <- cluster_fast_greedy(g)
 nc <- length(unique(membership(wc)))
@@ -116,9 +136,9 @@ count(dvert, paraderosubida)
 
 V(g)$label <- dvert$paraderosubida
 V(g)$size <- dvert$n
-V(g)$subidas_totals_miles <- dvert$n/1000
-V(g)$comm <- membership(wc)
-V(g)$tendencia <- dvert$tend
+V(g)$subidas_totales_miles <- round(dvert$n/1000, 2)
+V(g)$Comunidad <- membership(wc)
+V(g)$tendencia <- round(dvert$tend, 2)
 
 # V(g)$color <- colorize(dvert$tend)
 V(g)$color <- colorize(dvert$comm)
