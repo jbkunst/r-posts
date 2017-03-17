@@ -17,7 +17,41 @@ airlines_tbl <- copy_to(sc, nycflights13::airlines, "airlines")
 
 src_tbls(sc)
 
+
+flights_tbl
+
+tbl(sc, sql("SELECT count(*) FROM flights")) 
 tbl(sc, sql("SELECT * FROM flights")) 
+
+
+data(flights, package = "nycflights13") 
+str(flights)
+str(flights_tbl)
+
+flights %>% 
+  group_by(month) %>% 
+  summarise(
+    n = n(),
+    sched_arr_time_sum = sum(sched_arr_time)
+  )
+
+
+flights_tbl %>% left_join(airlines_tbl)
+
+class(flights_tbl)
+flights_tbl %>% 
+  group_by(carrier) %>% 
+  summarise(
+    n = n(),
+    sched_arr_time_sum = sum(sched_arr_time)
+  ) %>% 
+  arrange(sched_arr_time_sum) %>% 
+  show_query()
+  
+flights_tbl_carrier <- compute(flights_tbl_carrier)
+
+left_join(flights_tbl_carrier, airlines_tbl)
+
 
 # mod <- lm(dep_delay ~ ., data = nycflights13::flights)
 # 8GB RAM
