@@ -30,6 +30,13 @@ data <- read_csv("http://atlas.media.mit.edu/en/rankings/country/?download=true"
 names(data) <- tolower(names(data))
 data
 
+data <- countrycode::countrycode_data %>% 
+  tbl_df() %>% 
+  select(id = iso3c, continent) %>% 
+  mutate(id= tolower(id)) %>% 
+  right_join(data, by = "id") 
+
+data
 
 # explore -----------------------------------------------------------------
 data %>% 
@@ -53,7 +60,6 @@ ggplot(countries_to_study) +
 ggplot(countries_to_study) + 
   geom_line(aes(n, pcum))
 
-
 countries_to_study <- filter(countries_to_study, pcum > .5)
 
 data <- semi_join(data, countries_to_study)
@@ -61,31 +67,29 @@ data <- semi_join(data, countries_to_study)
 data %>% 
   count(country) %>% 
   count(n)
-  
 
 ggplot(data) + 
-  geom_line(aes(year, eci, group = country), alpha = 0.2)
+  geom_bar(aes(continent, fill = continent)) + 
+  scale_fill_viridis(discrete = TRUE)
+
+ggplot(data) + 
+  geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
+  scale_color_viridis(discrete = TRUE)
+  
+ggplot(data, aes(year, eci)) + 
+  geom_line(aes(group = country, color = continent), alpha = .4) +
+  geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
+  facet_wrap(~ continent) +
+  scale_color_viridis(discrete = TRUE) 
 
 filter(data, eci == min(eci))
 
-ggplot(data) + 
-  geom_density(aes(eci), fill = "gray90") + 
-  facet_wrap(~  year) + 
-  theme(
-    panel.grid.major = element_line(colour = "transparent"),
-    panel.grid.minor = element_line(colour = "transparent")
-  )
 
-data %>% 
-  group_by(year) %>% 
-  mutate(ecis = scale(eci)) %>%
-  ungroup() %>% 
-  group_by(year) %>% 
-  do(tidy(summary(.$ecis))) %>%
-  ungroup() %>% 
-  gather(key, value, -year) %>% 
-  ggplot() + 
-  geom_smooth(aes(year, value, group = key, color = key), se = FALSE) + 
-  scale_color_viridis(discrete = TRUE)
+data_ae <- data %>% 
+  select(id, continent, year, eci) %>% 
+  mutate(year = paste0("y", year)) %>% 
+  spread(year, eci) %>% 
+  arrange(id)
+data_ae
 
 
