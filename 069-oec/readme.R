@@ -36,7 +36,13 @@ data <- countrycode::countrycode_data %>%
   mutate(id= tolower(id)) %>% 
   right_join(data, by = "id") 
 
-data
+data %>% 
+  count(country, continent) %>% 
+  ungroup() %>% 
+  count(continent)
+
+data <- mutate(data, continent = ifelse(continent %in% c("Asia", "Oceania"),
+                                        "Asia & Oceania", continent))
 
 # explore -----------------------------------------------------------------
 data %>% 
@@ -60,7 +66,7 @@ ggplot(countries_to_study) +
 ggplot(countries_to_study) + 
   geom_line(aes(n, pcum))
 
-countries_to_study <- filter(countries_to_study, pcum > .5)
+countries_to_study <- filter(countries_to_study, pcum > .25)
 
 data <- semi_join(data, countries_to_study)
 
@@ -76,14 +82,13 @@ ggplot(data) +
   geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
   scale_color_viridis(discrete = TRUE)
   
-ggplot(data, aes(year, eci)) + 
-  geom_line(aes(group = country, color = continent), alpha = .4) +
-  geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
-  facet_wrap(~ continent) +
-  scale_color_viridis(discrete = TRUE) 
+# ggplot(data, aes(year, eci)) + 
+#   geom_line(aes(group = country, color = continent), alpha = .4) +
+#   geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
+#   facet_wrap(~ continent) +
+#   scale_color_viridis(discrete = TRUE) 
 
-filter(data, eci == min(eci))
-
+# filter(data, eci == min(eci))
 
 data_ae <- data %>% 
   select(id, continent, year, eci) %>% 
@@ -118,25 +123,29 @@ ggplot(dautoenc) +
   scale_color_viridis(discrete = TRUE) 
 
 data <- left_join(data, select(dautoenc, id, x, y), by = "id")
- 
 
-ggplot(data) + 
-  geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
-  scale_color_viridis(discrete = TRUE)
+kmeans <- map_df(1:10, function(k){
+  data %>% 
+    select(x, y) %>% 
+    kmeans(k) %>% 
+    {.[["betweenss"]]} %>%
+    {data_frame(k = k, b = 1 - .)}
+}) 
 
+ggplot(kmeans) +
+  geom_line(aes(k, b))
 
+kmod <- kmeans(select(data, x, y), 3)
 
-d <- map(seq(1, 10), function(x) density(rnorm(100, mean = x)))
-reduce(d, hc_add_series, .init = highchart())
+data <- mutate(data, cluster = as.character(kmod$cluster))
 
-
-d <- map(seq(1, 10), function(x) ts(runif(1) * (runif(1) + 1)*sort(rnorm(100))))
-d <- map(d, forecast::forecast)
-reduce(d, hc_add_series, .init = highchart() %>% hc_xAxis(type = "datetime"), addOriginal = TRUE)
-
-
-
-
-
-
-
+ggplot(distinct(data, id, .keep_all = TRUE)) + 
+  geom_point(aes(x, y, color = cluster), size = 2, alpha = 0.7) + 
+  facet_wrap(~continent) + 
+  scale_color_manual(values = c("red", "navy", "green"))
+  
+ggplot(data, aes(year, eci, color = cluster)) + 
+  geom_smooth(size = 2, alpha = 0.7, se = FALSE) +
+  # geom_line(aes(group = country), size = 1, alpha = 0.2) + 
+  facet_wrap(~continent) + 
+  scale_color_manual(values = c("red", "navy", "green"))
