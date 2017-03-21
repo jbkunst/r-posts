@@ -90,6 +90,53 @@ data_ae <- data %>%
   mutate(year = paste0("y", year)) %>% 
   spread(year, eci) %>% 
   arrange(id)
-data_ae
+
+
+# autoencoder -------------------------------------------------------------
+library(h2o)
+h2o.init(nthreads = -1)
+
+modae <- h2o.deeplearning(
+  x = names(data_ae)[-c(1, 2)],
+  training_frame = as.h2o(data_ae),
+  hidden = c(400,  100, 2, 100, 400),
+  activation = "Tanh",
+  autoencoder = TRUE
+  )
+modae
+
+dautoenc <- h2o.deepfeatures(modae, as.h2o(data_ae), layer = 3) %>% 
+  as.data.frame() %>% 
+  tbl_df() %>% 
+  setNames(c("x", "y")) %>% 
+  bind_cols(data_ae)
+
+dautoenc
+
+ggplot(dautoenc) + 
+  geom_point(aes(x, y, color = continent)) + 
+  scale_color_viridis(discrete = TRUE) 
+
+data <- left_join(data, select(dautoenc, id, x, y), by = "id")
+ 
+
+ggplot(data) + 
+  geom_smooth(aes(year, eci, group = continent, color = continent), se = FALSE) +
+  scale_color_viridis(discrete = TRUE)
+
+
+
+d <- map(seq(1, 10), function(x) density(rnorm(100, mean = x)))
+reduce(d, hc_add_series, .init = highchart())
+
+
+d <- map(seq(1, 10), function(x) ts(runif(1) * (runif(1) + 1)*sort(rnorm(100))))
+d <- map(d, forecast::forecast)
+reduce(d, hc_add_series, .init = highchart() %>% hc_xAxis(type = "datetime"), addOriginal = TRUE)
+
+
+
+
+
 
 
