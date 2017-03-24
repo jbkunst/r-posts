@@ -134,12 +134,11 @@ highchart() %>%
   hc_xAxis(type = "logarithmic", min = 100, max = 120000,
            title = list(text = "GPD per capita")) %>% 
   hc_yAxis(min = 0, max = 85, title = list(text = "Life Expectancy")) %>% 
-  # hc_add_theme(hc_theme_monokai()) %>%
-  hc_add_theme(hc_theme_smpl()) %>%
-  # hc_add_theme(hc_theme_db()) %>%
-  # hc_add_theme(hc_theme_economist()) %>%
-  # hc_add_theme(hc_theme_538()) %>%
-  hc_add_dependency_fa()
+  # hc_add_theme(hc_theme_monokai())
+  # hc_add_theme(hc_theme_smpl())
+  # hc_add_theme(hc_theme_db())
+  # hc_add_theme(hc_theme_economist())
+  # hc_add_theme(hc_theme_538())
 
 # highcharts_demo()
 
