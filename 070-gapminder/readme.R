@@ -82,7 +82,7 @@ data <- filter(data, country != "Reunion")
 
 # data for motion ---------------------------------------------------------
 data <- mutate(data, total_population = round(total_population/1e6))
-data <- filter(data, year >= 1950)
+data <- filter(data, year >= 1980)
 
 data_strt <- distinct(data, country, continent, .keep_all = TRUE) %>% 
   mutate(x = gdp_per_capita, y = life_expectancy, z = total_population)
@@ -135,10 +135,51 @@ highchart() %>%
            title = list(text = "GPD per capita")) %>% 
   hc_yAxis(min = 0, max = 85, title = list(text = "Life Expectancy")) %>% 
   # hc_add_theme(hc_theme_monokai())
-  # hc_add_theme(hc_theme_smpl())
+  hc_add_theme(hc_theme_smpl()) %>% 
   # hc_add_theme(hc_theme_db())
   # hc_add_theme(hc_theme_economist())
   # hc_add_theme(hc_theme_538())
+  hc_tooltip(
+    useHTML = TRUE,
+    positioner = JS("function () { return { x: this.chart.plotLeft + 15, y: 0 + 15 }; }"),
+    headerFormat = "{point.country}",
+    pointFormatter = JS("
+                        function(){
+                        
+                        var thiz = this;
+                        console.log(thiz);
+                        setTimeout(function() {
+                        $('#minichart').highcharts({
+                        title : {
+                        text: ''
+                        },
+                        subtitle: {
+                        text: thiz.country,
+                        align: 'left'
+                        },
+                        exporting: {
+                        enabled: false
+                        },
+                        legend: {
+                        enabled: false
+                        },
+                        credits: {
+                        enabled: false
+                        },
+                        series: [{
+                        animation: false,
+                        color: thiz.color,
+                        data: thiz.sequence
+                        }],
+                        yAxis: {
+                        title: ''
+                        }
+                        });
+                        }, 1000);
+                        return '<div id=\"minichart\" style=\"width: 250px; height: 150px;\"></div>';
+                        }                        
+                        ")
+    )
 
 # highcharts_demo()
 
