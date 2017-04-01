@@ -10,6 +10,7 @@ library(tidyverse)
 library(jbkmisc)
 library(tidyr)
 library(broom)
+library(viridis)
 theme_set(theme_jbk())
 
 # data --------------------------------------------------------------------
@@ -123,11 +124,15 @@ ggplot(data) +
 ```r
 data %>% 
   group_by(year) %>% 
-  do(tidy(summary(.$eci))) %>%
+  mutate(ecis = scale(eci)) %>%
+  ungroup() %>% 
+  group_by(year) %>% 
+  do(tidy(summary(.$ecis))) %>%
   ungroup() %>% 
   gather(key, value, -year) %>% 
   ggplot() + 
-  geom_line(aes(year, value, group = key))
+  geom_smooth(aes(year, value, group = key, color = key), se = FALSE) + 
+  scale_color_viridis(discrete = TRUE)
 ```
 
 ![](readme_files/figure-html/unnamed-chunk-2-6.png)<!-- -->
@@ -135,6 +140,6 @@ data %>%
 
 ---
 title: "readme.R"
-author: "joshua.kunst"
-date: "Fri Mar 17 16:42:33 2017"
+author: "Joshua"
+date: "Sat Mar 18 01:34:24 2017"
 ---
