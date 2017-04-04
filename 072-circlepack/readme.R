@@ -1,9 +1,8 @@
 # ws ----------------------------------------------------------------------
 rm(list = ls())
 library(tidyverse)
-library(gsheet)
 library(highcharter)
-
+library(gsheet)
 library(igraph)
 library(ggraph)
 
@@ -11,8 +10,6 @@ library(ggraph)
 set.seed(1)
 data <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1CH4Q5LmsLRBXf5OCReircx8goicKnz1u6XDvz4WF0Pk/edit#gid=0")
 glimpse(data)
-
-tot <- sum(data$gastos_operacionales)
 
 count(data, partido, sort = TRUE)
 
@@ -44,29 +41,39 @@ get_circlepack <- function(data, variable = "partido") {
     mutate_if(is.factor, as.character) %>% 
     tail(nrow(data)) %>%
     left_join(select_(data, .dots = c("name" = "nombre", "variable" = variable)))
-  d
+  
+  select(d, x, y, name, variable, size)
 }
 
-get_circlepack(data, "partido")
-d <- get_circlepack(data, "region")
-d <- get_circlepack(data, "sexo")
-
-d
+d <- get_circlepack(data, "partido")
+# d <- get_circlepack(data, "region")
+# d <- get_circlepack(data, "sexo")
 
 highchart(type = "map") %>% 
   hc_add_series(mapData = NULL, showInLegend = FALSE) %>% 
   hc_add_series(data = d, type = "mapbubble", mapping = hcaes(x, y, color = variable, z = size),
                 maxSize = "8.5%")
 
+
+vars <- c("sexo", "region", "partido")
+
+dmotion <- map(vars, get_circlepack, data = data)
+dmotion <- reduce(dmotion, bind_rows)
+
+dinit <- distinct(dmotion, name, .keep_all = TRUE)
+
+dseqs <- dmotion %>% 
+  group_by(name) %>% 
+  do(sequence = list_parse(select(., x, y)))
+
+dhc <- left_join(dinit, dseqs)
+
+highchart(type = "map") %>% 
+  hc_add_series(mapData = NULL, showInLegend = FALSE) %>% 
+  hc_add_series(data = dhc, type = "mapbubble", mapping = hcaes(x, y, color = variable, z = size),
+                maxSize = "8.5%") %>% 
+  hc_motion(series = 1, enabled = TRUE, labels = vars)
+
+
+
  
-
-
-data <- tbl_df(ggplot_build(gg)[["data"]][[1]])
-glimpse(data)
-
-
-graph <- graph_from_data_frame(flare$edges, vertices = flare$vertices)
-highcharter::hchart(graph)
-ggraph(graph, 'circlepack', weight = 'size') + 
-  geom_node_circle(aes(fill = depth), size = 0.25, n = 50) + 
-  coord_fixed()
