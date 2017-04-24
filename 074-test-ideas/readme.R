@@ -20,10 +20,9 @@ theme_set(theme_jbk())
 #' (esto es el código mismo) con el cual obtuvo las respuestas incluyendo 
 #' comentarios.
 #' 
-#' Se evaluará tango el código como el resulta. Con esto se intenta evitar las 
+#' Se evaluará tango el código como el resultado. Con esto se intenta evitar las 
 #' respuestas _al ojo_ o usando otras herramientas como _excel_.
-#' 
-#' Por ejemplo, supongamos el archivo `script_grupo_1.R`
+#' Por ejemplo, `script_grupo_1.R`:
 #' 
 #' ```
 #' # Pregunta 1
@@ -57,8 +56,7 @@ round(nota_final, 1)
 #' 
 library(tidyverse)
 
-paquetes_a_instalar <- c("gapminder", "babynames", "nasaweather",
-                         "fueleconomy", "nycflights13")
+paquetes_a_instalar <- c("gapminder", "babynames", "fueleconomy", "nycflights13")
 
 for(p in paquetes_a_instalar) {
   message("Instalando ", p)
@@ -133,6 +131,9 @@ ggmap
 #' Agregue una capa de de puntos ubicando los aeropuertos obtenidos de la pregunta
 #' anterior y usando además: `aes(size = la_cantidad_de_vuelos_a_dicho_aeropuerto)`.
 #' 
+#' tip: Use por favor geom_point(alpha = un_numero_menor_que_1) para tener
+#' un resultado agradable a la vista.
+#' 
 #' ## Pregunta 7
 #' 
 #' A la izquiera del gráfico anterior se observan 2 puntos. Genere el/los pasos
@@ -150,13 +151,13 @@ ggmap
 #' 1. Genere un gráfico de densidades del consumo en carretera (`hwy`)
 #' separando por clase de vehículo. 
 #' 
-#' 2. Averigué como usar la función `geom_boxplot` para comparar las
-#' distribuciones de rendimiento según clase.
+#' 2. Averigué como usar la función `geom_boxplot` para generar un gráfico
+#' de _boxplots_ y así comparar las distribuciones de rendimiento según clase.
 #' 
 #' ## Pregunta 9
 #' 
-#' Con los gráficos anteriormente obtenido argumente cuales son las debidildades y
-#' fortalezas de cada tipo de visualización. 
+#' Con los 2 gráficos anteriormente obtenidos argumente cuales son las
+#' debidildades y fortalezas de cada tipo de visualización. 
 #' 
 #' ## Pregunta 10
 #' 
