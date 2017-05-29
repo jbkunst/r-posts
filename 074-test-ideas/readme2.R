@@ -13,20 +13,42 @@ library(tidyverse)
 library(jbkmisc)
 theme_set(theme_jbk())
 #' 
-#' ## Evaluación y Consideraciones
+#' ![]( https://media.giphy.com/media/ejKpjEfcPuYve/giphy.gif)
 #' 
-
+#' ## Evaluación, Consideraciones y Advertencias
+#' 
+#' Similar a la tarea previa:
+#' 
+#' - Si va a preguntar algo sobre la tarea o materia, cualquier duda, copie a 
+#' todos. En caso que no lo haga yo lo haré.
+#' - Pregunte, sin miedo, yo decidiré si es apto o tiene sentido que responda.
+#' - La tarea debe ser entregada al correo `jbkunst@gmail.com` a más tardar 
+#' el miércoles 7 junio del 2017. No se cambiará la fecha ;)! El asunto del mail
+#' debe ser __tarea namber too__.
+#' 
 #' ## Pregunta 0 (punto base)
 #' 
-#' Ejecute el siguiente código
+#' Ejecute el siguiente código, luego comente sobre el resultado del
+#' código/experimento
 #' 
+#'
+library(tidyverse)
 
+#+eval=FALSE
+full_join(
+  data_frame(x = rnorm(1e8), o1 = 1),
+  data_frame(x = rnorm(1e8), o2 = 2),
+  by = "x"
+)
+
+#' En caso que no funcione, intente con `1e7`, y así hasta que funcione. 
+#' 
 #' ## Pregunta 1
 #' 
 #' Considere la tabla `iris` que contiene la medición de características de 150
 #'  flores para ciertas especies de _iris_. 
 #' 
-#' (morfología)[https://www.math.umd.edu/~petersd/666/html/iris_with_labels.jpg]
+#' ![](https://www.math.umd.edu/~petersd/666/html/iris_with_labels.jpg)
 #' 
 #' Estudie la relación entre el largo y el ancho del sépalo:
 
@@ -53,7 +75,7 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width)) +
 #' fueron capturadas al momento que le otorgaron un producto de crédito y luego
 #' de cierto tiempo (digamos un año) se mide la variable `bad` que indica si cayó 
 #' en default durante el periodo que el cliente se observó, i.e.,
-#' fue un mal mal mal cliente.#' 
+#' fue un mal mal mal cliente.
 #' 
 credit <- read_csv("https://raw.githubusercontent.com/jbkunst/riskr/master/data/credit.csv")
 glimpse(credit)
@@ -69,15 +91,15 @@ credit <- mutate(credit, bad = factor(bad))
 glimpse(credit)
 
 #' 
-#' A partir de `credit` genere dos subconjuntos disjuntos (partición) en donde cada
-#' una contenga aproximadamente 50% de los casos, i.e., partala a la _mitá_ [^1]
+#' A partir de `credit` genere dos subconjuntos disjuntos (partición) 
+#' de format __aleatoria__ en donde cada
+#' una contenga aproximadamente 50% de los casos [^1].
 #' 
 #' [^1]: Un humilde consejo, llame a estas tablas como `train` (de entrenamiento) 
 #' y `test` de testing. Jerga que se usa habitualmente en este tipo de experimentos.
 #' 
 #' Para cada una de las tablas calcule la proporción de clientes que cayeron en
-#' default y luego de comparar: __comente__.
-#' 
+#' default y luego de comparar: __comente__ (¿Era preceible el resultado?).
 #' 
 #' ## Pregunta 4
 #' 
@@ -103,6 +125,3 @@ data_frame(i = 2, train = 321, test = 123)
 #' la tasa de correcta clasifiación separado según la tabla de la cual proviene
 #' la tasa. Además __comente__.
 #' 
-#' ## Pregunta 6
-#' 
-#' Lorem
