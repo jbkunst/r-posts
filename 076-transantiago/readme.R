@@ -2,23 +2,42 @@
 rm(list = ls())
 library(tidyverse)
 library(stringr)
+library(jsonlite)
+library(rvest)
 
 # example -----------------------------------------------------------------
 url <- "http://mtt-scl.data.pedalean.com/pedalean/mtt-gz/2017/04/20/00/20170420000001.json.gz"
-data <- jsonlite::fromJSON(url)
+data <- fromJSON(url)
 names(data)
+str(data, max.level = 2)
 
 # download ----------------------------------------------------------------
-df_time <- expand.grid(h = 0:23, m = 0:59) %>% 
-  tbl_df() %>% 
-  mutate_all(str_pad, width = 2, side = "left", pad = "0") %>% 
-  arrange(h, m)
+urls <- read_html("http://mtt-scl.data.pedalean.com/pedalean/?prefix=mtt-gz/2017/05/12/06/&max-keys=10000000") %>% 
+  html_nodes("key") %>% 
+  html_text()
 
-Y <- "2017"
-M <- str_pad( 5, 2, pad = "0")
-D <- str_pad(12, 2, pad = "0")
 
-message(Y, M, D)
+map(urls, function(u){ # u <- sample(urls, size = 1)
+  
+  message(u)
+  
+  file <- u %>% 
+    basename() %>% 
+    file.path("data", .)
+  
+  if(!file.exists(file)) {
+    
+    message("downlading")
+    
+    data <- fromJSON(url)
+    
+  } else {
+    
+    message("skipping")
+    
+  }
+  
+})
 
 check <- map2(df_time$h, df_time$m, function(h, m){ # h <- "00"; m <- "23"
   
