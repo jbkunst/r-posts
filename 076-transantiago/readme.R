@@ -5,6 +5,9 @@ library(stringr)
 library(jsonlite)
 library(rvest)
 
+dir.create("data")
+dir.create("data/raw")
+
 # example -----------------------------------------------------------------
 url <- "http://mtt-scl.data.pedalean.com/pedalean/mtt-gz/2017/04/20/00/20170420000001.json.gz"
 data <- fromJSON(url)
@@ -12,10 +15,18 @@ names(data)
 str(data, max.level = 2)
 
 # download ----------------------------------------------------------------
-urls <- read_html("http://mtt-scl.data.pedalean.com/pedalean/?prefix=mtt-gz/2017/05/12/06/&max-keys=10000000") %>% 
-  html_nodes("key") %>% 
-  html_text()
 
+"http://mtt-scl.data.pedalean.com/pedalean/?prefix=mtt-gz/2017/05/12/23/&max-keys=10000000"
+
+urls <- 0:24 %>% 
+  str_pad(2, pad = "0") %>% 
+  file.path("http://mtt-scl.data.pedalean.com/pedalean/?prefix=mtt-gz", 2017, "05", "12", ., "&max-keys=10000000") %>% 
+  map(read_html) %>% 
+  map(html_nodes, "key") %>% 
+  map(html_text) %>% 
+  reduce(c)
+
+length(urls)
 
 map(urls, function(u){ # u <- sample(urls, size = 1)
   
@@ -23,13 +34,13 @@ map(urls, function(u){ # u <- sample(urls, size = 1)
   
   file <- u %>% 
     basename() %>% 
-    file.path("data", .)
+    file.path("data", "raw", .)
   
   if(!file.exists(file)) {
     
-    message("downlading")
+    message("downloading")
     
-    data <- fromJSON(url)
+    saveRDS(fromJSON(url), file)
     
   } else {
     
@@ -39,65 +50,32 @@ map(urls, function(u){ # u <- sample(urls, size = 1)
   
 })
 
-check <- map2(df_time$h, df_time$m, function(h, m){ # h <- "00"; m <- "23"
+
+files <- dir("data/raw/", pattern = "^20170512", full.names = TRUE)
+
+get_table_from_raw <- function(f) { # f <- sample(files, size = 1)
   
-  message(rep("*-", 10))
+  # f <- "data/raw/20170512061401.json.gz"
   
-  message(h, m)
+  message(basename(f))
   
-  file <- str_c(Y, M, D, h, m, "01.json.gz", collapse = "")
-  url <- file.path("http://mtt-scl.data.pedalean.com/pedalean/mtt-gz", Y, M, D, h,  file)
+  data <- readRDS(f)
   
-  message(url)
+  dpos <- data$posiciones %>% 
+    map(str_split, ";") %>%
+    map(unlist) %>% 
+    map(t) %>% 
+    map(as.matrix) %>% 
+    reduce(rbind)
   
-  if(httr::GET(url)$status != 404) {
-    
-    data <- jsonlite::fromJSON(url)
-    
-    message(data$fecha_consulta)
-    
-    return(1)
-    
-  } else {
-    
-    message("Errors", rep("!", 50))
-    
-    return(0)
-    
-  }
+  dpos2 <- map_df(1:4, function(x){ # x <- 2
+    dpos[, 1:12 + 12*(x - 1)] %>% 
+      as_data_frame()
+  })
   
-})
+  dpos2
   
+}
 
-# 15% 0 85% 1
-check %>% unlist %>% table %>% prop.table
+data <- map_df(files, get_table_from_raw)
 
-
-names(data)
-length(data$posiciones)
-
-d <- read_delim(str_c(data$posiciones, collapse = "\n"), col_names = FALSE, delim = ";")
-
-dpos <- data$posiciones %>% 
-  map(str_split, ";") %>%
-  map(unlist) %>% 
-  map(t) %>% 
-  map(as.matrix) %>% 
-  reduce(rbind)
-
-dpos3 <- as_data_frame(dpos)
-
-count(dpos3, V2, sort = TRUE)
-
-
-dpos2 <- map_df(1:4, function(x){ # x <- 2
-  dpos[, 1:12 + 12*(x - 1)] %>% 
-    as_data_frame()
-})
-
-dpos2
-
-count(dpos2, V2, sort = TRUE)
-
-dpos2 %>% 
-  filter(V2 == "AA-0638")
