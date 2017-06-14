@@ -1,0 +1,32 @@
+Fecha Hora Gps UTC (Alfanumérico): Fecha de la transmisión del bus.
+  
+  Patente (Alfanumérico ): Patente del bus, ejemplo VX-2321 o BJFP-93.
+  
+  Latitud (Numérico con decimales): Coordenada geográfica de la última transmisión,
+  correspondiente a la proyección EPSG4326 - WSG 84.
+  
+  Longitud (Numérico con decimales): Coordenada geográfica de la última transmisión,
+  correspondiente a la proyección EPSG4326 - WSG 84.
+  
+  Velocidad Instantánea (Numérico con decimales): En km/h redondeado a 1 decimal.
+  
+  Dirección Geográfica Movimiento del bus (Numérico entero): Son 8 direcciones posibles 
+  que indican dirección general del movimiento instantáneo. Los valores
+  posibles son: 0 = Norte, 1 = Noreste, 2 = Este, 3 = Sureste, 4 = Sur, 5 = Suroeste,
+  6 = Oeste, 7 = Noroeste.
+  
+  Número de Operador (Numérico entero): identificador del concesionario.
+  
+  Nombre Comercial del Servicio (Alfanumérico): Código Sistema Sinóptico del servicio que
+  está haciendo el bus, por ejemplo T515. Es necesario para la conversión de código Sinóptico 
+  a código usuario utilizar está tabla (assets/􀂠les/serviciosdeco.txt)
+  
+  Sentido (Alfabético): Sentido de la ruta en la que circula el bus, puede ser: 
+    I - Ida, R - Retorno, vacío - sin sentido asociado
+  
+  Ruta Consola del Bus (Alfanumérico): Ruta asignada al bus por consola, por ejemplo T201 00I
+  
+  Ruta en Sinóptico (Alfanumérico): Ruta asignada al bus, por ejemplo T201 03I
+  
+  Fecha Hora de inserción UTC (Alfanumérico): Fecha hora en que el registro de la 
+  transmisión fue ingresado a la Base de datos.
