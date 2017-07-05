@@ -90,3 +90,14 @@ get_vote_data <- function(id = 25886) { # id <- sample(ids, size = 1)
 }
 
 map(sample(ids), get_vote_data)
+
+
+
+#  consolidate ------------------------------------------------------------
+files <- dir("data/", full.names = TRUE, pattern = "votacion_")
+
+data <- map(files, readRDS)
+
+data_meta <- map_df(data, 1)
+data_vote <- map_df(data, 2)
+
