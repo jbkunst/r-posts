@@ -4,3 +4,4 @@
 *.html
 */cache/*
 */*_cache/*
+.Rproj.user
