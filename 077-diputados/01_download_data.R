@@ -160,3 +160,11 @@ diputados <- map_df(ids, get_dip_data)
 
 diputados
 
+"https://www.camara.cl/camara/diputados.aspx"
+
+
+# partidos ----------------------------------------------------------------
+
+"https://es.wikipedia.org/wiki/Partidos_pol%C3%ADticos_de_Chile"
+
+
