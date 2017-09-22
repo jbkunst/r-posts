@@ -156,15 +156,98 @@ get_dip_data <- function(id = 972){
 
 # ids <- 1:1500
 ids <- c(177, 800:1007)
-diputados <- map_df(ids, get_dip_data)
 
+diputados1 <- map_df(ids, get_dip_data)
+diputados1
+
+
+diputados2 <- read_html("https://www.camara.cl/camara/diputados.aspx") %>% 
+  html_nodes(".alturaDiputado") %>% 
+  map_df(function(e){
+    # e <- dip[[1]]
+    
+    data <- e %>%
+      html_nodes("li") %>%
+      html_text() %>% 
+      str_replace(".*:", "") %>% 
+      str_trim()
+    
+    id <- e %>% 
+      html_node("h4") %>% 
+      html_node("a") %>% 
+      html_attr("href") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric()
+    
+    data_frame(
+      diputado_id = id,
+      region = data[1],
+      distrito = data[2],
+      partido = data[3]
+    )
+   
+    
+  })
+
+
+diputados <- full_join(diputados1, diputados2)
+glimpse(diputados)
+
+count(diputados, partido, sort = TRUE)
+count(diputados, partido, comite, sort = TRUE)
+
+
+data_vote %>% 
+  count(diputado_id)
+data_meta
 diputados
 
-"https://www.camara.cl/camara/diputados.aspx"
+
+# filtering ---------------------------------------------------------------
+data_vote <- mutate(data_vote, diputado_id = as.numeric(diputado_id))
+
+primera_votacion_ultimo_periodo <- data_vote %>% 
+  semi_join(diputados) %>% 
+  filter(diputado_id== 968) %>% 
+  count(votacion_id, sort = TRUE) %>% 
+  left_join(data_meta) %>%
+  arrange(votacion_id) %>% 
+  pull(votacion_id) %>% 
+  first()
+  
+primera_votacion_ultimo_periodo
 
 
-# partidos ----------------------------------------------------------------
 
-"https://es.wikipedia.org/wiki/Partidos_pol%C3%ADticos_de_Chile"
+
+data_votacion_detalle <- data_vote %>% 
+  filter(votacion_id >= primera_votacion_ultimo_periodo)
+
+# data_diputados
+data_diputados <- diputados
+
+data_diputados <- data_diputados %>% 
+  mutate(nombre = str_replace(nombre, "\\w+ ", ""),
+         profesion = str_replace(profesion, "\\.$", ""),
+         distrito = str_replace(distrito, "N°", "")) %>% 
+  glimpse()
+
+# data_votacion_meta
+data_votacion_meta <- data_meta %>% 
+  filter(votacion_id >= primera_votacion_ultimo_periodo)
+
+glimpse(data_votacion_meta)
+data_votacion_meta <- data_votacion_meta %>% 
+  separate(fecha, c("dia", "mes", "ano_hora"), "\\s+de\\s+") %>% 
+  separate(ano_hora, c("ano", "hora"), "\\s+") %>% 
+  mutate(boletin = str_replace(boletin, "Boletín N° ", "")) %>% 
+  glimpse()
+
+
+# export ------------------------------------------------------------------
+dir.create("csv")
+write_csv(data_votacion_detalle, "csv/votacion_detalle.csv")
+write_csv(data_diputados, "csv/diputados.csv")
+write_csv(data_votacion_meta, "csv/votacion_metadata.csv")
 
 
