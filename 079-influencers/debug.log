@@ -1,0 +1,2 @@
+[0127/203628.867:ERROR:file_io.cc(89)] ReadExactly: expected 504, observed 0
+[0127/203628.868:ERROR:crash_report_database_win.cc(444)] failed to read records
