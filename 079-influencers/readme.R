@@ -36,9 +36,14 @@ users <- unique(users)
 
 
 to_rmv <- c("733994123678490625", "733994123678490625", "844152803991994368",
-            "735111228322906112", "804915763")
+            "735111228322906112", "804915763", "4492811181", "15081426", "1494032131")
 
-users_n_friends <- users %>% 
+
+safe_m_my_get_friends <- safely(m_my_get_friends)
+
+users_n_friends <- users %>%
+  # filter(followers_count > 50) %>% 
   filter(!user_id %in% to_rmv) %>% 
   pull(user_id) %>% 
-  map_df(m_my_get_friends)
+  sample() %>% 
+  map(safe_m_my_get_friends)
